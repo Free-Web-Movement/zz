@@ -28,8 +28,10 @@ androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-man
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 ktor-ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktorServerContentNegotiationVersion" }
+ktor-ktor-server-html-builder = { module = "io.ktor:ktor-server-html-builder", version.ref = "ktorVersion" }
 ktor-serialization-gson = { module = "io.ktor:ktor-serialization-gson", version.ref = "ktorSerializationGson" }
 ktor-server-core = { module = "io.ktor:ktor-server-core" }
+ktor-server-html-builder = { module = "io.ktor:ktor-server-html-builder" }
 ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktorVersion" }
 ktorm-core = { module = "org.ktorm:ktorm-core" }
 
