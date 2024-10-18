@@ -43,7 +43,7 @@ class ip {
                                 )
 
                                 file.createNewFile();
-                                if (file.exists()) {
+                                if (!file.exists()) {
                                     val fo: OutputStream = FileOutputStream(file)
                                     fo.write("Hello Ktor!".toByteArray())
                                     fo.flush()
@@ -58,7 +58,7 @@ class ip {
                             val address =
                                 inetAddress.hostAddress?.toString()?.split("%")?.get(0).toString();
                             addresses.add("http://$address:" + HttpServer.PORT)
-                            addresses.add("http://$address:" + HttpServer.PORT + "/d");
+                            addresses.add("http://$address:" + HttpServer.PORT + "/" + DOWNLOAD_URI);
                         }
                     }
                 }
