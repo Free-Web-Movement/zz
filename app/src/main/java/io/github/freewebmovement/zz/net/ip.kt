@@ -7,11 +7,20 @@ import java.io.FileOutputStream
 import java.io.OutputStream
 import java.net.Inet4Address
 import java.net.Inet6Address
+import java.net.InetAddress
 import java.net.NetworkInterface
 
 
 class ip {
     companion object {
+
+        private fun isPublic(inetAddress: InetAddress): Boolean {
+            return !inetAddress.isLoopbackAddress && !inetAddress.isSiteLocalAddress
+                    && !inetAddress.isAnyLocalAddress && !inetAddress.isLinkLocalAddress &&
+                    !inetAddress.isMCOrgLocal && !inetAddress.isMCNodeLocal &&
+                    !inetAddress.isMCLinkLocal && !inetAddress.isMCSiteLocal;
+        }
+
         fun v4s(): List<String> {
             val addresses = ArrayList<String>();
             try {
@@ -25,10 +34,21 @@ class ip {
                         println("ipv6 --  " + inetAddress.address)
                         println("ip1 -- $inetAddress")
                         println("ip2 --" + inetAddress.hostAddress)
-                        println("download: " + Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS));
-                        println("download: " + Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS))
+                        println(
+                            "download: " + Environment.getExternalStoragePublicDirectory(
+                                Environment.DIRECTORY_DOWNLOADS
+                            )
+                        );
+                        println(
+                            "download: " + Environment.getExternalStoragePublicDirectory(
+                                Environment.DIRECTORY_DOCUMENTS
+                            )
+                        )
 
-                        val directory: File = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString())
+                        val directory: File = File(
+                            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                                .toString()
+                        )
                         val files = directory.listFiles()
                         if (files != null) {
                             Log.d("Files", "Size: " + files.size)
@@ -54,7 +74,7 @@ class ip {
                         }
 
 
-                        if (!inetAddress.isLoopbackAddress && inetAddress is Inet4Address) {
+                        if (isPublic(inetAddress) && inetAddress is Inet4Address) {
                             val address =
                                 inetAddress.hostAddress?.toString()?.split("%")?.get(0).toString();
                             addresses.add("http://$address:" + HttpServer.PORT)
@@ -67,6 +87,7 @@ class ip {
             }
             return addresses.distinct();
         }
+
         fun v6s(): List<String> {
             val addresses = ArrayList<String>();
             try {
@@ -81,7 +102,7 @@ class ip {
                         println("ip1 -- $inetAddress")
                         println("ip2 --" + inetAddress.hostAddress)
 
-                        if (!inetAddress.isLoopbackAddress && inetAddress is Inet6Address) {
+                        if (isPublic(inetAddress) && inetAddress is Inet6Address) {
                             val address =
                                 inetAddress.hostAddress?.toString()?.split("%")?.get(0).toString();
                             addresses.add("http://[$address]:" + HttpServer.PORT)
