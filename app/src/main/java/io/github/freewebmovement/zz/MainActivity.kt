@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -74,7 +75,7 @@ fun Greeting(modifier: Modifier = Modifier) {
 //        ip.v4s().forEach { URLButton(it) }
 //    }
 
-	FlowRow(Modifier.padding(top = 20.dp), horizontalArrangement = Alignment.CenterHorizontally) {
+	FlowRow(Modifier.padding(top = 20.dp), horizontalArrangement = Arrangement.Center) {
 		Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
 			Icon(Icons.Default.Add, contentDescription = null)
 			Text(text = "Line 1")
