@@ -11,9 +11,8 @@ import java.net.InetAddress
 import java.net.NetworkInterface
 
 
-class ip {
+class IPList {
     companion object {
-
         private fun isPublic(inetAddress: InetAddress): Boolean {
             return !inetAddress.isLoopbackAddress && !inetAddress.isSiteLocalAddress
                     && !inetAddress.isAnyLocalAddress && !inetAddress.isLinkLocalAddress &&
@@ -21,7 +20,7 @@ class ip {
                     !inetAddress.isMCLinkLocal && !inetAddress.isMCSiteLocal;
         }
 
-        fun v4s(): List<String> {
+        fun v4s(port: Int): List<String> {
             val addresses = ArrayList<String>();
             try {
                 val networkInterfaces = NetworkInterface
@@ -77,8 +76,8 @@ class ip {
                         if (isPublic(inetAddress) && inetAddress is Inet4Address) {
                             val address =
                                 inetAddress.hostAddress?.toString()?.split("%")?.get(0).toString();
-                            addresses.add("http://$address:" + HttpServer.PORT)
-                            addresses.add("http://$address:" + HttpServer.PORT + "/" + DOWNLOAD_URI);
+                            addresses.add("http://$address:$port")
+                            addresses.add("http://$address:$port/$DOWNLOAD_URI");
                         }
                     }
                 }
@@ -88,7 +87,7 @@ class ip {
             return addresses.distinct();
         }
 
-        fun v6s(): List<String> {
+        fun v6s(port: Int): List<String> {
             val addresses = ArrayList<String>();
             try {
                 val networkInterfaces = NetworkInterface
@@ -105,7 +104,7 @@ class ip {
                         if (isPublic(inetAddress) && inetAddress is Inet6Address) {
                             val address =
                                 inetAddress.hostAddress?.toString()?.split("%")?.get(0).toString();
-                            addresses.add("http://[$address]:" + HttpServer.PORT)
+                            addresses.add("http://[$address]:$port")
                         }
                     }
                 }

@@ -17,8 +17,6 @@ const val DOWNLOAD_URI = "download"
 //}
 
 fun Application.configureRouting() {
-
-
     routing {
         get("/") {
             val directory = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString())
@@ -44,13 +42,11 @@ fun Application.module() {
 
 class HttpServer {
     companion object {
-        const val PORT = 10086
-        private const val HOST = "0.0.0.0"
-        fun start() {
+        fun start(host: String = "0.0.0.0", port: Int = 10086) {
             embeddedServer(
                 Netty,
-                port = PORT,
-                host = HOST,
+                port = port,
+                host = host,
                 module = Application::module
             ).start(wait = false)
         }
