@@ -43,8 +43,14 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Greeting(modifier: Modifier = Modifier) {
+	var text: String;
+	if (IPList.hasPublicIP(Server.port ) ) {
+		text = "You have public ip"
+		} else {
+		text = "You have no public ip"
+	}
     Text(
-        text = "Hello Http Server!",
+        text = text,
         modifier = modifier
     )
     Row(
@@ -52,6 +58,7 @@ fun Greeting(modifier: Modifier = Modifier) {
     ) {
         IPList.v6s(Server.port).forEach { URLButton(it) }
 		IPList.v4s(Server.port).forEach { URLButton(it) }
+		IPList.hasPublicIP(Server.port);
     }
 //
 //	FlowRow(Modifier.padding(top = 20.dp), horizontalArrangement = Arrangement.Center) {

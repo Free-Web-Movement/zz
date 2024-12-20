@@ -1,12 +1,14 @@
 [versions]
 agp = "8.7.3"
 kotlin = "1.9.0"
-coreKtx = "1.10.1"
+coreKtx = "1.12.0"
 junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
 ktorSerializationGson = "3.0.0"
 ktorServerContentNegotiationVersion = "3.0.0"
+ktorServerFreemarker = "3.0.0"
+ktorServerVelocity = "3.0.0"
 ktorVersion = "3.0.0"
 lifecycleRuntimeKtx = "2.6.1"
 activityCompose = "1.8.0"
@@ -29,11 +31,11 @@ androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 ktor-ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktorServerContentNegotiationVersion" }
 ktor-ktor-server-html-builder = { module = "io.ktor:ktor-server-html-builder", version.ref = "ktorVersion" }
+ktor-ktor-server-velocity = { module = "io.ktor:ktor-server-velocity", version.ref = "ktorServerVelocity" }
 ktor-serialization-gson = { module = "io.ktor:ktor-serialization-gson", version.ref = "ktorSerializationGson" }
 ktor-server-core = { module = "io.ktor:ktor-server-core" }
-ktor-server-html-builder = { module = "io.ktor:ktor-server-html-builder" }
+ktor-server-freemarker = { module = "io.ktor:ktor-server-freemarker", version.ref = "ktorServerFreemarker" }
 ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktorVersion" }
-ktorm-core = { module = "org.ktorm:ktorm-core" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

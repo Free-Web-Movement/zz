@@ -13,6 +13,12 @@ import java.net.NetworkInterface
 
 class IPList {
     companion object {
+        lateinit var ipv4IPs: List<String>
+        lateinit var ipv6IPs: List<String>
+        var initIPV4 = false;
+        var initIPV6 = false;
+        var initIP = false;
+
         private fun isPublic(inetAddress: InetAddress): Boolean {
             return !inetAddress.isLoopbackAddress && !inetAddress.isSiteLocalAddress
                     && !inetAddress.isAnyLocalAddress && !inetAddress.isLinkLocalAddress &&
@@ -21,6 +27,9 @@ class IPList {
         }
 
         fun v4s(port: Int): List<String> {
+            if (initIPV4) {
+                return ipv4IPs;
+            }
             val addresses = ArrayList<String>();
             try {
                 val networkInterfaces = NetworkInterface
@@ -84,10 +93,15 @@ class IPList {
             } catch (ex: Exception) {
                 Log.e("IP Address", ex.toString())
             }
-            return addresses.distinct();
+            ipv4IPs = addresses.distinct();
+            initIPV4 = true;
+            return ipv4IPs;
         }
 
         fun v6s(port: Int): List<String> {
+            if (initIPV6) {
+                return ipv6IPs;
+            }
             val addresses = ArrayList<String>();
             try {
                 val networkInterfaces = NetworkInterface
@@ -111,7 +125,17 @@ class IPList {
             } catch (ex: Exception) {
                 Log.e("IP Address", ex.toString())
             }
-            return addresses.distinct();
+            ipv6IPs = addresses.distinct();
+            initIPV6 = true;
+            return ipv6IPs;
+        }
+
+        fun hasPublicIP(port:Int) : Boolean {
+            val ipv4 = this.v4s(port);
+            val ipv6 = this.v6s(port);
+            println(ipv6.size);
+            println(ipv6.size);
+            return  ipv4.isNotEmpty() || ipv6.isNotEmpty()
         }
     }
 }
