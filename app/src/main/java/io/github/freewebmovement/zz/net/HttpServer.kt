@@ -1,15 +1,9 @@
 package io.github.freewebmovement.zz.net
 
 import android.os.Environment
-import freemarker.cache.ClassTemplateLoader
-import io.github.freewebmovement.zz.settings.Server
 import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationPlugin
 import io.ktor.server.application.install
 import io.ktor.server.engine.embeddedServer
-import io.ktor.server.freemarker.FreeMarker
-import io.ktor.server.freemarker.FreeMarkerContent
-import io.ktor.server.html.respondHtml
 import io.ktor.server.http.content.staticFiles
 import io.ktor.server.netty.Netty
 import io.ktor.server.response.respond
@@ -18,23 +12,15 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.ktor.server.velocity.Velocity
 import io.ktor.server.velocity.VelocityContent
-import io.ktor.websocket.WebSocketDeflateExtension.Companion.install
-import org.apache.velocity.app.VelocityEngine
 import org.apache.velocity.runtime.RuntimeConstants
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader
-import java.lang.System.setProperty
 
 const val DOWNLOAD_URI = "download"
-fun Application.configureRouting() {
-
-}
-
 fun Application.module() {
-//    configureRouting()
-//    install(FreeMarker)
 
-    install(FreeMarker) {
-        templateLoader = ClassTemplateLoader(this::class.java.classLoader, "templates")
+    install(Velocity) {
+        setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath")
+        setProperty("classpath.resource.loader.class", ClasspathResourceLoader::class.java.name)
     }
 
     routing {
@@ -49,10 +35,8 @@ fun Application.module() {
 //                    typeInfo = TODO()
 //                )
 //            } else {
-            call.respond(
-                FreeMarkerContent("index.ftl", mapOf("user" to "ok"))
-            )
-//            call.respondText("No public IPV6 is not supported! \n ");
+          //  call.respond(VelocityContent("templates/index.vl", mapOf("user" to "")))
+            call.respondText("Hello Android! \n ");
 //            }
         }
         staticFiles(
