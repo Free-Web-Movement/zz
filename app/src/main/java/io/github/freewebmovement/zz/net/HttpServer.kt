@@ -1,28 +1,21 @@
 package io.github.freewebmovement.zz.net
-
+import android.net.Uri
 import android.os.Environment
-import freemarker.cache.ClassTemplateLoader
-import io.github.freewebmovement.zz.settings.Server
+import io.github.freewebmovement.zz.MainApplication
+import io.github.freewebmovement.zz.R
 import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationPlugin
 import io.ktor.server.application.install
 import io.ktor.server.engine.embeddedServer
-import io.ktor.server.freemarker.FreeMarker
-import io.ktor.server.freemarker.FreeMarkerContent
-import io.ktor.server.html.respondHtml
 import io.ktor.server.http.content.staticFiles
 import io.ktor.server.netty.Netty
 import io.ktor.server.response.respond
-import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.ktor.server.velocity.Velocity
 import io.ktor.server.velocity.VelocityContent
-import io.ktor.websocket.WebSocketDeflateExtension.Companion.install
-import org.apache.velocity.app.VelocityEngine
 import org.apache.velocity.runtime.RuntimeConstants
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader
-import java.lang.System.setProperty
+
 
 const val DOWNLOAD_URI = "download"
 fun Application.configureRouting() {
@@ -33,8 +26,32 @@ fun Application.module() {
 //    configureRouting()
 //    install(FreeMarker)
 
-    install(FreeMarker) {
-        templateLoader = ClassTemplateLoader(this::class.java.classLoader, "templates")
+//    install(FreeMarker) {
+//        templateLoader = ClassTemplateLoader(this::class.java.classLoader, "templates")
+//        println("templateLoader = $templateLoader")
+//    }
+
+    install(Velocity) {
+//        val file = MainApplication.instance!!.applicationContext.filesDir.absolutePath;
+        val app = MainApplication.instance!!
+//        val file = app.dataDir.absoluteFile
+        val path = app.packageResourcePath
+        val path1 = app.packageCodePath
+        var path2 = app.getFileStreamPath(path1);
+        //(R.raw.anchor);
+        println("inside volocity");
+        println(RuntimeConstants.RESOURCE_LOADER);
+        println(ClasspathResourceLoader::class.java.name);
+//        println(file);
+        println(path);
+        println(path1);
+        println(path2);
+        println("end volocity");
+
+        setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath")
+        setProperty("classpath.resource.loader.class", ClasspathResourceLoader::class.java.name)
+        setProperty(RuntimeConstants.FILE_RESOURCE_LOADER_PATH, path)
+
     }
 
     routing {
@@ -49,9 +66,12 @@ fun Application.module() {
 //                    typeInfo = TODO()
 //                )
 //            } else {
-            call.respond(
-                FreeMarkerContent("index.ftl", mapOf("user" to "ok"))
-            )
+//            call.respond(
+//                FreeMarkerContent("index.ftl", mapOf("ip" to Server.host, "port" to "${Server.port}"))
+//            )
+
+            call.respond(VelocityContent("templates/index.vl", mapOf("user" to "")))
+
 //            call.respondText("No public IPV6 is not supported! \n ");
 //            }
         }
