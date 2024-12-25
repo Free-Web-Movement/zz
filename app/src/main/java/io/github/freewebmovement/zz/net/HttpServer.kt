@@ -1,30 +1,20 @@
 package io.github.freewebmovement.zz.net
-import android.net.Uri
 import android.os.Environment
 import io.github.freewebmovement.zz.MainApplication
-import io.github.freewebmovement.zz.R
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.http.content.staticFiles
 import io.ktor.server.netty.Netty
-import io.ktor.server.response.respond
+import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.ktor.server.velocity.Velocity
-import io.ktor.server.velocity.VelocityContent
 import org.apache.velocity.runtime.RuntimeConstants
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader
 
-
 const val DOWNLOAD_URI = "download"
-fun Application.configureRouting() {
-
-}
-
 fun Application.module() {
-//    configureRouting()
-//    install(FreeMarker)
 
 //    install(FreeMarker) {
 //        templateLoader = ClassTemplateLoader(this::class.java.classLoader, "templates")
@@ -37,7 +27,7 @@ fun Application.module() {
 //        val file = app.dataDir.absoluteFile
         val path = app.packageResourcePath
         val path1 = app.packageCodePath
-        var path2 = app.getFileStreamPath(path1);
+        val path2 = app.getFileStreamPath(path1)
         //(R.raw.anchor);
         println("inside volocity");
         println(RuntimeConstants.RESOURCE_LOADER);
@@ -51,7 +41,6 @@ fun Application.module() {
         setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath")
         setProperty("classpath.resource.loader.class", ClasspathResourceLoader::class.java.name)
         setProperty(RuntimeConstants.FILE_RESOURCE_LOADER_PATH, path)
-
     }
 
     routing {
@@ -66,13 +55,8 @@ fun Application.module() {
 //                    typeInfo = TODO()
 //                )
 //            } else {
-//            call.respond(
-//                FreeMarkerContent("index.ftl", mapOf("ip" to Server.host, "port" to "${Server.port}"))
-//            )
-
-            call.respond(VelocityContent("templates/index.vl", mapOf("user" to "")))
-
-//            call.respondText("No public IPV6 is not supported! \n ");
+          //  call.respond(VelocityContent("templates/index.vl", mapOf("user" to "")))
+            call.respondText("Hello Android! \n ");
 //            }
         }
         staticFiles(
