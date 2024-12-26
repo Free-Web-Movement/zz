@@ -14,12 +14,12 @@ fun Application.module() {
 
 	routing {
 		get("/") {
-			call.respondText("Hello Android! \n ");
+			call.respondText("Hello Android!\n");
 		}
-		staticFiles(
-			"/$DOWNLOAD_URI",
-			Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-		)
+//		staticFiles(
+//			"/$DOWNLOAD_URI",
+//			Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+//		)
 	}
 }
 
