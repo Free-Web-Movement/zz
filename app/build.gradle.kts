@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("org.jetbrains.kotlinx.kover") version "0.5.0"
+
 }
 
 android {
@@ -28,6 +30,10 @@ android {
                 "proguard-rules.pro"
             )
         }
+        debug {
+            enableUnitTestCoverage = true
+            enableAndroidTestCoverage = true
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -50,10 +56,6 @@ android {
 }
 
 dependencies {
-//    implementation(libs.ktorm.core)
-    implementation(libs.ktor.ktor.server.html.builder)
-    implementation(libs.ktor.ktor.server.velocity)
-//    implementation(libs.ktor.server.freemarker)
     implementation(libs.ktor.server.netty)
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.ktor.server.content.negotiation)
