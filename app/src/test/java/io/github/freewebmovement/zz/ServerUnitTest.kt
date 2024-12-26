@@ -4,10 +4,10 @@ import io.github.freewebmovement.zz.net.module
 import io.ktor.server.testing.testApplication
 import org.junit.Test
 
-import kotlin.test.assertEquals
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import junit.framework.TestCase.assertEquals
 
 
 /**
@@ -15,12 +15,14 @@ import io.ktor.http.*
  *
  * See [testing documentation](http://d.android.com/tools/testing).
  */
+
 class ServerUnitTest {
 	@Test
-	fun testRoot() = testApplication {
+	fun testRoot(): Unit = testApplication {
 		application {
 			module()
 		}
+
 		val response = client.get("/")
 		assertEquals(HttpStatusCode.OK, response.status)
 		assertEquals("Hello Android!\n", response.bodyAsText())
