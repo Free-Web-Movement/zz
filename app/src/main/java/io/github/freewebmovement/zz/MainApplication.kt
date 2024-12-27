@@ -1,19 +1,27 @@
 package io.github.freewebmovement.zz
 
 import android.app.Application
-import android.content.Context
+import io.github.freewebmovement.zz.net.HttpServer
+import io.github.freewebmovement.zz.net.api.crypto.KeyPair
+import io.github.freewebmovement.zz.persistence.Preference
+import io.github.freewebmovement.zz.settings.Server
 
 class MainApplication : Application() {
+    private lateinit var preference:Preference
+    lateinit var keyPair:KeyPair
 
     init {
         instance = this
     }
 
     companion object {
-        public var instance: MainApplication? = null
+        var instance: MainApplication? = null
     }
 
     override fun onCreate() {
         super.onCreate()
+        preference = Preference(applicationContext)
+        keyPair = KeyPair(preference)
+        HttpServer.start(Server.host, Server.port)
     }
 }

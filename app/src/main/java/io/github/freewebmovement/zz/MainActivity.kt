@@ -18,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import io.github.freewebmovement.zz.net.HttpServer
 import io.github.freewebmovement.zz.net.IPList
 import io.github.freewebmovement.zz.settings.Server
 import io.github.freewebmovement.zz.ui.theme.ZzTheme
@@ -37,14 +36,12 @@ class MainActivity : ComponentActivity() {
 				}
 			}
 		}
-		HttpServer.start(Server.host, Server.port)
 	}
 }
 
 @Composable
 fun Greeting(modifier: Modifier = Modifier) {
-	val text: String
-	text = if (IPList.hasPublicIP(Server.port ) ) {
+	val text: String = if (IPList.hasPublicIP(Server.port ) ) {
 		"You have public ip"
 	} else {
 		"You have no public ip"

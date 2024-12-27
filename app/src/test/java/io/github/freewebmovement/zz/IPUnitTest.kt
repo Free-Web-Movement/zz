@@ -2,7 +2,6 @@ package io.github.freewebmovement.zz
 
 import io.github.freewebmovement.zz.net.IPList
 import org.junit.Test
-
 import kotlin.random.Random
 
 /**
@@ -14,8 +13,8 @@ class IPUnitTest {
 	@Test
 	fun should_test_public_ip() {
 		val port = Random(100).nextInt(10000) + 1024
-		val result = IPList.hasPublicIP(port);
-		val result1 = IPList.hasPublicIP(port);
-		println(result);
+		val result = IPList.hasPublicIP(port)
+		IPList.hasPublicIP(port)
+		println(result)
 	}
 }

@@ -76,15 +76,17 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.junit.ktx)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.datastore.preferences.core)
+    implementation(libs.kotlinx.coroutines.android)
+
 
     testImplementation(libs.junit)
-    testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
-    val kotlin_version = "1.9.0"
-    val ktor_version = "3.0.2"
-    testImplementation("io.ktor:ktor-server-test-host:$ktor_version")
-    testImplementation("org.jetbrains.kotlin:kotlin-test:$kotlin_version")
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("org.robolectric:robolectric:4.14")
+    testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.ktor.ktor.server.test.host)
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation (libs.androidx.core)
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
