@@ -27,16 +27,14 @@ fun Application.module() {
 
 		route("/key") {
 			get("/public") {
-				call.respondText (MainApplication.instance!!.keyPair.publicKey.toHexString())
+				call.respondText (MainApplication.instance!!.crypto.publicKey.encoded.toHexString())
 			}
 
 			get("/private") {
-				call.respondText (MainApplication.instance!!.keyPair.privateKey.toHexString())
+				call.respondText (MainApplication.instance!!.crypto.privateKey.encoded.toHexString())
 			}
 		}
 	}
-
-
 }
 
 class HttpServer {
