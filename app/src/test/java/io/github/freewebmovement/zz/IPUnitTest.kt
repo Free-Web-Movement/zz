@@ -1,6 +1,6 @@
 package io.github.freewebmovement.zz
 
-import io.github.freewebmovement.zz.net.IPList
+import io.github.freewebmovement.zz.system.net.IPList
 import org.junit.Test
 import kotlin.random.Random
 

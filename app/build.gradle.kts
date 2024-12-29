@@ -84,6 +84,10 @@ dependencies {
     implementation(libs.androidx.room.paging)
     implementation(libs.ktor.ktor.server.sessions)
     implementation(libs.ktor.server.auth)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
 
 
     // If this project uses any Kotlin source, use Kotlin Symbol Processing (KSP)

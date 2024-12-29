@@ -9,7 +9,11 @@ junitVersion = "1.1.5"
 espressoCore = "3.5.1"
 kotlinTest = "2.0.21"
 kotlinxCoroutinesAndroid = "1.9.0"
+ktorClientContentNegotiation = "3.0.2"
+ktorClientCore = "3.0.2"
+ktorClientCio = "3.0.2"
 ktorSerializationGson = "3.0.2"
+ktorSerializationKotlinxJson = "3.0.2"
 ktorServerAuth = "3.0.2"
 ktorServerContentNegotiationVersion = "3.0.2"
 ktorServerSessionsVersion = "3.0.2"
@@ -52,10 +56,14 @@ androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlinTest" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktorClientCio" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktorClientContentNegotiation" }
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktorClientCore" }
 ktor-ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktorServerContentNegotiationVersion" }
 ktor-ktor-server-sessions = { module = "io.ktor:ktor-server-sessions", version.ref = "ktorServerSessionsVersion" }
 ktor-ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktorServerTestHostVersion" }
 ktor-serialization-gson = { module = "io.ktor:ktor-serialization-gson", version.ref = "ktorSerializationGson" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktorSerializationKotlinxJson" }
 ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktorServerAuth" }
 ktor-server-core = { module = "io.ktor:ktor-server-core" }
 ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktorVersion" }

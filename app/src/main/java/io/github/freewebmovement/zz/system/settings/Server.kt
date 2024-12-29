@@ -1,4 +1,4 @@
-package io.github.freewebmovement.zz.settings
+package io.github.freewebmovement.zz.system.settings
 
 class Server {
     companion object {

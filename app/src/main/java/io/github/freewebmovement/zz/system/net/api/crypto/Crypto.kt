@@ -1,8 +1,8 @@
-package io.github.freewebmovement.zz.net.api.crypto
+package io.github.freewebmovement.zz.system.net.api.crypto
 
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.byteArrayPreferencesKey
-import io.github.freewebmovement.zz.persistence.Preference
+import io.github.freewebmovement.zz.system.persistence.Preference
 import java.nio.charset.StandardCharsets
 import java.security.KeyFactory
 import java.security.KeyPairGenerator

@@ -1,4 +1,4 @@
-package io.github.freewebmovement.zz.net
+package io.github.freewebmovement.zz.system.net
 
 import android.util.Log
 import java.net.Inet4Address
@@ -68,8 +68,8 @@ class IPList {
         }
 
         fun hasPublicIP(port:Int) : Boolean {
-            val ipv4 = this.v4s(port)
-            val ipv6 = this.v6s(port)
+            val ipv4 = v4s(port)
+            val ipv6 = v6s(port)
             return  ipv4.isNotEmpty() || ipv6.isNotEmpty()
         }
     }

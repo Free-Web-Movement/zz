@@ -2,8 +2,8 @@ package io.github.freewebmovement.zz
 
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import io.github.freewebmovement.zz.net.api.crypto.Crypto
-import io.github.freewebmovement.zz.persistence.Preference
+import io.github.freewebmovement.zz.system.net.api.crypto.Crypto
+import io.github.freewebmovement.zz.system.persistence.Preference
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.junit.Assert.assertEquals

@@ -18,8 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import io.github.freewebmovement.zz.net.IPList
-import io.github.freewebmovement.zz.settings.Server
+import io.github.freewebmovement.zz.system.net.IPList
+import io.github.freewebmovement.zz.system.settings.Server
 import io.github.freewebmovement.zz.ui.theme.ZzTheme
 
 

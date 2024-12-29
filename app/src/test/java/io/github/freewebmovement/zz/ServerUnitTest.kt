@@ -1,6 +1,6 @@
 package io.github.freewebmovement.zz
 
-import io.github.freewebmovement.zz.net.module
+import io.github.freewebmovement.zz.system.net.module
 import io.ktor.server.testing.testApplication
 import org.junit.Test
 

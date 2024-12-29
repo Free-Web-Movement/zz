@@ -1,4 +1,4 @@
-package io.github.freewebmovement.zz.persistence
+package io.github.freewebmovement.zz.system.persistence
 
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
