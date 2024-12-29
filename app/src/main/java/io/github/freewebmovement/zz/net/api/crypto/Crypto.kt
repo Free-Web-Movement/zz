@@ -3,8 +3,6 @@ package io.github.freewebmovement.zz.net.api.crypto
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.byteArrayPreferencesKey
 import io.github.freewebmovement.zz.persistence.Preference
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import java.nio.charset.StandardCharsets
 import java.security.KeyFactory
 import java.security.KeyPairGenerator
@@ -43,7 +41,7 @@ class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
     }
 
     @OptIn(ExperimentalEncodingApi::class)
-    fun dec(str: String): String {
+    fun decrypt(str: String): String {
         val cipher = Cipher.getInstance(CRYPTO_ALGORITHM_RSA)
         cipher.init(Cipher.DECRYPT_MODE, privateKey)
         val encBytes = Base64.decode(str)

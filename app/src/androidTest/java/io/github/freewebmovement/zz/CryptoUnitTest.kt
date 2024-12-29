@@ -20,7 +20,7 @@ class CryptoUnitTest {
 			val crypto = Crypto.getInstance(preference)
 			val str = "Hello World!"
 			val enc = crypto.encrypt(str)
-			val decStr = crypto.dec(enc)
+			val decStr = crypto.decrypt(enc)
 			assertEquals(str, decStr)
 		}
 	}
