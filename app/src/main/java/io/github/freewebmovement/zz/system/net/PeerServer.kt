@@ -41,7 +41,6 @@ class PeerServer {
 	companion object {
 		private var server: EmbeddedServer<NettyApplicationEngine, NettyApplicationEngine.Configuration>? = null
 		@OptIn(ExperimentalStdlibApi::class)
-		var publicKey = MainApplication.instance!!.crypto.publicKey.encoded.toHexString()
 		fun start(host: String = "0.0.0.0", port: Int = 10086) {
 			server = embeddedServer(
 				Netty,

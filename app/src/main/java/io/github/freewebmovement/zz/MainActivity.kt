@@ -16,21 +16,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.freewebmovement.zz.system.net.IPList
-import io.github.freewebmovement.zz.system.settings.Server
 import io.github.freewebmovement.zz.ui.theme.ZzTheme
 
 
 class MainActivity : ComponentActivity() {
+	private lateinit var ipList: IPList
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		enableEdgeToEdge()
+		ipList = MainApplication.instance!!.ipList
 		setContent {
 			ZzTheme {
 				Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
 					Greeting(
+						ipList,
 						modifier = Modifier.padding(innerPadding)
 					).toString()
 				}
@@ -40,22 +41,22 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(modifier: Modifier = Modifier) {
-	val text: String = if (IPList.hasPublicIP(Server.port ) ) {
+fun Greeting(ipList: IPList, modifier: Modifier = Modifier) {
+	val text: String = if (ipList.hasPublicIP()) {
 		"You have public ip"
 	} else {
 		"You have no public ip"
 	}
-    Text(
-        text = text,
-        modifier = modifier
-    )
-    Row(
-        Modifier.padding(top = 20.dp)
-    ) {
-        IPList.v6s(Server.port).forEach { URLButton(it) }
-		IPList.v4s(Server.port).forEach { URLButton(it) }
-		IPList.hasPublicIP(Server.port)
+	Text(
+		text = text,
+		modifier = modifier
+	)
+	Row(
+		Modifier.padding(top = 20.dp)
+	) {
+		ipList.ipv6IPs.forEach { URLButton(it) }
+		ipList.ipv4IPs.forEach { URLButton(it) }
+		ipList.hasPublicIP()
 	}
 //
 //	FlowRow(Modifier.padding(top = 20.dp), horizontalArrangement = Arrangement.Center) {
@@ -87,55 +88,5 @@ fun URLButton(url: String) {
 		onClick = { context.startActivity(intent) }
 	) {
 		Text(text = url)
-	}
-
-}
-
-
-@Composable
-fun BottomAppBarExample() {
-
-//    Scaffold(
-//        bottomBar = {
-//            BottomAppBar(
-//                actions = {
-//                    IconButton(onClick = { /* do something */ }) {
-//                        Icon(Icons.Filled.Check, contentDescription = "Localized description")
-//                    }
-//                    IconButton(onClick = { /* do something */ }) {
-//                        Icon(
-//                            Icons.Filled.Edit,
-//                            contentDescription = "Localized description",
-//                        )
-//                    }
-//                    IconButton(onClick = { /* do something */ }) {
-//                        Icon(
-//                            Icons.Filled.Face,
-//                            contentDescription = "Localized description",
-//                        )
-//                    }
-//                    IconButton(onClick = { /* do something */ }) {
-//                        Icon(
-//                            Icons.Filled.Place,
-//                            contentDescription = "Localized description",
-//                        )
-//                    }
-//                },
-//                ali
-//            )
-//        },
-//    ) { innerPadding ->
-//        Text(
-//            modifier = Modifier.padding(innerPadding),
-//            text = "Example of a scaffold with a bottom app bar."
-//        )
-//    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-	ZzTheme {
-		Greeting()
 	}
 }

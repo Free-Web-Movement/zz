@@ -2,6 +2,7 @@ package io.github.freewebmovement.zz
 
 import android.app.Application
 import io.github.freewebmovement.zz.system.database.ZzDatabase
+import io.github.freewebmovement.zz.system.net.IPList
 import io.github.freewebmovement.zz.system.net.PeerServer
 import io.github.freewebmovement.zz.system.net.api.crypto.Crypto
 import io.github.freewebmovement.zz.system.persistence.Preference
@@ -16,6 +17,7 @@ class MainApplication : Application() {
     private lateinit var preference: Preference
     lateinit var crypto: Crypto
     lateinit var db : ZzDatabase
+    lateinit var ipList: IPList
 
     init {
         instance = this
@@ -24,6 +26,7 @@ class MainApplication : Application() {
             crypto = Crypto.getInstance(preference)
             PeerServer.start(Server.host, Server.port)
             db = ZzDatabase.getDatabase(applicationContext)
+            ipList = IPList.getInstance(Server.port)
         }
     }
 

@@ -18,14 +18,15 @@ class RoomInstrumentedTest {
 		val coroutineScope = CoroutineScope(Dispatchers.IO)
 		coroutineScope.launch {
 			val app = ApplicationProvider.getApplicationContext<MainApplication>()
-			val db = ZzDatabase.getDatabase(app.baseContext)
-			val dao = db.peer()
+			val db = ZzDatabase.getDatabase(app.applicationContext)
+			app.db = db;
+			val dao = app.db.peer()
 			dao.clearData()
 			dao.clearSequence()
 			val epochTime = System.currentTimeMillis() / 1000
 			val peer = Peer(createdAt = epochTime, updatedAt = epochTime)
 			dao.add(peer)
-			val all = db.peer().getAll()
+			val all = app.db.peer().getAll()
 			assertEquals(all.size, 1)
 			val one = all[0]
 			assertEquals(one.id, 1)

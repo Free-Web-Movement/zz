@@ -7,70 +7,71 @@ import java.net.InetAddress
 import java.net.NetworkInterface
 
 
-class IPList {
-    companion object {
-        private var initIPv4 = false
-        private var initIPv6 = false
-        private lateinit var ipv4IPs: List<String>
-        private lateinit var ipv6IPs: List<String>
+class IPList private constructor(port: Int) {
+	var ipv4IPs: List<String>
+	var ipv6IPs: List<String>
 
-        private fun isPublic(inetAddress: InetAddress): Boolean {
-            return !inetAddress.isLoopbackAddress && !inetAddress.isSiteLocalAddress
-                    && !inetAddress.isAnyLocalAddress && !inetAddress.isLinkLocalAddress &&
-                    !inetAddress.isMCOrgLocal && !inetAddress.isMCNodeLocal &&
-                    !inetAddress.isMCLinkLocal && !inetAddress.isMCSiteLocal
-        }
+	init {
+		ipv4IPs = v4s(port)
+		ipv6IPs = v6s(port)
+	}
 
-        private fun addresses(port:Int, isIPV6: Boolean) : List<String> {
-            val addresses = ArrayList<String>()
-            try {
-                val networkInterfaces = NetworkInterface.getNetworkInterfaces()
-                while (networkInterfaces.hasMoreElements()) {
-                    val enumIpAddresses = networkInterfaces.nextElement().inetAddresses
-                    while (enumIpAddresses.hasMoreElements()) {
-                        val inetAddress = enumIpAddresses.nextElement()
-                        if (isPublic(inetAddress)) {
-                            val address =
-                                inetAddress.hostAddress?.toString()?.split("%")?.get(0).toString()
-                            if ( !isIPV6 && inetAddress is Inet4Address) {
-                                addresses.add("http://$address:$port/")
-                                addresses.add("http://$address:$port/$DOWNLOAD_URI")
-                            }
-                            if (isIPV6 && inetAddress is Inet6Address){
-                                addresses.add("http://[$address]:$port/")
-                                addresses.add("http://[$address]:$port/$DOWNLOAD_URI")
-                            }
-                        }
-                    }
-                }
-            } catch (ex: Exception) {
-                Log.e("IP Address", ex.toString())
-            }
-            return addresses.distinct()
-        }
+	fun hasPublicIP(): Boolean {
+		return ipv4IPs.isNotEmpty() || ipv4IPs.isNotEmpty()
+	}
 
-        fun v4s(port: Int): List<String> {
-            if (initIPv4) {
-                return ipv4IPs
-            }
-            ipv4IPs = addresses(port,false)
-            initIPv4 = true
-            return ipv4IPs
-        }
+	private fun isPublic(inetAddress: InetAddress): Boolean {
+		return !inetAddress.isLoopbackAddress && !inetAddress.isSiteLocalAddress
+				&& !inetAddress.isAnyLocalAddress && !inetAddress.isLinkLocalAddress &&
+				!inetAddress.isMCOrgLocal && !inetAddress.isMCNodeLocal &&
+				!inetAddress.isMCLinkLocal && !inetAddress.isMCSiteLocal
+	}
 
-        fun v6s(port: Int): List<String> {
-            if (initIPv6) {
-                return ipv6IPs
-            }
-            ipv6IPs = addresses(port,true)
-            initIPv6 = true
-            return ipv6IPs
-        }
+	private fun addresses(port: Int, isIPV6: Boolean): List<String> {
+		val addresses = ArrayList<String>()
+		try {
+			val networkInterfaces = NetworkInterface.getNetworkInterfaces()
+			while (networkInterfaces.hasMoreElements()) {
+				val enumIpAddresses = networkInterfaces.nextElement().inetAddresses
+				while (enumIpAddresses.hasMoreElements()) {
+					val inetAddress = enumIpAddresses.nextElement()
+					if (isPublic(inetAddress)) {
+						val address =
+							inetAddress.hostAddress?.toString()?.split("%")?.get(0).toString()
+						if (!isIPV6 && inetAddress is Inet4Address) {
+							addresses.add("http://$address:$port/")
+							addresses.add("http://$address:$port/$DOWNLOAD_URI")
+						}
+						if (isIPV6 && inetAddress is Inet6Address) {
+							addresses.add("http://[$address]:$port/")
+							addresses.add("http://[$address]:$port/$DOWNLOAD_URI")
+						}
+					}
+				}
+			}
+		} catch (ex: Exception) {
+			Log.e("IP Address", ex.toString())
+		}
+		return addresses.distinct()
+	}
 
-        fun hasPublicIP(port:Int) : Boolean {
-            val ipv4 = v4s(port)
-            val ipv6 = v6s(port)
-            return  ipv4.isNotEmpty() || ipv6.isNotEmpty()
-        }
-    }
+	private fun v4s(port: Int): List<String> {
+		ipv4IPs = addresses(port, false)
+		return ipv4IPs
+	}
+
+	private fun v6s(port: Int): List<String> {
+		ipv6IPs = addresses(port, true)
+		return ipv6IPs
+	}
+
+	companion object {
+		private var instance: IPList? = null
+		fun getInstance(port: Int): IPList {
+			if (instance != null) {
+				instance = IPList(port)
+			}
+			return instance!!
+		}
+	}
 }
