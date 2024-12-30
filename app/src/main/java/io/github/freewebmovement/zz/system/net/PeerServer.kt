@@ -1,10 +1,8 @@
 package io.github.freewebmovement.zz.system.net
 
-import android.os.Environment
 import io.github.freewebmovement.zz.MainApplication
 import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
-import io.ktor.server.http.content.staticFiles
 import io.ktor.server.netty.Netty
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
@@ -26,7 +24,7 @@ fun Application.module() {
 //			Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 //		)
 
-		route("/v1") {
+		route("/api") {
 			get("/key/public") {
 				val publicKey = HashMap<String, String>()
 				publicKey["rsa_public_key"] = MainApplication.instance!!.crypto.publicKey.encoded.toHexString()
@@ -36,7 +34,7 @@ fun Application.module() {
 	}
 }
 
-class HttpServer {
+class PeerServer {
 	companion object {
 		fun start(host: String = "0.0.0.0", port: Int = 10086) {
 			embeddedServer(

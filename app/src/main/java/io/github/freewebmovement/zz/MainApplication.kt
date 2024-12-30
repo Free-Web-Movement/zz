@@ -1,15 +1,13 @@
 package io.github.freewebmovement.zz
 
 import android.app.Application
-import android.provider.Settings.Global
 import io.github.freewebmovement.zz.system.database.ZzDatabase
-import io.github.freewebmovement.zz.system.net.HttpServer
+import io.github.freewebmovement.zz.system.net.PeerServer
 import io.github.freewebmovement.zz.system.net.api.crypto.Crypto
 import io.github.freewebmovement.zz.system.persistence.Preference
 import io.github.freewebmovement.zz.system.settings.Server
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 class MainApplication : Application() {
@@ -24,7 +22,7 @@ class MainApplication : Application() {
         coroutineScope.launch {
             preference = Preference(applicationContext)
             crypto = Crypto.getInstance(preference)
-            HttpServer.start(Server.host, Server.port)
+            PeerServer.start(Server.host, Server.port)
             db = ZzDatabase.getDatabase(applicationContext)
         }
     }

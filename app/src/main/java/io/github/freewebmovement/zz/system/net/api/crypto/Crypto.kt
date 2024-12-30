@@ -24,7 +24,7 @@ private const val KEY_SIZE = 2048
 
 class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
     // For public keys
-    var privateKey: PrivateKey
+    private var privateKey: PrivateKey
     var publicKey: PublicKey
     init {
         privateKey = aPrivateKey
