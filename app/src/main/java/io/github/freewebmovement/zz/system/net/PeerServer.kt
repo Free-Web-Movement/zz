@@ -2,8 +2,10 @@ package io.github.freewebmovement.zz.system.net
 
 import io.github.freewebmovement.zz.MainApplication
 import io.ktor.server.application.Application
+import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import io.ktor.server.netty.NettyApplicationEngine
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
@@ -35,9 +37,13 @@ fun Application.module() {
 }
 
 class PeerServer {
+
 	companion object {
+		private var server: EmbeddedServer<NettyApplicationEngine, NettyApplicationEngine.Configuration>? = null
+		@OptIn(ExperimentalStdlibApi::class)
+		var publicKey = MainApplication.instance!!.crypto.publicKey.encoded.toHexString()
 		fun start(host: String = "0.0.0.0", port: Int = 10086) {
-			embeddedServer(
+			server = embeddedServer(
 				Netty,
 				port = port,
 				host = host,

@@ -25,6 +25,6 @@ class ServerUnitTest {
 
 		val response = client.get("/")
 		assertEquals(HttpStatusCode.OK, response.status)
-		assertEquals("Hello Android!\n", response.bodyAsText())
+		assertEquals("Hello From ZZ!\n", response.bodyAsText())
 	}
 }

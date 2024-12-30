@@ -6,6 +6,7 @@ import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
+import io.ktor.client.statement.HttpResponse
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.Serializable
 
@@ -22,9 +23,10 @@ class PeerClient(peerServer: Peer) {
         }
     }
 
-    suspend fun stepOneGetPublicKey() {
-        val response = client.get("/key/public")
+    suspend fun stepOneGetPublicKey(): HttpResponse {
+        val response = client.get("/api/key/public")
         val json = response.body<PublicKeyJSON>()
         server.rsaPublicKey = json.rsa_public_key;
+        return response
     }
 }

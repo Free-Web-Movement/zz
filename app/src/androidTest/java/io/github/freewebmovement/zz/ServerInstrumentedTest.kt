@@ -2,8 +2,9 @@ package io.github.freewebmovement.zz
 
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import io.github.freewebmovement.zz.system.database.entity.Peer
+import io.github.freewebmovement.zz.system.net.PeerClient
 import io.github.freewebmovement.zz.system.net.PeerServer
-import io.github.freewebmovement.zz.system.net.api.crypto.Crypto
 import io.github.freewebmovement.zz.system.persistence.Preference
 import io.github.freewebmovement.zz.system.settings.Server
 import io.ktor.client.HttpClient
@@ -16,7 +17,6 @@ import io.ktor.serialization.kotlinx.json.json
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -30,14 +30,15 @@ class ServerInstrumentedTest {
 			val app = ApplicationProvider.getApplicationContext<MainApplication>()
 			Preference(app.baseContext)
 			PeerServer.start(Server.host, Server.port)
-			val client = HttpClient(CIO) {
-				install(ContentNegotiation) {
-					json()
-				}
-			}
-			val response = client.get("/api/key/public")
+			val timeStamp = System.currentTimeMillis() / 1000
+			val peer = Peer(createdAt = timeStamp, updatedAt = timeStamp);
+			peer.ipAddress = Server.host
+			peer.ipPort = Server.port
+			val client: PeerClient = PeerClient(peer)
+			val response = client.stepOneGetPublicKey()
 			assertEquals(HttpStatusCode.OK, response.status)
-			println(response.bodyAsText())
+			println(client.server.rsaPublicKey)
+			assertEquals(client.server.rsaPublicKey, PeerServer.publicKey)
 		}
 	}
 }
