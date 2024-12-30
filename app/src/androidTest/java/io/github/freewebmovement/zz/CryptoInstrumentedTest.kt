@@ -11,7 +11,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class CryptoUnitTest {
+class CryptoInstrumentedTest {
 	@Test
 	fun should_test_key_pair() {
 		GlobalScope.launch {

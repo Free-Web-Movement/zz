@@ -11,7 +11,9 @@ import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
+import junit.framework.Assert.assertEquals
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.junit.Test
@@ -32,7 +34,7 @@ class ServerInstrumentedTest {
 				}
 			}
 			val response = client.get("/key/public")
-//			TestCase.assertEquals(HttpStatusCode.OK, response.status)
+			assertEquals(HttpStatusCode.OK, response.status)
 			println(response.bodyAsText())
 		}
 	}

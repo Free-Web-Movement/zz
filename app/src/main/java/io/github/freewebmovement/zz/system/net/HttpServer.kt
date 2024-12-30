@@ -18,7 +18,7 @@ const val DOWNLOAD_URI = "download"
 fun Application.module() {
 	routing {
 		get("/") {
-			call.respondText("Hello Android!\n")
+			call.respondText("Hello From ZZ!\n")
 		}
 
 //		staticFiles(
@@ -26,15 +26,11 @@ fun Application.module() {
 //			Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 //		)
 
-		route("/key") {
-			get("/public") {
+		route("/v1") {
+			get("/key/public") {
 				val publicKey = HashMap<String, String>()
 				publicKey["rsa_public_key"] = MainApplication.instance!!.crypto.publicKey.encoded.toHexString()
 				call.respond(publicKey)
-			}
-
-			get("/private") {
-				call.respondText (MainApplication.instance!!.crypto.privateKey.encoded.toHexString())
 			}
 		}
 	}

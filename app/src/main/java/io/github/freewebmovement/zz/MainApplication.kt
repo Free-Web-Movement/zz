@@ -2,6 +2,7 @@ package io.github.freewebmovement.zz
 
 import android.app.Application
 import android.provider.Settings.Global
+import io.github.freewebmovement.zz.system.database.ZzDatabase
 import io.github.freewebmovement.zz.system.net.HttpServer
 import io.github.freewebmovement.zz.system.net.api.crypto.Crypto
 import io.github.freewebmovement.zz.system.persistence.Preference
@@ -16,6 +17,7 @@ class MainApplication : Application() {
 
     private lateinit var preference: Preference
     lateinit var crypto: Crypto
+    lateinit var db : ZzDatabase
 
     init {
         instance = this
@@ -23,6 +25,7 @@ class MainApplication : Application() {
             preference = Preference(applicationContext)
             crypto = Crypto.getInstance(preference)
             HttpServer.start(Server.host, Server.port)
+            db = ZzDatabase.getDatabase(applicationContext)
         }
     }
 
