@@ -17,7 +17,7 @@ class MainApplication : Application() {
     private lateinit var preference: Preference
     lateinit var crypto: Crypto
     lateinit var db : ZzDatabase
-    lateinit var ipList: IPList
+    var ipList: IPList = IPList.getInstance(Server.port)
 
     init {
         instance = this
@@ -26,7 +26,6 @@ class MainApplication : Application() {
             crypto = Crypto.getInstance(preference)
             PeerServer.start(Server.host, Server.port)
             db = ZzDatabase.getDatabase(applicationContext)
-            ipList = IPList.getInstance(Server.port)
         }
     }
 

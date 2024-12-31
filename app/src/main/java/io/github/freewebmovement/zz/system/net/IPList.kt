@@ -68,7 +68,7 @@ class IPList private constructor(port: Int) {
 	companion object {
 		private var instance: IPList? = null
 		fun getInstance(port: Int): IPList {
-			if (instance != null) {
+			if (instance == null) {
 				instance = IPList(port)
 			}
 			return instance!!
