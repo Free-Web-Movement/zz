@@ -13,7 +13,7 @@ class Preference(context: Context) {
     private val dataStore = context.dataStore
     suspend fun <T> read(key:  Preferences.Key<T>): T? {
         val preferences = dataStore.data.first()
-        return preferences[key] ?: null
+        return preferences[key]
     }
     suspend fun <T> write(key:  Preferences.Key<T>, value: T) {
         dataStore.edit { preferences ->
