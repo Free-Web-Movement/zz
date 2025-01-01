@@ -2,13 +2,13 @@
 agp = "8.7.3"
 core = "1.6.1"
 datastorePreferences = "1.1.1"
-kotlin = "1.9.0"
-coreKtx = "1.12.0"
+kotlin = "2.1.0"
+coreKtx = "1.13.1"
 junit = "4.13.2"
-junitVersion = "1.1.5"
+junitVersion = "1.2.1"
 espressoCore = "3.5.1"
 kotlinTest = "2.0.21"
-kotlinxCoroutinesAndroid = "1.9.0"
+kotlinxCoroutinesAndroid = "1.10.1"
 ktorClientContentNegotiation = "3.0.2"
 ktorClientCore = "3.0.2"
 ktorClientCio = "3.0.2"
@@ -19,7 +19,7 @@ ktorServerContentNegotiationVersion = "3.0.2"
 ktorServerSessionsVersion = "3.0.2"
 ktorServerTestHostVersion = "3.0.2"
 ktorVersion = "3.0.2"
-lifecycleRuntimeKtx = "2.6.1"
+lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.8.0"
 composeBom = "2024.04.01"
 junitKtx = "1.2.1"
@@ -78,5 +78,5 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-#compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 
