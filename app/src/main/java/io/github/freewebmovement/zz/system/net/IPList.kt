@@ -69,6 +69,10 @@ class IPList private constructor(port: Int, enable: Boolean = false) {
 
 	companion object {
 		private var instance: IPList? = null
+
+		fun reset() {
+			instance = null
+		}
 		fun getInstance(port: Int, enablePrivateIPs: Boolean = false): IPList {
 			if (instance == null) {
 				instance = IPList(port, enablePrivateIPs)
