@@ -7,7 +7,8 @@ import java.net.InetAddress
 import java.net.NetworkInterface
 
 
-class IPList private constructor(port: Int) {
+class IPList private constructor(port: Int, enable: Boolean = false) {
+	private var enablePrivateIPs: Boolean = enable
 	var ipv4IPs: List<String>
 	var ipv6IPs: List<String>
 
@@ -16,8 +17,9 @@ class IPList private constructor(port: Int) {
 		ipv6IPs = v6s(port)
 	}
 
-	fun hasPublicIP(): Boolean {
-		return ipv4IPs.isNotEmpty() || ipv4IPs.isNotEmpty()
+	fun hasIPs(): Boolean {
+		if(enablePrivateIPs) return true
+		return ipv4IPs.isNotEmpty() || ipv6IPs.isNotEmpty()
 	}
 
 	private fun isPublic(inetAddress: InetAddress): Boolean {
@@ -27,7 +29,7 @@ class IPList private constructor(port: Int) {
 				!inetAddress.isMCLinkLocal && !inetAddress.isMCSiteLocal
 	}
 
-	private fun addresses(port: Int, isIPV6: Boolean): List<String> {
+	private fun addresses(port: Int, isIPV6: Boolean, enablePrivateIPs: Boolean): List<String> {
 		val addresses = ArrayList<String>()
 		try {
 			val networkInterfaces = NetworkInterface.getNetworkInterfaces()
@@ -35,7 +37,7 @@ class IPList private constructor(port: Int) {
 				val enumIpAddresses = networkInterfaces.nextElement().inetAddresses
 				while (enumIpAddresses.hasMoreElements()) {
 					val inetAddress = enumIpAddresses.nextElement()
-					if (isPublic(inetAddress)) {
+					if (enablePrivateIPs || isPublic(inetAddress)) {
 						val address =
 							inetAddress.hostAddress?.toString()?.split("%")?.get(0).toString()
 						if (!isIPV6 && inetAddress is Inet4Address) {
@@ -56,20 +58,20 @@ class IPList private constructor(port: Int) {
 	}
 
 	private fun v4s(port: Int): List<String> {
-		ipv4IPs = addresses(port, false)
+		ipv4IPs = addresses(port, false,  enablePrivateIPs)
 		return ipv4IPs
 	}
 
 	private fun v6s(port: Int): List<String> {
-		ipv6IPs = addresses(port, true)
+		ipv6IPs = addresses(port, true, enablePrivateIPs)
 		return ipv6IPs
 	}
 
 	companion object {
 		private var instance: IPList? = null
-		fun getInstance(port: Int): IPList {
+		fun getInstance(port: Int, enablePrivateIPs: Boolean = false): IPList {
 			if (instance == null) {
-				instance = IPList(port)
+				instance = IPList(port, enablePrivateIPs)
 			}
 			return instance!!
 		}

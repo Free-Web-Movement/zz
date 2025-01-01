@@ -100,8 +100,7 @@ fun BottomBar(selected: Int, onSelected: (Int) -> Unit) {
 @Composable
 fun PreviewMessage() {
 	var current by remember { mutableIntStateOf(0) }
-//	val vm: BottomBarModel = viewModel()
-	BottomBar(selected = 1) {
+	BottomBar(current) {
 		current = it
 	}
 }
@@ -109,9 +108,8 @@ fun PreviewMessage() {
 @Preview(showBackground = true)
 @Composable
 fun PreviewMessage1() {
-	var current by remember { mutableIntStateOf(0) }
-//	val vm: BottomBarModel = viewModel()
-	BottomBar(selected = 2) {
+	var current by remember { mutableIntStateOf(1) }
+	BottomBar(current) {
 		current = it
 	}
 }

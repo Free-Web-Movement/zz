@@ -31,6 +31,7 @@ roomKtx = "2.6.1"
 roomPaging = "2.6.1"
 roomCompiler = "2.6.1"
 roomTesting = "2.6.1"
+navigationCompose = "2.8.5"
 
 [libraries]
 androidx-core = { module = "androidx.test:core", version.ref = "core" }
@@ -72,6 +73,7 @@ ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktorV
 androidx-junit-ktx = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "junitKtx" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

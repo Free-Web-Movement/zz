@@ -91,9 +91,10 @@ dependencies {
     implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
+	implementation(libs.androidx.navigation.compose)
 
 
-    // If this project uses any Kotlin source, use Kotlin Symbol Processing (KSP)
+	// If this project uses any Kotlin source, use Kotlin Symbol Processing (KSP)
     // See Add the KSP plugin to your project
     ksp(libs.androidx.room.compiler)
 

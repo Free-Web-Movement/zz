@@ -17,7 +17,7 @@ class MainApplication : Application() {
     private lateinit var preference: Preference
     lateinit var crypto: Crypto
     lateinit var db : ZzDatabase
-    var ipList: IPList = IPList.getInstance(Server.port)
+    var ipList: IPList = IPList.getInstance(Server.port, true)
 
     init {
         instance = this

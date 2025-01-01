@@ -12,6 +12,7 @@ data class Peer(
 ) {
     @PrimaryKey(autoGenerate=true) var id: Int = 0
     @ColumnInfo(name = "session_id") var sessionId: String = ""
+//    @ColumnInfo(name = "nickname") var nickname: String = "Nick Name"
     @ColumnInfo(name = "rsa_public_key") var rsaPublicKey: String = ""
     @ColumnInfo(name = "ip_address") var ipAddress: String = ""
     @ColumnInfo(name = "is_ipv6") var isIpv6: Boolean = true
