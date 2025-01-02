@@ -13,16 +13,19 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.freewebmovement.zz.system.net.IPList
-import io.github.freewebmovement.zz.ui.BottomBar
+import io.github.freewebmovement.zz.ui.BottomNavigation
 import io.github.freewebmovement.zz.ui.IPListView
-import io.github.freewebmovement.zz.ui.MainActivity as UIMainActivity
+import io.github.freewebmovement.zz.ui.TabType
 import io.github.freewebmovement.zz.ui.theme.ZzTheme
-import io.github.freewebmovement.zz.ui.viewmodel.BottomBarModel
+import io.github.freewebmovement.zz.ui.MainActivity as UIMainActivity
 
 
 class MainActivity : ComponentActivity() {
@@ -46,11 +49,12 @@ class MainActivity : ComponentActivity() {
                         ) {
 							Text(text="open")
 						}
-						val vm: BottomBarModel = viewModel()
 						Spacer(modifier = Modifier.weight(1f))
-						BottomBar(vm.current) {
-							vm.current = it
-						}
+						var selectedTab by remember { mutableStateOf(TabType.Chats) }
+						BottomNavigation(
+							selectedTab = selectedTab,
+							onClickTab = { selectedTab = it },
+						)
 
 					}
 				}

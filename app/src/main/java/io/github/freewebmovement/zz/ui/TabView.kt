@@ -23,7 +23,7 @@ import io.github.freewebmovement.zz.R
 import io.github.freewebmovement.zz.ui.theme.black
 
 
-private enum class TabType {
+enum class TabType {
     Chats,
     Contacts,
     Apps,
@@ -128,7 +128,7 @@ private fun TabContent(
  * 底部导航
  */
 @Composable
-private fun BottomNavigation(
+fun BottomNavigation(
     selectedTab: TabType,
     onClickTab: (TabType) -> Unit,
 ) {
