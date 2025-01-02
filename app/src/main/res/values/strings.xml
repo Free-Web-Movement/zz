@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">zz</string>
+    <string name="title_chat">Chats</string>
+    <string name="title_contact">Contacts</string>
+    <string name="title_app">Apps</string>
+    <string name="title_mine">Mine</string>
 </resources>

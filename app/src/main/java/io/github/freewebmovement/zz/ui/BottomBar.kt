@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -50,7 +51,7 @@ fun BottomBar(selected: Int, onSelected: (Int) -> Unit) {
 	) {
 		TabItem(
 			if (selected == 0) R.drawable.ic_chat_bubble_selected else R.drawable.ic_chat_bubble,
-			"聊天",
+			stringResource(R.string.title_chat),
 			if (selected == 0) MaterialTheme.colorScheme.primary else
 				black,
 			Modifier
@@ -61,7 +62,7 @@ fun BottomBar(selected: Int, onSelected: (Int) -> Unit) {
 		)
 		TabItem(
 			if (selected == 1) R.drawable.ic_server_selected else R.drawable.ic_server,
-			"通讯录",
+			stringResource(R.string.title_contact),
 			if (selected == 1) MaterialTheme.colorScheme.primary else
 				black,
 			Modifier
@@ -72,7 +73,7 @@ fun BottomBar(selected: Int, onSelected: (Int) -> Unit) {
 		)
 		TabItem(
 			if (selected == 2) R.drawable.ic_app_selected else R.drawable.ic_app,
-			"应用",
+			stringResource(R.string.title_app),
 			if (selected == 2) MaterialTheme.colorScheme.primary else
 				black,
 			Modifier
@@ -83,7 +84,7 @@ fun BottomBar(selected: Int, onSelected: (Int) -> Unit) {
 		)
 		TabItem(
 			if (selected == 3) R.drawable.ic_account_selected else R.drawable.ic_account,
-			"我的",
+			stringResource(R.string.title_mine),
 			if (selected == 3) MaterialTheme.colorScheme.primary else
 				black,
 			Modifier
