@@ -21,7 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import io.github.freewebmovement.zz.system.net.IPList
-import io.github.freewebmovement.zz.ui.BottomNavigation
+import io.github.freewebmovement.zz.ui.BottomBar
 import io.github.freewebmovement.zz.ui.IPListView
 import io.github.freewebmovement.zz.ui.TabType
 import io.github.freewebmovement.zz.ui.theme.ZzTheme
@@ -51,7 +51,7 @@ class MainActivity : ComponentActivity() {
 						}
 						Spacer(modifier = Modifier.weight(1f))
 						var selectedTab by remember { mutableStateOf(TabType.Chats) }
-						BottomNavigation(
+						BottomBar(
 							selectedTab = selectedTab,
 							onClickTab = { selectedTab = it },
 						)
