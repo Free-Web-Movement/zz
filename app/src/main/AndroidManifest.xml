@@ -7,9 +7,7 @@
         tools:ignore="WrongManifestParent" />
     <uses-permission
         android:name="android.permission.ACCESS_NETWORK_STATE"
-        tools:ignore="WrongManifestParent" />
-
-    <!-- Devices running Android 12L (API level 32) or lower  -->
+        tools:ignore="WrongManifestParent" /> <!-- Devices running Android 12L (API level 32) or lower -->
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="32"
@@ -22,8 +20,8 @@
         android:name="android.permission.MANAGE_MEDIA"
         tools:ignore="ProtectedPermissions" />
 
-
     <application
+        android:name=".MainApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -32,14 +30,19 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Zz"
-        android:name=".MainApplication"
         tools:targetApi="31">
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="false"
+            android:label="@string/title_activity_main"
+            android:theme="@style/Theme.Zz" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.Zz">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
