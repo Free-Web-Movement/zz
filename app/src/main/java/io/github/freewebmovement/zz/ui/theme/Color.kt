@@ -13,3 +13,5 @@ val Pink40 = Color(0xFF7D5260)
 
 val green = Color(0xFF67BF63).convert(ColorSpaces.CieXyz)
 val black = Color(0xFF000000).convert(ColorSpaces.CieXyz)
+
+val backColor = Color(0xFF888888).convert(ColorSpaces.CieXyz)
