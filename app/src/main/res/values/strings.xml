@@ -4,5 +4,6 @@
     <string name="title_contact">通讯录</string>
     <string name="title_app">应用市场</string>
     <string name="title_mine">我的</string>
+    <string name="tab_mine_setting">设置</string>
     <string name="title_activity_main">MainActivity</string>
 </resources>

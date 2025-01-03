@@ -5,5 +5,6 @@
     <string name="title_contact">Contacts</string>
     <string name="title_app">Apps</string>
     <string name="title_mine">Mine</string>
+    <string name="tab_mine_setting">Settings</string>
     <string name="title_activity_main">MainActivity</string>
 </resources>

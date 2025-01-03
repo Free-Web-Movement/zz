@@ -26,7 +26,7 @@ fun Tabs(
             AppContent(TabType.Apps)
         }
         Tab(TabType.Mine) {
-            MinContent(TabType.Mine)
+            MinContent()
         }
     }
 }
