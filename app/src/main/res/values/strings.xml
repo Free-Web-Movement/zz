@@ -4,7 +4,13 @@
     <string name="title_contact">通讯录</string>
     <string name="title_app">应用市场</string>
     <string name="title_mine">我的</string>
+    <string name="tab_mine_avatar">头像</string>
+    <string name="tab_mine_nickname">昵称</string>
     <string name="tab_mine_setting">设置</string>
+    <string name="tab_mine_refresh_key">更新密钥</string>
+    <string name="tab_mine_settings_message_saving_period">消灭保存时间</string>
+    <string name="tab_mine_port">端口号</string>
+    <string name="tab_mine_local_server">本地服务器信息</string>
     <string name="tab_mine_profile">概况</string>
     <string name="title_activity_main">MainActivity</string>
 </resources>

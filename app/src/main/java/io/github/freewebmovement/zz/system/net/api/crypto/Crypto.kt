@@ -53,6 +53,11 @@ class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
         private val kpg: KeyPairGenerator = KeyPairGenerator.getInstance(CRYPTO_ALGORITHM_RSA)
         private val keyFactory: KeyFactory = KeyFactory.getInstance(CRYPTO_ALGORITHM_RSA)
         private var instance: Crypto? = null
+        suspend fun refresh(preference: Preference) : Crypto {
+            instance == null;
+            preference.write(IS_INIT_KEY, false);
+            return getInstance(preference)
+        }
         suspend fun getInstance(preference: Preference): Crypto {
                 if (instance == null) {
                     val isInit = preference.read(IS_INIT_KEY)

@@ -17,6 +17,14 @@ import androidx.compose.ui.unit.dp
 import io.github.freewebmovement.zz.R
 import io.github.freewebmovement.zz.ui.theme.backColor
 
+
+@Composable
+fun RowItem(
+    icon: Int,
+    title: Int
+) {
+    RowItem(icon, R.drawable.ic_chevron_right, title)
+}
 @Composable
 fun RowItem(
     leftIcon: Int,

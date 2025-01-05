@@ -24,7 +24,7 @@ private fun getIcon(tab: TabType, selected: TabType): Int {
         TabType.Chats -> if (selected == tab) R.drawable.ic_chat_bubble_selected else R.drawable.ic_chat_bubble
         TabType.Contacts -> if (selected == tab) R.drawable.ic_server_selected else R.drawable.ic_server
         TabType.Apps -> if (selected == tab) R.drawable.ic_app_selected else R.drawable.ic_app
-        TabType.Mine -> if (selected == tab) R.drawable.ic_account_selected else R.drawable.ic_account
+        TabType.Mine -> if (selected == tab) R.drawable.ic_mine_selected else R.drawable.ic_mine
     }
 }
 
