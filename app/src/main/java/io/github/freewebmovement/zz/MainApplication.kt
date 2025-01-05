@@ -1,6 +1,7 @@
 package io.github.freewebmovement.zz
 
 import android.app.Application
+import io.github.freewebmovement.zz.bussiness.Settings
 import io.github.freewebmovement.zz.system.database.ZzDatabase
 import io.github.freewebmovement.zz.system.net.IPList
 import io.github.freewebmovement.zz.system.net.PeerServer
@@ -18,13 +19,15 @@ class MainApplication : Application() {
     lateinit var crypto: Crypto
     lateinit var db : ZzDatabase
     var ipList: IPList = IPList.getInstance(Server.port)
+    lateinit var settings: Settings
 
     init {
         instance = this
         coroutineScope.launch {
             preference = Preference(applicationContext)
             crypto = Crypto.getInstance(preference)
-            PeerServer.start(Server.host, Server.port)
+            settings = Settings(preference)
+            PeerServer.start(Server.host, settings.localServerPort)
             db = ZzDatabase.getDatabase(applicationContext)
         }
     }

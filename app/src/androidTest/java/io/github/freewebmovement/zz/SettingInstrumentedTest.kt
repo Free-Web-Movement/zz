@@ -52,6 +52,15 @@ class SettingInstrumentedTest {
             assertEquals(caught, false)
 
             assertEquals(setting.localServerPort, 1050)
+
+            caught = false
+            try {
+                setting.localServerPort = 0
+            } catch (e: Exception) {
+                caught = true
+            }
+            assertEquals(caught, false)
+            assertEquals(setting.localServerPort, 0)
             assertEquals(setting.messagePeriod, 100)
             assertEquals(setting.messagePeriod, 0)
             setting.messagePeriod = 100
@@ -62,6 +71,7 @@ class SettingInstrumentedTest {
             assertEquals(setting.realtimeTypeSupported, 0)
             setting.realtimeTypeSupported = 0x11
             assertEquals(setting.realtimeTypeSupported, 0x11)
+            setting.refreshKeys();
         }
     }
 }

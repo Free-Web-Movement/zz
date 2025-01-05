@@ -5,6 +5,7 @@ import io.github.freewebmovement.zz.system.net.api.crypto.Crypto
 import io.github.freewebmovement.zz.system.persistence.Preference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 enum class MessageType(i: Int) {
@@ -30,9 +31,9 @@ class Settings(private val preference: Preference) {
     // Message Persistence Period
     var messagePeriod: Int = 0
         get() {
-            coroutineScope.launch {
+            coroutineScope.async {
                 field = preference.read(MESSAGE_PERSISTENCE_PERIOD) ?: 0
-                return@launch
+                return@async field
             }
             return field
         }
@@ -43,17 +44,17 @@ class Settings(private val preference: Preference) {
         }
     var localServerPort: Int = 0
         get() {
-            coroutineScope.launch {
+            coroutineScope.async {
                 field = preference.read(LOCAL_SERVER_PORT) ?: 0
                 if (field == 0) {
                     field = (((1 shl 10) + 1) ..<(1 shl 32)).random()
                 }
-                return@launch
+                return@async field
             }
             return field
         }
         set(value) {
-            if (value <= 1024) {
+            if (value <= 1024 && value != 0) {
                 throw Exception("Value must be large than 1024!")
             }
             coroutineScope.launch {
@@ -62,9 +63,9 @@ class Settings(private val preference: Preference) {
         }
     var messageTypeSupported: Int = 0
         get() {
-            coroutineScope.launch {
+            coroutineScope.async {
                 field = preference.read(MESSAGE_TYPE) ?: 0
-                return@launch
+                return@async field
             }
             return field
         }
@@ -76,9 +77,9 @@ class Settings(private val preference: Preference) {
 
     var realtimeTypeSupported: Int = 0
         get() {
-            coroutineScope.launch {
+            coroutineScope.async {
                 field = preference.read(REALTIME_COMMUNICATION_TYPE) ?: 0
-                return@launch
+                return@async field
             }
             return field
         }
