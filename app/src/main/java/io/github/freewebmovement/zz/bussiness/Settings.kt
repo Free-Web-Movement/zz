@@ -1,6 +1,7 @@
 package io.github.freewebmovement.zz.bussiness
 
 import android.content.SharedPreferences
+import kotlin.reflect.KProperty
 
 enum class MessageType(i: Int) {
     TEXT(0b1),
@@ -20,19 +21,26 @@ private const val MESSAGE_TYPE = "MESSAGE_TYPE"
 private const val REALTIME_COMMUNICATION_TYPE = "REALTIME_COMMUNICATION_TYPE"
 
 
+class PreferenceAccessor(
+    private val preference: SharedPreferences,
+    private val key: String,
+    private var field: Int = 0
+) {
+    operator fun getValue(thisRef: Any?, property: KProperty<*>): Int {
+        return preference.getInt(key, 0)
+    }
+
+    operator fun setValue(thisRef: Any?, property: KProperty<*>, value: Int) {
+        var editor = preference.edit()
+        editor.putInt(key, value)
+        editor.apply()
+        field = value
+    }
+}
+
 class Settings(private val preference: SharedPreferences) {
     // Message Persistence Period
-    var messagePeriod: Int = 0
-        get() {
-            field = preference.getInt(MESSAGE_PERSISTENCE_PERIOD, 0)
-            return field
-        }
-        set(value) {
-            val editor = preference.edit()
-            editor.putInt(MESSAGE_PERSISTENCE_PERIOD, value)
-            editor.apply()
-            field = value
-        }
+    var messagePeriod: Int by PreferenceAccessor(preference, MESSAGE_PERSISTENCE_PERIOD)
     var localServerPort: Int = 0
         get() {
             field = preference.getInt(LOCAL_SERVER_PORT, 0)
@@ -40,6 +48,8 @@ class Settings(private val preference: SharedPreferences) {
                 val min = (1u shl 10) + 1u
                 val max = (1u shl 16) - 1u
                 field = (min..max).random().toInt()
+                val editor = preference.edit()
+                editor.putInt(LOCAL_SERVER_PORT, field)
             }
             return field
         }
@@ -52,29 +62,6 @@ class Settings(private val preference: SharedPreferences) {
             editor.apply()
             field = value
         }
-    var messageTypeSupported: Int = 0
-        get() {
-            field = preference.getInt(MESSAGE_TYPE, 0)
-            return field
-        }
-        set(value) {
-            val editor = preference.edit()
-
-            editor.putInt(MESSAGE_TYPE, value)
-            editor.apply()
-
-            field = value
-        }
-
-    var realtimeTypeSupported: Int = 0
-        get() {
-            field = preference.getInt(REALTIME_COMMUNICATION_TYPE, 0)
-            return field
-        }
-        set(value) {
-            val editor = preference.edit()
-            editor.putInt(REALTIME_COMMUNICATION_TYPE, value)
-            editor.apply()
-            field = value
-        }
+    var messageTypeSupported: Int by PreferenceAccessor(preference, MESSAGE_TYPE)
+    var realtimeTypeSupported: Int by PreferenceAccessor(preference, REALTIME_COMMUNICATION_TYPE)
 }
