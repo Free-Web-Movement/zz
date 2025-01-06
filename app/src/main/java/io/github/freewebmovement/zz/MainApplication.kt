@@ -29,8 +29,8 @@ class MainApplication : Application() {
             preference = applicationContext.getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE)
             crypto = Crypto.getInstance(preference)
             settings = Settings(preference)
-//            PeerServer.start(Server.host, settings.localServerPort)
-            PeerServer.start(Server.host, Server.port)
+            PeerServer.start(Server.host, settings.localServerPort)
+//            PeerServer.start(Server.host, Server.port)
             db = ZzDatabase.getDatabase(applicationContext)
         }
     }

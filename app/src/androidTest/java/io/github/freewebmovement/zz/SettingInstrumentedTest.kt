@@ -50,7 +50,7 @@ class SettingInstrumentedTest {
                 caught = true
             }
             assertEquals(caught, false)
-        assert(setting.localServerPort != 0 && setting.localServerPort > 1024 && setting.localServerPort < 65535)
+            assert(setting.localServerPort != 0 && setting.localServerPort > 1024 && setting.localServerPort < 65535)
             assertEquals(setting.messagePeriod, 0)
             setting.messagePeriod = 100
             assertEquals(setting.messagePeriod, 100)
