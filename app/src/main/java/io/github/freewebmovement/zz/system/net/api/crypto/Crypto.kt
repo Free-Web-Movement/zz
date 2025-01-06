@@ -1,8 +1,6 @@
 package io.github.freewebmovement.zz.system.net.api.crypto
 
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.byteArrayPreferencesKey
-import io.github.freewebmovement.zz.system.persistence.Preference
+import android.content.SharedPreferences
 import java.nio.charset.StandardCharsets
 import java.security.KeyFactory
 import java.security.KeyPairGenerator
@@ -16,20 +14,16 @@ import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 
-private val IS_INIT_KEY = booleanPreferencesKey("kp_is_init")
-private val PRIVATE_KEY = byteArrayPreferencesKey("kp_private_key")
-private val PUBLIC_KEY = byteArrayPreferencesKey("kp_public_key")
+private const val IS_INIT_KEY = "kp_is_init"
+private const val PRIVATE_KEY = "kp_private_key"
+private const val PUBLIC_KEY = "kp_public_key"
 private const val CRYPTO_ALGORITHM_RSA = "RSA"
 private const val KEY_SIZE = 2048
 
 class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
     // For public keys
-    private var privateKey: PrivateKey
-    var publicKey: PublicKey
-    init {
-        privateKey = aPrivateKey
-        publicKey = aPublicKey
-    }
+    private var privateKey: PrivateKey = aPrivateKey
+    var publicKey: PublicKey = aPublicKey
 
     @OptIn(ExperimentalEncodingApi::class)
     fun encrypt(str: String): String {
@@ -53,28 +47,30 @@ class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
         private val kpg: KeyPairGenerator = KeyPairGenerator.getInstance(CRYPTO_ALGORITHM_RSA)
         private val keyFactory: KeyFactory = KeyFactory.getInstance(CRYPTO_ALGORITHM_RSA)
         private var instance: Crypto? = null
-        suspend fun refresh(preference: Preference) : Crypto {
-            instance == null;
-            preference.write(IS_INIT_KEY, false);
+        fun refresh(preference: SharedPreferences) : Crypto {
+            instance = null
+            val editor = preference.edit()
+            editor.putBoolean(IS_INIT_KEY, false)
+            editor.apply()
             return getInstance(preference)
         }
-        suspend fun getInstance(preference: Preference): Crypto {
+        fun getInstance(preference: SharedPreferences): Crypto {
                 if (instance == null) {
-                    val isInit = preference.read(IS_INIT_KEY)
-                    if (isInit != true) {
+                    val isInit = preference.getBoolean(IS_INIT_KEY, false)
+                    if (!isInit) {
                         kpg.initialize(KEY_SIZE)
-                        preference.write(PRIVATE_KEY, kpg.genKeyPair().private.encoded)
-                        preference.write(PUBLIC_KEY, kpg.genKeyPair().private.encoded)
+                        val editor = preference.edit()
+                        editor.putString(PRIVATE_KEY, kpg.genKeyPair().private.encoded.toString())
+                        editor.putString(PUBLIC_KEY, kpg.genKeyPair().public.encoded.toString())
+                        editor.apply()
                         instance = Crypto(kpg.genKeyPair().private, kpg.genKeyPair().public)
                     } else {
-                        lateinit var privateKey: PrivateKey
-                        lateinit var publicKey: PublicKey
-                        val privateKeyBytes = preference.read(PRIVATE_KEY)!!
-                        val publicKeyBytes = preference.read(PUBLIC_KEY)!!
+                        val privateKeyBytes = preference.getString(PRIVATE_KEY, "")?.toByteArray()
+                        val publicKeyBytes = preference.getString(PUBLIC_KEY, "")?.toByteArray()
                         val privateKeySpec: EncodedKeySpec = PKCS8EncodedKeySpec(privateKeyBytes)
-                        privateKey = keyFactory.generatePrivate(privateKeySpec)
+                        val privateKey = keyFactory.generatePrivate(privateKeySpec)
                         val publicKeySpec: EncodedKeySpec = X509EncodedKeySpec(publicKeyBytes)
-                        publicKey = keyFactory.generatePublic(publicKeySpec)
+                        val publicKey = keyFactory.generatePublic(publicKeySpec)
                         instance = Crypto(privateKey, publicKey)
                     }
                 }

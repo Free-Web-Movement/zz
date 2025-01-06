@@ -71,7 +71,6 @@ class SettingInstrumentedTest {
             assertEquals(setting.realtimeTypeSupported, 0)
             setting.realtimeTypeSupported = 0x11
             assertEquals(setting.realtimeTypeSupported, 0x11)
-            setting.refreshKeys();
         }
     }
 }

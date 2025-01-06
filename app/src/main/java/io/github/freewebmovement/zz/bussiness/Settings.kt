@@ -88,10 +88,4 @@ class Settings(private val preference: Preference) {
                 preference.write(REALTIME_COMMUNICATION_TYPE, value)
             }
         }
-
-    fun refreshKeys() {
-        coroutineScope.launch {
-            Crypto.refresh(preference)
-        }
-    }
 }
