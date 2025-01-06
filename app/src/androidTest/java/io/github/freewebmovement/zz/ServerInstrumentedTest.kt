@@ -5,7 +5,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.freewebmovement.zz.system.database.entity.Peer
 import io.github.freewebmovement.zz.system.net.PeerClient
 import io.github.freewebmovement.zz.system.net.PeerServer
-import io.github.freewebmovement.zz.system.persistence.Preference
 import io.github.freewebmovement.zz.system.settings.Server
 import io.ktor.http.HttpStatusCode
 import junit.framework.TestCase.assertEquals
@@ -23,7 +22,6 @@ class ServerInstrumentedTest {
 		val coroutineScope = CoroutineScope(Dispatchers.IO)
 		coroutineScope.launch {
 			val app = ApplicationProvider.getApplicationContext<MainApplication>()
-			Preference(app.baseContext)
 			PeerServer.start(Server.host, Server.port)
 			val timeStamp = System.currentTimeMillis() / 1000
 			val peer = Peer(createdAt = timeStamp, updatedAt = timeStamp)

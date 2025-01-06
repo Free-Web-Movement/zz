@@ -7,7 +7,6 @@ import io.github.freewebmovement.zz.system.database.ZzDatabase
 import io.github.freewebmovement.zz.system.net.IPList
 import io.github.freewebmovement.zz.system.net.PeerServer
 import io.github.freewebmovement.zz.system.net.api.crypto.Crypto
-import io.github.freewebmovement.zz.system.persistence.Preference
 import io.github.freewebmovement.zz.system.settings.Server
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +17,6 @@ private const val PREFERENCES_NAME = "ZZ"
 
 class MainApplication : Application() {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
-
     lateinit var preference: SharedPreferences
     lateinit var crypto: Crypto
     lateinit var db : ZzDatabase
@@ -30,8 +28,7 @@ class MainApplication : Application() {
         coroutineScope.launch {
             preference = applicationContext.getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE)
             crypto = Crypto.getInstance(preference)
-            val p = Preference(applicationContext)
-            settings = Settings(p)
+            settings = Settings(preference)
 //            PeerServer.start(Server.host, settings.localServerPort)
             PeerServer.start(Server.host, Server.port)
             db = ZzDatabase.getDatabase(applicationContext)
