@@ -15,14 +15,16 @@ import io.github.freewebmovement.zz.ui.content.Tabs
 @Composable
 fun TabView() {
     var selectedTab by remember { mutableStateOf(TabType.Chats) }
+    var stacked by remember { mutableStateOf(ContentType.NonStacked) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         TopBar(
-            selectedTab = selectedTab
+            selectedTab = selectedTab,
+            stacked = stacked
         )
         Tabs(
             selectedTab = selectedTab,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f)
         )
         BottomBar(
             selectedTab = selectedTab,

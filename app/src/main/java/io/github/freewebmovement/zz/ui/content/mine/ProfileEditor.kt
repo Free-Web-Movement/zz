@@ -1,12 +1,17 @@
 package io.github.freewebmovement.zz.ui.content.mine
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -22,16 +27,22 @@ import io.github.freewebmovement.zz.R
 
 @Composable
 fun ProfileEditor() {
-    Column {
-        Row() {
+    Column(
+        modifier = Modifier.fillMaxHeight(),
+        ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.ic_default_image),
                 contentDescription = stringResource(id = R.string.tab_mine_avatar),
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
+                    .width(128.dp)
                     .size(128.dp)
                     .clip(CircleShape)
-                    .align(Alignment.CenterVertically)
             )
         }
         Row {
@@ -39,7 +50,7 @@ fun ProfileEditor() {
             TextField(
                 value = text,
                 onValueChange = { text = it },
-                label = { Text("Nick Name") },
+                label = { Text(stringResource(R.string.tab_mine_nickname)) },
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -48,11 +59,27 @@ fun ProfileEditor() {
             TextField(
                 value = text,
                 onValueChange = { text = it },
-                label = { Text("Signature") },
+                label = { Text(stringResource(R.string.signature)) },
                 modifier = Modifier.fillMaxWidth()
             )
+        }
+
+        Row (
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = Arrangement.Center
+        ){
+            Button(onClick = {  }) {
+                Text(stringResource(R.string.action_save))
+            }
         }
     }
+}
+
+@Preview(locale = "zh")
+@Composable
+private fun Preview() {
+    ProfileEditor()
 }
 
 @Preview(locale = "en")

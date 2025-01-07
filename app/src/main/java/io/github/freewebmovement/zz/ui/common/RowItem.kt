@@ -1,6 +1,7 @@
 package io.github.freewebmovement.zz.ui.common
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,20 +22,22 @@ import io.github.freewebmovement.zz.ui.theme.backColor
 @Composable
 fun RowItem(
     icon: Int,
-    title: Int
+    title: Int,
+    onClick: () -> Unit
 ) {
-    RowItem(icon, R.drawable.ic_chevron_right, title)
+    RowItem(icon, R.drawable.ic_chevron_right, title, onClick)
 }
 @Composable
 fun RowItem(
     leftIcon: Int,
     rightIcon: Int,
-    title: Int
+    title: Int,
+    onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).height(40.dp).background(
             backColor
-        ),
+        ).clickable(onClick = onClick),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {

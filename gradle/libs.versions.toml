@@ -9,6 +9,7 @@ junitVersion = "1.2.1"
 espressoCore = "3.5.1"
 kotlinTest = "2.0.21"
 kotlinxCoroutinesAndroid = "1.10.1"
+kotlinxCoroutinesCoreVersion = "1.10.1"
 kotlinxSerializationJson = "1.7.3"
 ktorClientContentNegotiation = "3.0.2"
 ktorClientCore = "3.0.2"
@@ -52,6 +53,7 @@ androidx-room-paging = { module = "androidx.room:room-paging", version.ref = "ro
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomKtx" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
 androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "roomTesting" }
+jetbrains-kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCoreVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

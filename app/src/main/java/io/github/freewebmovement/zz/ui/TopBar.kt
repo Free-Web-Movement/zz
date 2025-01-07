@@ -13,10 +13,17 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 
+
+enum class ContentType {
+    NonStacked,
+    Stacked
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatTopBar(
     selectedTab: TabType,
+    stacked: ContentType
 ) {
 
     CenterAlignedTopAppBar(
@@ -29,10 +36,12 @@ fun ChatTopBar(
         },
         navigationIcon = {
             IconButton(onClick = { /* do something */ }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Localized description"
-                )
+                if (stacked == ContentType.Stacked) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Localized description"
+                    )
+                }
             }
         },
         actions = {
@@ -50,6 +59,8 @@ fun ChatTopBar(
 @Composable
 fun ContactTopBar(
     selectedTab: TabType,
+    stacked: ContentType
+
 ) {
 
     CenterAlignedTopAppBar(
@@ -62,10 +73,12 @@ fun ContactTopBar(
         },
         navigationIcon = {
             IconButton(onClick = { /* do something */ }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Localized description"
-                )
+                if (stacked == ContentType.Stacked) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Localized description"
+                    )
+                }
             }
         },
         actions = {
@@ -83,6 +96,8 @@ fun ContactTopBar(
 @Composable
 fun AppTopBar(
     selectedTab: TabType,
+    stacked: ContentType
+
 ) {
 
     CenterAlignedTopAppBar(
@@ -95,10 +110,12 @@ fun AppTopBar(
         },
         navigationIcon = {
             IconButton(onClick = { /* do something */ }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Localized description"
-                )
+                if (stacked == ContentType.Stacked) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Localized description"
+                    )
+                }
             }
         },
         actions = {
@@ -116,6 +133,8 @@ fun AppTopBar(
 @Composable
 fun MineTopBar(
     selectedTab: TabType,
+    stacked: ContentType
+
 ) {
 
     CenterAlignedTopAppBar(
@@ -128,10 +147,13 @@ fun MineTopBar(
         },
         navigationIcon = {
             IconButton(onClick = { /* do something */ }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Localized description"
-                )
+                if (stacked == ContentType.Stacked) {
+
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Localized description"
+                    )
+                }
             }
         },
         actions = {
@@ -149,17 +171,24 @@ fun MineTopBar(
 @Composable
 fun TopBar(
     selectedTab: TabType,
+    stacked: ContentType
 ) {
     when (selectedTab) {
-        TabType.Chats -> ChatTopBar(selectedTab)
-        TabType.Contacts -> ContactTopBar(selectedTab)
-        TabType.Apps -> AppTopBar(selectedTab)
-        TabType.Mine -> MineTopBar(selectedTab)
+        TabType.Chats -> ChatTopBar(selectedTab, stacked)
+        TabType.Contacts -> ContactTopBar(selectedTab, stacked)
+        TabType.Apps -> AppTopBar(selectedTab, stacked)
+        TabType.Mine -> MineTopBar(selectedTab, stacked)
     }
 }
 
 @Preview
 @Composable
 private fun Preview() {
-    TopBar(TabType.Chats)
+    TopBar(TabType.Chats, ContentType.NonStacked)
+}
+
+@Preview
+@Composable
+private fun Preview_Stacked() {
+    TopBar(TabType.Chats, ContentType.Stacked)
 }

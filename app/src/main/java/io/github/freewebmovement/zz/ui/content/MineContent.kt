@@ -1,8 +1,11 @@
 package io.github.freewebmovement.zz.ui.content
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,12 +24,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.freewebmovement.zz.R
 import io.github.freewebmovement.zz.ui.common.RowItem
+import io.github.freewebmovement.zz.ui.theme.backColor
 
 @Composable
 fun MinContent() {
     Column {
         Row(
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = {
+
+                }),
+
         ) {
             Column(modifier = Modifier.weight(1.2f)) {
                 Image(
@@ -40,12 +50,12 @@ fun MinContent() {
             }
             Column(modifier = Modifier.weight(5f)) {
                 Text(
-                    text = "昵称", modifier = Modifier
+                    text = stringResource(R.string.tab_mine_nickname), modifier = Modifier
                         .padding(horizontal = 0.dp)
                         .height(32.dp),
                     fontSize = 24.sp,
                 )
-                Text(text = "签名", modifier = Modifier.padding(horizontal = 0.dp))
+                Text(text = stringResource(R.string.signature), modifier = Modifier.padding(horizontal = 0.dp))
             }
 
             Column(
@@ -59,10 +69,18 @@ fun MinContent() {
 
         }
 
-        RowItem(R.drawable.ic_settings, R.string.tab_mine_setting)
-        RowItem(R.drawable.ic_refresh, R.string.tab_mine_refresh_key)
-        RowItem(R.drawable.ic_port, R.string.tab_mine_port)
-        RowItem(R.drawable.ic_mine_local_server, R.string.tab_mine_local_server)
+        RowItem(R.drawable.ic_settings, R.string.tab_mine_setting, onClick = {
+            println("Setting Clicked")
+        })
+        RowItem(R.drawable.ic_refresh, R.string.tab_mine_refresh_key, onClick = {
+            println("Refresh Clicked")
+        })
+        RowItem(R.drawable.ic_port, R.string.tab_mine_port, onClick = {
+            println("Port Clicked")
+        })
+        RowItem(R.drawable.ic_mine_local_server, R.string.tab_mine_local_server, onClick = {
+            println("Server Clicked")
+        })
     }
 }
 

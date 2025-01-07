@@ -12,5 +12,7 @@
     <string name="tab_mine_port">端口号</string>
     <string name="tab_mine_local_server">本地服务器信息</string>
     <string name="tab_mine_profile">概况</string>
+    <string name="action_save">保存</string>
+    <string name="signature">签名</string>
     <string name="title_activity_main">MainActivity</string>
 </resources>

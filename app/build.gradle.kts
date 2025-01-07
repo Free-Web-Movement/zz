@@ -82,6 +82,7 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.datastore.preferences.core)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.jetbrains.kotlinx.coroutines.core)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.paging)
