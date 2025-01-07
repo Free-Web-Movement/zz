@@ -24,7 +24,8 @@ fun TabView() {
         )
         Tabs(
             selectedTab = selectedTab,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            stackUpdater =  { it  -> stacked = it}
         )
         BottomBar(
             selectedTab = selectedTab,

@@ -1,13 +1,11 @@
 package io.github.freewebmovement.zz.ui.content.mine
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -24,9 +22,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.freewebmovement.zz.R
+import io.github.freewebmovement.zz.ui.ContentType
+import io.github.freewebmovement.zz.ui.TabType
 
 @Composable
-fun ProfileEditor() {
+fun ProfileEditor(tabType: TabType, stackedUpdater: (value: ContentType) -> Unit) {
     Column(
         modifier = Modifier.fillMaxHeight(),
         ) {
@@ -79,11 +79,14 @@ fun ProfileEditor() {
 @Preview(locale = "zh")
 @Composable
 private fun Preview() {
-    ProfileEditor()
+    ProfileEditor(TabType.Mine) {
+
+    }
 }
 
 @Preview(locale = "en")
 @Composable
 private fun Preview_en() {
-    ProfileEditor()
+    ProfileEditor(TabType.Mine) {
+    }
 }

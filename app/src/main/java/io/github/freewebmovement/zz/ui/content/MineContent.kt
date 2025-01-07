@@ -23,21 +23,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.freewebmovement.zz.R
+import io.github.freewebmovement.zz.ui.ContentType
+import io.github.freewebmovement.zz.ui.TabType
 import io.github.freewebmovement.zz.ui.common.RowItem
 import io.github.freewebmovement.zz.ui.theme.backColor
 
 @Composable
-fun MinContent() {
+fun MinContent(tabType: TabType, stackedUpdater: (value: ContentType) -> Unit) {
     Column {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(onClick = {
-
+                    stackedUpdater(ContentType.Stacked)
                 }),
-
-        ) {
+            ) {
             Column(modifier = Modifier.weight(1.2f)) {
                 Image(
                     painter = painterResource(id = R.drawable.ic_default_image),
@@ -50,12 +51,16 @@ fun MinContent() {
             }
             Column(modifier = Modifier.weight(5f)) {
                 Text(
-                    text = stringResource(R.string.tab_mine_nickname), modifier = Modifier
-                        .padding(horizontal = 0.dp)
+                    text = stringResource(R.string.tab_mine_nickname),
+                    modifier = Modifier
+                        .padding(horizontal = 14.dp)
                         .height(32.dp),
                     fontSize = 24.sp,
                 )
-                Text(text = stringResource(R.string.signature), modifier = Modifier.padding(horizontal = 0.dp))
+                Text(
+                    text = stringResource(R.string.signature),
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
             }
 
             Column(
@@ -71,15 +76,21 @@ fun MinContent() {
 
         RowItem(R.drawable.ic_settings, R.string.tab_mine_setting, onClick = {
             println("Setting Clicked")
+            stackedUpdater(ContentType.Stacked)
         })
         RowItem(R.drawable.ic_refresh, R.string.tab_mine_refresh_key, onClick = {
             println("Refresh Clicked")
+            stackedUpdater(ContentType.Stacked)
+
         })
         RowItem(R.drawable.ic_port, R.string.tab_mine_port, onClick = {
             println("Port Clicked")
+            stackedUpdater(ContentType.Stacked)
+
         })
         RowItem(R.drawable.ic_mine_local_server, R.string.tab_mine_local_server, onClick = {
             println("Server Clicked")
+            stackedUpdater(ContentType.Stacked)
         })
     }
 }
@@ -87,11 +98,13 @@ fun MinContent() {
 @Preview
 @Composable
 private fun Preview() {
-    MinContent()
+    MinContent(TabType.Mine) {
+    }
 }
 
 @Preview(locale = "en")
 @Composable
 private fun Preview_en() {
-    MinContent()
+    MinContent(TabType.Mine) {
+    }
 }

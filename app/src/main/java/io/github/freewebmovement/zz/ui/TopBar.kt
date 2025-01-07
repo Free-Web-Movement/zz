@@ -19,6 +19,8 @@ enum class ContentType {
     Stacked
 }
 
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatTopBar(
