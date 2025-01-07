@@ -22,14 +22,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.freewebmovement.zz.R
-import io.github.freewebmovement.zz.ui.ContentType
-import io.github.freewebmovement.zz.ui.TabType
+import io.github.freewebmovement.zz.ui.common.Pages
 
 @Composable
-fun ProfileEditor(tabType: TabType, stackedUpdater: (value: ContentType) -> Unit) {
+fun ProfileEditor(updatePage: (value: Pages) -> Unit) {
     Column(
         modifier = Modifier.fillMaxHeight(),
-        ) {
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -64,12 +63,14 @@ fun ProfileEditor(tabType: TabType, stackedUpdater: (value: ContentType) -> Unit
             )
         }
 
-        Row (
+        Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.Center
-        ){
-            Button(onClick = {  }) {
+        ) {
+            Button(onClick = {
+                updatePage(Pages.MineMain)
+            }) {
                 Text(stringResource(R.string.action_save))
             }
         }
@@ -79,7 +80,7 @@ fun ProfileEditor(tabType: TabType, stackedUpdater: (value: ContentType) -> Unit
 @Preview(locale = "zh")
 @Composable
 private fun Preview() {
-    ProfileEditor(TabType.Mine) {
+    ProfileEditor {
 
     }
 }
@@ -87,6 +88,6 @@ private fun Preview() {
 @Preview(locale = "en")
 @Composable
 private fun Preview_en() {
-    ProfileEditor(TabType.Mine) {
+    ProfileEditor {
     }
 }

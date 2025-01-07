@@ -9,6 +9,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import io.github.freewebmovement.zz.ui.common.ContentType
+import io.github.freewebmovement.zz.ui.common.TabType
 import io.github.freewebmovement.zz.ui.content.Tabs
 
 
@@ -25,7 +27,7 @@ fun TabView() {
         Tabs(
             selectedTab = selectedTab,
             modifier = Modifier.weight(1f),
-            stackUpdater = { it -> stacked = it }
+            stackUpdater = { stacked = it }
         )
         BottomBar(
             selectedTab = selectedTab,

@@ -4,8 +4,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import io.github.freewebmovement.zz.ui.ContentType
-import io.github.freewebmovement.zz.ui.TabType
+import io.github.freewebmovement.zz.ui.common.ContentType
+import io.github.freewebmovement.zz.ui.common.TabType
 
 
 @Composable

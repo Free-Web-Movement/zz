@@ -10,14 +10,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import io.github.freewebmovement.zz.R
+import io.github.freewebmovement.zz.ui.common.TabType
 import io.github.freewebmovement.zz.ui.theme.black
 
-enum class TabType {
-    Chats,
-    Contacts,
-    Apps,
-    Mine,
-}
 
 private fun getIcon(tab: TabType, selected: TabType): Int {
     return when(tab) {

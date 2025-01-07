@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import io.github.freewebmovement.zz.system.net.IPList
 import io.github.freewebmovement.zz.ui.BottomBar
 import io.github.freewebmovement.zz.ui.IPListView
-import io.github.freewebmovement.zz.ui.TabType
+import io.github.freewebmovement.zz.ui.common.TabType
 import io.github.freewebmovement.zz.ui.theme.ZzTheme
 import io.github.freewebmovement.zz.ui.MainActivity as UIMainActivity
 
