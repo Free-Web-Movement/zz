@@ -25,11 +25,14 @@ fun TabView() {
         Tabs(
             selectedTab = selectedTab,
             modifier = Modifier.weight(1f),
-            stackUpdater =  { it  -> stacked = it}
+            stackUpdater = { it -> stacked = it }
         )
         BottomBar(
             selectedTab = selectedTab,
-            onClickTab = { selectedTab = it },
+            onClickTab = {
+                selectedTab = it
+                stacked = ContentType.NonStacked
+            },
         )
     }
 }

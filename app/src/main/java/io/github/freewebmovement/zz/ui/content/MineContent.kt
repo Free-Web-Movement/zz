@@ -1,7 +1,6 @@
 package io.github.freewebmovement.zz.ui.content
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,12 +23,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.freewebmovement.zz.R
 import io.github.freewebmovement.zz.ui.ContentType
-import io.github.freewebmovement.zz.ui.TabType
 import io.github.freewebmovement.zz.ui.common.RowItem
-import io.github.freewebmovement.zz.ui.theme.backColor
 
 @Composable
-fun MinContent(tabType: TabType, stackedUpdater: (value: ContentType) -> Unit) {
+fun MinContent(stackedUpdater: (value: ContentType) -> Unit) {
     Column {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -98,13 +95,13 @@ fun MinContent(tabType: TabType, stackedUpdater: (value: ContentType) -> Unit) {
 @Preview
 @Composable
 private fun Preview() {
-    MinContent(TabType.Mine) {
+    MinContent {
     }
 }
 
 @Preview(locale = "en")
 @Composable
 private fun Preview_en() {
-    MinContent(TabType.Mine) {
+    MinContent {
     }
 }

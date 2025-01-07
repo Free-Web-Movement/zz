@@ -1,10 +1,10 @@
 package io.github.freewebmovement.zz.ui.content
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import io.github.freewebmovement.zz.ui.ContentType
-import io.github.freewebmovement.zz.ui.TabContainer
 import io.github.freewebmovement.zz.ui.TabType
 
 
@@ -14,21 +14,12 @@ fun Tabs(
     selectedTab: TabType,
     stackUpdater:(value: ContentType) -> Unit
 ) {
-    TabContainer(
-        modifier = modifier.fillMaxSize(),
-        selectedTab = selectedTab,
-    ) {
-        Tab(TabType.Chats) {
-            ChatContent(TabType.Chats, stackUpdater)
-        }
-        Tab(TabType.Contacts) {
-            ContactContent(TabType.Contacts, stackUpdater)
-        }
-        Tab(TabType.Apps) {
-            AppContent(TabType.Apps, stackUpdater)
-        }
-        Tab(TabType.Mine) {
-            MinContent(TabType.Mine, stackUpdater)
+    Box(modifier = modifier.fillMaxSize()) {
+        when (selectedTab) {
+            TabType.Chats -> ChatContent(TabType.Chats, stackUpdater)
+            TabType.Contacts -> ContactContent(TabType.Contacts, stackUpdater)
+            TabType.Apps -> AppContent(TabType.Apps, stackUpdater)
+            TabType.Mine -> MinContent(stackUpdater)
         }
     }
 }
