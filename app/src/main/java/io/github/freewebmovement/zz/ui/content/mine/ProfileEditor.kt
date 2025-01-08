@@ -42,10 +42,6 @@ import coil3.request.ImageRequest
 import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.R
 import io.github.freewebmovement.zz.ui.common.PageType
-import io.ktor.client.engine.cio.CIO
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 val rainbowColors: List<Color> = listOf(
     Color.Red,

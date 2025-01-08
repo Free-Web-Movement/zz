@@ -23,6 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import io.github.freewebmovement.zz.R
 import io.github.freewebmovement.zz.ui.common.ContentType
+import io.github.freewebmovement.zz.ui.common.PageType
 import io.github.freewebmovement.zz.ui.common.TabType
 
 
@@ -30,7 +31,7 @@ import io.github.freewebmovement.zz.ui.common.TabType
 @Composable
 fun ChatTopBar(
     selectedTab: TabType,
-    stacked: ContentType
+    stacked: ContentType,
 ) {
     var showDropDownMenu by remember { mutableStateOf(false) }
 
@@ -43,7 +44,9 @@ fun ChatTopBar(
             Text(getTitle(selectedTab))
         },
         navigationIcon = {
-            IconButton(onClick = { /* do something */ }) {
+            IconButton(onClick = {
+
+            }) {
                 if (stacked == ContentType.Stacked) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -150,8 +153,9 @@ fun AppTopBar(
 @Composable
 fun MineTopBar(
     selectedTab: TabType,
-    stacked: ContentType
-
+    stacked: ContentType,
+    page: PageType,
+    updater: (page: PageType, value: ContentType) -> Unit
 ) {
     CenterAlignedTopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
@@ -162,7 +166,9 @@ fun MineTopBar(
             Text(getTitle(selectedTab))
         },
         navigationIcon = {
-            IconButton(onClick = { /* do something */ }) {
+            IconButton(onClick = {
+                updater(PageType.MineMain, ContentType.NonStacked)
+            }) {
                 if (stacked == ContentType.Stacked) {
 
                     Icon(
@@ -186,24 +192,28 @@ fun MineTopBar(
 @Composable
 fun TopBar(
     selectedTab: TabType,
-    stacked: ContentType
+    stacked: ContentType,
+    page: PageType,
+    updater: (page: PageType, value: ContentType) -> Unit
 ) {
     when (selectedTab) {
         TabType.Chats -> ChatTopBar(selectedTab, stacked)
         TabType.Contacts -> ContactTopBar(selectedTab, stacked)
         TabType.Apps -> AppTopBar(selectedTab, stacked)
-        TabType.Mine -> MineTopBar(selectedTab, stacked)
+        TabType.Mine -> MineTopBar(selectedTab, stacked, page, updater)
     }
 }
 
 @Preview
 @Composable
 private fun Preview() {
-    TopBar(TabType.Chats, ContentType.NonStacked)
+    TopBar(TabType.Chats, ContentType.NonStacked, PageType.MineMain) { _, _ ->
+    }
 }
 
 @Preview
 @Composable
 private fun Preview_Stacked() {
-    TopBar(TabType.Chats, ContentType.Stacked)
+    TopBar(TabType.Chats, ContentType.Stacked, PageType.MineMain) { _, _ ->
+    }
 }

@@ -10,6 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import io.github.freewebmovement.zz.ui.common.ContentType
+import io.github.freewebmovement.zz.ui.common.PageType
 import io.github.freewebmovement.zz.ui.common.TabType
 import io.github.freewebmovement.zz.ui.content.Tabs
 
@@ -18,16 +19,26 @@ import io.github.freewebmovement.zz.ui.content.Tabs
 fun TabView() {
     var selectedTab by remember { mutableStateOf(TabType.Chats) }
     var stacked by remember { mutableStateOf(ContentType.NonStacked) }
+    var page by remember { mutableStateOf(PageType.MineMain) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         TopBar(
             selectedTab = selectedTab,
-            stacked = stacked
+            stacked = stacked,
+            page = page,
+            updater = { _1, _2 ->
+                stacked = _2
+                page = _1
+            }
         )
         Tabs(
             selectedTab = selectedTab,
             modifier = Modifier.weight(1f),
-            stackUpdater = { stacked = it }
+            page = page,
+            updater = { _1, _2 ->
+                stacked = _2
+                page = _1
+            }
         )
         BottomBar(
             selectedTab = selectedTab,

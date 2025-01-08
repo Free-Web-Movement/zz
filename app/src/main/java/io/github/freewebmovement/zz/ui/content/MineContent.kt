@@ -8,32 +8,27 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
 import io.github.freewebmovement.zz.ui.common.ContentType
 import io.github.freewebmovement.zz.ui.common.PageType
+import io.github.freewebmovement.zz.ui.content.mine.LocalServerInfo
 import io.github.freewebmovement.zz.ui.content.mine.MineMain
 import io.github.freewebmovement.zz.ui.content.mine.ProfileEditor
 
 @Composable
-fun MinContent(stackedUpdater: (value: ContentType) -> Unit) {
-    var page by remember { mutableStateOf(PageType.MineMain) }
-
+fun MinContent(page: PageType, updater: (page: PageType, value: ContentType) -> Unit) {
     when (page) {
         PageType.MineMain -> MineMain {
-            page = it
-            stackedUpdater(ContentType.Stacked)
+            updater(it, ContentType.Stacked)
         }
 
         PageType.MineProfile -> ProfileEditor {
-            page = it
-            stackedUpdater(ContentType.NonStacked)
+            updater(it, ContentType.NonStacked)
         }
 
-        PageType.MineServer -> MineMain {
-            page = it
-            stackedUpdater(ContentType.Stacked)
+        PageType.MineServer -> LocalServerInfo {
+            updater(it, ContentType.NonStacked)
         }
 
         PageType.MineKey ->MineMain {
-            page = it
-            stackedUpdater(ContentType.Stacked)
+            updater(it, ContentType.Stacked)
         }
 
         else -> {
@@ -45,13 +40,13 @@ fun MinContent(stackedUpdater: (value: ContentType) -> Unit) {
 @Preview
 @Composable
 private fun Preview() {
-    MinContent {
+    MinContent(PageType.MineMain) {_,_ ->
     }
 }
 
 @Preview(locale = "en")
 @Composable
 private fun Preview_en() {
-    MinContent {
+    MinContent(PageType.MineMain) {_,_ ->
     }
 }

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import io.github.freewebmovement.zz.ui.common.ContentType
+import io.github.freewebmovement.zz.ui.common.PageType
 import io.github.freewebmovement.zz.ui.common.TabType
 
 
@@ -12,14 +13,15 @@ import io.github.freewebmovement.zz.ui.common.TabType
 fun Tabs(
     modifier: Modifier = Modifier,
     selectedTab: TabType,
-    stackUpdater:(value: ContentType) -> Unit
+    page: PageType,
+    updater:(page: PageType, value: ContentType) -> Unit
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         when (selectedTab) {
-            TabType.Chats -> ChatContent(TabType.Chats, stackUpdater)
-            TabType.Contacts -> ContactContent(TabType.Contacts, stackUpdater)
-            TabType.Apps -> AppContent(TabType.Apps, stackUpdater)
-            TabType.Mine -> MinContent(stackUpdater)
+            TabType.Chats -> ChatContent(TabType.Chats, updater)
+            TabType.Contacts -> ContactContent(TabType.Contacts, updater)
+            TabType.Apps -> AppContent(TabType.Apps, updater)
+            TabType.Mine -> MinContent(page, updater)
         }
     }
 }
