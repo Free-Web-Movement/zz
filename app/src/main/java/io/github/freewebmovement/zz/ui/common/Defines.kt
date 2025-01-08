@@ -1,4 +1,7 @@
 package io.github.freewebmovement.zz.ui.common
+
+import androidx.compose.ui.graphics.Color
+
 enum class TabType {
     Chats,
     Contacts,
@@ -19,7 +22,8 @@ enum class PageType(i: Int) {
     MineMain(0x40),
     MineProfile(0x41),
     MineKey(0x42),
-    MineServer(0x43)
+    MineServerIP(0x43),
+    MineServerPort (0x44)
 }
 
 
@@ -29,3 +33,12 @@ enum class MinePages {
     Server,
     Key
 }
+
+val rainbowColors: List<Color> = listOf(
+    Color.Red,
+    Color.Magenta,
+    Color.Yellow,
+    Color.Green,
+    Color.Blue,
+    Color.Cyan
+)

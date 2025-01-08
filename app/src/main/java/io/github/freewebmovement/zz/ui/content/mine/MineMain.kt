@@ -26,7 +26,7 @@ import io.github.freewebmovement.zz.ui.common.RowItem
 
 
 @Composable
-    fun MineMain(updatePage: (value: PageType) -> Unit) {
+fun MineMain(updatePage: (value: PageType) -> Unit) {
     Column {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -82,12 +82,12 @@ import io.github.freewebmovement.zz.ui.common.RowItem
         })
         RowItem(R.drawable.ic_port, R.string.tab_mine_port, onClick = {
             println("Port Clicked")
-            updatePage(PageType.MineServer)
+            updatePage(PageType.MineServerPort)
 
         })
         RowItem(R.drawable.ic_mine_local_server, R.string.tab_mine_local_server_ips, onClick = {
             println("Server Clicked")
-            updatePage(PageType.MineServer)
+            updatePage(PageType.MineServerIP)
         })
     }
 }

@@ -42,15 +42,8 @@ import coil3.request.ImageRequest
 import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.R
 import io.github.freewebmovement.zz.ui.common.PageType
+import io.github.freewebmovement.zz.ui.common.rainbowColors
 
-val rainbowColors: List<Color> = listOf(
-    Color.Red,
-    Color.Magenta,
-    Color.Yellow,
-    Color.Green,
-    Color.Blue,
-    Color.Cyan
-)
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable

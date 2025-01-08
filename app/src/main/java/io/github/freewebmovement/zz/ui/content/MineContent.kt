@@ -5,6 +5,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import io.github.freewebmovement.zz.ui.common.ContentType
 import io.github.freewebmovement.zz.ui.common.PageType
 import io.github.freewebmovement.zz.ui.content.mine.LocalServerIPInfo
+import io.github.freewebmovement.zz.ui.content.mine.LocalServerPort
 import io.github.freewebmovement.zz.ui.content.mine.MineMain
 import io.github.freewebmovement.zz.ui.content.mine.ProfileEditor
 
@@ -18,8 +19,10 @@ fun MinContent(page: PageType, updater: (page: PageType, value: ContentType) -> 
         PageType.MineProfile -> ProfileEditor {
             updater(it, ContentType.NonStacked)
         }
-
-        PageType.MineServer -> LocalServerIPInfo {
+        PageType.MineServerPort -> LocalServerPort {
+            updater(it, ContentType.NonStacked)
+        }
+        PageType.MineServerIP -> LocalServerIPInfo {
             updater(it, ContentType.NonStacked)
         }
 
