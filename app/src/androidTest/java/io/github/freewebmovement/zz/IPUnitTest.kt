@@ -1,14 +1,20 @@
 package io.github.freewebmovement.zz
 
+import android.app.Application.MODE_PRIVATE
+import android.content.SharedPreferences
+import androidx.test.core.app.ApplicationProvider
+import io.github.freewebmovement.zz.bussiness.Settings
 import io.github.freewebmovement.zz.system.net.IPList
-import io.github.freewebmovement.zz.system.settings.Server
 import junit.framework.TestCase.assertTrue
 import org.junit.Test
 
 class IPUnitTest {
 	@Test
 	fun should_test_ip() {
-		val ipList: IPList = IPList.getInstance(Server.port)
+		val app = ApplicationProvider.getApplicationContext<MainApplication>()
+		val preferences: SharedPreferences = app.baseContext.getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE);
+		val settings = Settings(preferences)
+		val ipList: IPList = IPList.getInstance(settings)
 		assertTrue(ipList.ipv4IPLocal.isNotEmpty())
 		assertTrue(ipList.ipv6IPLocal.isNotEmpty())
 		assertTrue(ipList.ipv4IPPublic.size >= 0)

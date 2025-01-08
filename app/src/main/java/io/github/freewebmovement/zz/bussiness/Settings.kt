@@ -87,6 +87,7 @@ class Settings(private val preference: SharedPreferences) {
                 field = (min..max).random().toInt()
                 val editor = preference.edit()
                 editor.putInt(LOCAL_SERVER_PORT, field)
+                editor.apply()
             }
             return field
         }

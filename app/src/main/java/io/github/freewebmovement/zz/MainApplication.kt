@@ -13,15 +13,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 
-private const val PREFERENCES_NAME = "ZZ"
+const val PREFERENCES_NAME = "ZZ"
 
 class MainApplication : Application() {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
     lateinit var preference: SharedPreferences
     lateinit var crypto: Crypto
     lateinit var db : ZzDatabase
-    var ipList: IPList = IPList.getInstance(Server.port)
     lateinit var settings: Settings
+    lateinit var ipList: IPList
 
     init {
         instance = this
@@ -29,6 +29,7 @@ class MainApplication : Application() {
             preference = applicationContext.getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE)
             crypto = Crypto.getInstance(preference)
             settings = Settings(preference)
+            ipList = IPList.getInstance(settings)
             PeerServer.start(Server.host, settings.localServerPort)
             db = ZzDatabase.getDatabase(applicationContext)
         }

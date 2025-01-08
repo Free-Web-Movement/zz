@@ -42,7 +42,7 @@ fun LocalServerPort(updatePage: (value: PageType) -> Unit) {
                     TextField(
                         value = port.toString(),
                         onValueChange = { v ->
-                            if(v.length > 0 ) {
+                            if(v.isNotEmpty()) {
                                 port = v.toInt()
                             } else {
                                 port = 0

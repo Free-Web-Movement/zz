@@ -1,13 +1,15 @@
 package io.github.freewebmovement.zz.system.net
 
 import android.util.Log
+import io.github.freewebmovement.zz.bussiness.Settings
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
 import java.net.NetworkInterface
 
 
-class IPList private constructor(port: Int) {
+class IPList private constructor(settings: Settings) {
+    var settings = settings
     var ipv4IPLocal = ArrayList<String>()
     var ipv4IPPublic = ArrayList<String>()
     var ipv6IPLocal = ArrayList<String>()
@@ -53,6 +55,7 @@ class IPList private constructor(port: Int) {
 
     fun toHTTPV6Uris(ipv6s: List<String>): List<String> {
         var uris = ArrayList<String>()
+        var port = settings.localServerPort
         ipv6s.forEach {
             uris.add("http://[$it]:$port/")
         }
@@ -61,6 +64,7 @@ class IPList private constructor(port: Int) {
 
     fun toHTTPV4Uris(ipv4s: List<String>): List<String> {
         var uris = ArrayList<String>()
+        var port = settings.localServerPort
         ipv4s.forEach {
             uris.add("http://$it:$port/")
         }
@@ -68,13 +72,11 @@ class IPList private constructor(port: Int) {
     }
 
     companion object {
-        var port: Int = 0
         private var instance: IPList? = null
 
-        fun getInstance(inPort: Int): IPList {
+        fun getInstance(settings: Settings): IPList {
             if (instance == null) {
-                port = inPort
-                instance = IPList(port)
+                instance = IPList(settings)
             }
             return instance!!
         }
