@@ -8,6 +8,7 @@ import io.github.freewebmovement.zz.ui.content.mine.LocalServerIPInfo
 import io.github.freewebmovement.zz.ui.content.mine.LocalServerPort
 import io.github.freewebmovement.zz.ui.content.mine.MineMain
 import io.github.freewebmovement.zz.ui.content.mine.ProfileEditor
+import io.github.freewebmovement.zz.ui.content.mine.UpdateKeys
 
 @Composable
 fun MinContent(page: PageType, updater: (page: PageType, value: ContentType) -> Unit) {
@@ -26,8 +27,8 @@ fun MinContent(page: PageType, updater: (page: PageType, value: ContentType) -> 
             updater(it, ContentType.NonStacked)
         }
 
-        PageType.MineKey ->MineMain {
-            updater(it, ContentType.Stacked)
+        PageType.MineKey -> UpdateKeys {
+            updater(it, ContentType.NonStacked)
         }
 
         else -> {

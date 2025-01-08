@@ -30,7 +30,6 @@ class MainApplication : Application() {
             crypto = Crypto.getInstance(preference)
             settings = Settings(preference)
             PeerServer.start(Server.host, settings.localServerPort)
-//            PeerServer.start(Server.host, Server.port)
             db = ZzDatabase.getDatabase(applicationContext)
         }
     }

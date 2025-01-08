@@ -22,7 +22,7 @@ private const val KEY_SIZE = 2048
 
 class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
     // For public keys
-    private var privateKey: PrivateKey = aPrivateKey
+    var privateKey: PrivateKey = aPrivateKey
     var publicKey: PublicKey = aPublicKey
 
     @OptIn(ExperimentalEncodingApi::class)

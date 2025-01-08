@@ -16,5 +16,6 @@
     <string name="signature">签名</string>
     <string name="back">返回</string>
     <string name="menu">菜单</string>
+    <string name="update">更新</string>
     <string name="title_activity_main">MainActivity</string>
 </resources>
