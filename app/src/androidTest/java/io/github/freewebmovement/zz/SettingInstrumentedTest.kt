@@ -25,40 +25,52 @@ class SettingInstrumentedTest {
         val app = ApplicationProvider.getApplicationContext<MainApplication>()
         val preference = app.preference
         val setting = Settings(preference)
-            assert(setting.localServerPort != 0 && setting.localServerPort > 1024 && setting.localServerPort < 65535)
-            var caught = false
-            try {
-                setting.localServerPort = 100
-            } catch (e: Exception) {
-                caught = true
-            }
-            assertEquals(caught, true)
-            caught = false
-            try {
-                setting.localServerPort = 1050
-            } catch (e: Exception) {
-                caught = true
-            }
-            assertEquals(caught, false)
+        assert(setting.localServerPort != 0 && setting.localServerPort > 1024 && setting.localServerPort < 65535)
+        var caught = false
+        try {
+            setting.localServerPort = 100
+        } catch (e: Exception) {
+            caught = true
+        }
+        assertEquals(caught, true)
+        caught = false
+        try {
+            setting.localServerPort = 1050
+        } catch (e: Exception) {
+            caught = true
+        }
+        assertEquals(caught, false)
 
-            assertEquals(setting.localServerPort, 1050)
+        assertEquals(setting.localServerPort, 1050)
 
-            caught = false
-            try {
-                setting.localServerPort = 0
-            } catch (e: Exception) {
-                caught = true
-            }
-            assertEquals(caught, false)
-            assert(setting.localServerPort != 0 && setting.localServerPort > 1024 && setting.localServerPort < 65535)
-            assertEquals(setting.messagePeriod, 0)
-            setting.messagePeriod = 100
-            assertEquals(setting.messagePeriod, 100)
-            assertEquals(setting.messageTypeSupported, 0)
-            setting.messageTypeSupported = 0x11
-            assertEquals(setting.messageTypeSupported, 0x11)
-            assertEquals(setting.realtimeTypeSupported, 0)
-            setting.realtimeTypeSupported = 0x11
-            assertEquals(setting.realtimeTypeSupported, 0x11)
+        caught = false
+        try {
+            setting.localServerPort = 0
+        } catch (e: Exception) {
+            caught = true
+        }
+        assertEquals(caught, false)
+        assert(setting.localServerPort != 0 && setting.localServerPort > 1024 && setting.localServerPort < 65535)
+        assertEquals(setting.messagePeriod, 0)
+        setting.messagePeriod = 100
+        assertEquals(setting.messagePeriod, 100)
+        assertEquals(setting.messageTypeSupported, 0)
+        setting.messageTypeSupported = 0x11
+        assertEquals(setting.messageTypeSupported, 0x11)
+        assertEquals(setting.realtimeTypeSupported, 0)
+        setting.realtimeTypeSupported = 0x11
+        assertEquals(setting.realtimeTypeSupported, 0x11)
+        setting.mineProfileImageUri = "http://osos.com"
+        assert(setting.mineProfileImageUri.isNotEmpty())
+        setting.mineProfileNickname = "NickName"
+        assert(setting.mineProfileNickname.isNotEmpty())
+        setting.mineProfileSignature = "Signature"
+        assert(setting.mineProfileSignature.isNotEmpty())
+        setting.mineProfileImageUri = ""
+        assert(setting.mineProfileImageUri.isEmpty())
+        setting.mineProfileNickname = ""
+        assert(setting.mineProfileNickname.isEmpty())
+        setting.mineProfileSignature = ""
+        assert(setting.mineProfileSignature.isEmpty())
     }
 }

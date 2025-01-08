@@ -1,5 +1,6 @@
 package io.github.freewebmovement.zz.ui.content.mine
 
+import android.annotation.SuppressLint
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -38,8 +39,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
+import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.R
 import io.github.freewebmovement.zz.ui.common.PageType
+import io.ktor.client.engine.cio.CIO
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 val rainbowColors: List<Color> = listOf(
     Color.Red,
@@ -50,6 +56,7 @@ val rainbowColors: List<Color> = listOf(
     Color.Cyan
 )
 
+@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun ProfileEditor(updatePage: (value: PageType) -> Unit) {
     val brush = remember {
@@ -57,84 +64,100 @@ fun ProfileEditor(updatePage: (value: PageType) -> Unit) {
             colors = rainbowColors
         )
     }
-    var nickname by remember { mutableStateOf("") }
-    var signature by remember { mutableStateOf("") }
-    var imageUri by remember { mutableStateOf<Uri?>(null) }
-    val pickMedia = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        // Callback is invoked after the user selects a media item or closes the
-        // photo picker.
-        if (uri != null) {
-            Log.d("PhotoPicker", "Selected URI: $uri")
-            imageUri = uri
-        } else {
-            Log.d("PhotoPicker", "No media selected")
-        }
-    }
 
-    Column(
-        modifier = Modifier.fillMaxHeight(),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
+
+    with(MainApplication.instance!!.settings) {
+        var nickname by remember { mutableStateOf(mineProfileNickname) }
+        var signature by remember { mutableStateOf(mineProfileSignature) }
+        var imageUri by remember { mutableStateOf<Uri?>(Uri.parse(mineProfileImageUri)) }
+        val pickMedia =
+            rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+                // Callback is invoked after the user selects a media item or closes the
+                // photo picker.
+                if (uri != null) {
+                    Log.d("PhotoPicker", "Selected URI: $uri")
+                    imageUri = uri
+                } else {
+                    Log.d("PhotoPicker", "No media selected")
+                }
+            }
+
+        Column(
+            modifier = Modifier.fillMaxHeight(),
         ) {
-            if (imageUri != null) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(imageUri)
-                        .build(),
-                    contentDescription = stringResource(id = R.string.tab_mine_avatar),
-                    contentScale = ContentScale.Crop,
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                if (imageUri != null) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(imageUri)
+                            .build(),
+                        contentDescription = stringResource(id = R.string.tab_mine_avatar),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .width(128.dp)
+                            .size(128.dp)
+                            .clip(CircleShape)
+                            .clickable {
+                                pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                            }
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_default_image),
+                        contentDescription = stringResource(id = R.string.tab_mine_avatar),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .width(128.dp)
+                            .size(128.dp)
+                            .clip(CircleShape)
+                            .clickable {
+                                pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                            }
+                    )
+                }
+            }
+            Row {
+                TextField(
+                    value = nickname,
+                    onValueChange = { nickname = it },
+                    label = { Text(stringResource(R.string.tab_mine_nickname)) },
                     modifier = Modifier
-                        .width(128.dp)
-                        .size(128.dp)
-                        .clip(CircleShape).clickable {
-                            pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                        }
-                )
-            } else {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_default_image),
-                    contentDescription = stringResource(id = R.string.tab_mine_avatar),
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .width(128.dp)
-                        .size(128.dp)
-                        .clip(CircleShape).clickable {
-                            pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                        }
+                        .fillMaxWidth()
+                        .padding(2.dp),
+                    textStyle = TextStyle(brush = brush)
                 )
             }
-        }
-        Row {
-            TextField(
-                value = nickname,
-                onValueChange = { nickname = it },
-                label = { Text(stringResource(R.string.tab_mine_nickname)) },
-                modifier = Modifier.fillMaxWidth().padding(2.dp),
-                textStyle = TextStyle(brush = brush)
-            )
-        }
-        Row {
-            TextField(
-                value = signature,
-                onValueChange = { signature = it },
-                label = { Text(stringResource(R.string.signature)) },
-                modifier = Modifier.fillMaxWidth().padding(2.dp),
-                textStyle = TextStyle(brush = brush)
-            )
-        }
+            Row {
+                TextField(
+                    value = signature,
+                    onValueChange = { signature = it },
+                    label = { Text(stringResource(R.string.signature)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(2.dp),
+                    textStyle = TextStyle(brush = brush)
+                )
+            }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.Bottom,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Button(onClick = {
-                updatePage(PageType.MineMain)
-            }) {
-                Text(stringResource(R.string.action_save))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Button(onClick = {
+                    updatePage(PageType.MineMain)
+                }) {
+                    with(MainApplication.instance!!.settings) {
+                            mineProfileImageUri = imageUri.toString()
+                        mineProfileNickname = nickname
+                        mineProfileSignature = signature
+                    }
+                    Text(stringResource(R.string.action_save))
+                }
             }
         }
     }
