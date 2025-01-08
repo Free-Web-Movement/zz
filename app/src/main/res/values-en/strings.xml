@@ -11,7 +11,7 @@
     <string name="tab_mine_refresh_key">Update Keys</string>
     <string name="tab_mine_settings_message_saving_period">Message Saving Period</string>
     <string name="tab_mine_port">Port Number</string>
-    <string name="tab_mine_local_server">Local Server Info</string>
+    <string name="tab_mine_local_server_ips">Local Server IP Info</string>
     <string name="tab_mine_profile">Profile</string>
     <string name="action_save">Save</string>
     <string name="signature">Signature</string>

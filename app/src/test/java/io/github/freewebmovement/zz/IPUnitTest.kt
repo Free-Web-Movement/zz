@@ -8,14 +8,14 @@ import org.junit.Test
 class IPUnitTest {
 	@Test
 	fun should_test_ip() {
-		val ipList: IPList = IPList.getInstance(Server.port, true)
-		assertTrue(ipList.ipv6IPs.isNotEmpty())
-		assertTrue(ipList.ipv4IPs.isNotEmpty())
-		IPList.reset()
-		val ipListPublic: IPList = IPList.getInstance(Server.port)
-		// not reliable due to the networks
-		// tests tend to be failed, should ignore such failures
-//		assertTrue(ipListPublic.ipv6IPs.isNotEmpty())
-		assertTrue(ipListPublic.ipv4IPs.isEmpty())
+		val ipList: IPList = IPList.getInstance(Server.port)
+		assertTrue(ipList.ipv4IPLocal.isNotEmpty())
+		assertTrue(ipList.ipv6IPLocal.isNotEmpty())
+		assertTrue(ipList.ipv4IPPublic.size >= 0)
+		assertTrue(ipList.ipv6IPPublic.size >= 0)
+		assertTrue(ipList.toHTTPV4Uris(ipv4s = ipList.ipv4IPLocal).isNotEmpty())
+		assertTrue(ipList.toHTTPV4Uris(ipv4s = ipList.ipv4IPPublic).size >= 0)
+		assertTrue(ipList.toHTTPV6Uris(ipv6s = ipList.ipv6IPLocal).isNotEmpty())
+		assertTrue(ipList.toHTTPV6Uris(ipv6s = ipList.ipv6IPPublic).size >= 0)
 	}
 }

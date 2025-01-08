@@ -85,7 +85,7 @@ import io.github.freewebmovement.zz.ui.common.RowItem
             updatePage(PageType.MineServer)
 
         })
-        RowItem(R.drawable.ic_mine_local_server, R.string.tab_mine_local_server, onClick = {
+        RowItem(R.drawable.ic_mine_local_server, R.string.tab_mine_local_server_ips, onClick = {
             println("Server Clicked")
             updatePage(PageType.MineServer)
         })

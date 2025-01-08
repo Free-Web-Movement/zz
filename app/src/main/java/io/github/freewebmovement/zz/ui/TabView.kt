@@ -26,18 +26,18 @@ fun TabView() {
             selectedTab = selectedTab,
             stacked = stacked,
             page = page,
-            updater = { _1, _2 ->
-                stacked = _2
-                page = _1
+            updater = { vPage, vStacked ->
+                stacked = vStacked
+                page = vPage
             }
         )
         Tabs(
             selectedTab = selectedTab,
             modifier = Modifier.weight(1f),
             page = page,
-            updater = { _1, _2 ->
-                stacked = _2
-                page = _1
+            updater = { vPage, vStacked ->
+                stacked = vStacked
+                page = vPage
             }
         )
         BottomBar(

@@ -1,14 +1,10 @@
 package io.github.freewebmovement.zz.ui.content
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
 import io.github.freewebmovement.zz.ui.common.ContentType
 import io.github.freewebmovement.zz.ui.common.PageType
-import io.github.freewebmovement.zz.ui.content.mine.LocalServerInfo
+import io.github.freewebmovement.zz.ui.content.mine.LocalServerIPInfo
 import io.github.freewebmovement.zz.ui.content.mine.MineMain
 import io.github.freewebmovement.zz.ui.content.mine.ProfileEditor
 
@@ -23,7 +19,7 @@ fun MinContent(page: PageType, updater: (page: PageType, value: ContentType) -> 
             updater(it, ContentType.NonStacked)
         }
 
-        PageType.MineServer -> LocalServerInfo {
+        PageType.MineServer -> LocalServerIPInfo {
             updater(it, ContentType.NonStacked)
         }
 
