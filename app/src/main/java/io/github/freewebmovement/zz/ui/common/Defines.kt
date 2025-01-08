@@ -12,7 +12,7 @@ enum class ContentType {
     Stacked
 }
 
-enum class Pages(i: Int) {
+enum class PageType(i: Int) {
     ChatMain(0x10),
     ContactMain(0x20),
     AppMain(0x30),

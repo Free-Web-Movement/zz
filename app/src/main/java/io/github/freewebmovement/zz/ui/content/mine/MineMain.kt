@@ -21,19 +21,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.freewebmovement.zz.R
-import io.github.freewebmovement.zz.ui.common.Pages
+import io.github.freewebmovement.zz.ui.common.PageType
 import io.github.freewebmovement.zz.ui.common.RowItem
 
 
 @Composable
-    fun MineMain(updatePage: (value: Pages) -> Unit) {
+    fun MineMain(updatePage: (value: PageType) -> Unit) {
     Column {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(onClick = {
-                    updatePage(Pages.MineProfile)
+                    updatePage(PageType.MineProfile)
                 }),
         ) {
             Column(modifier = Modifier.weight(1.2f)) {
@@ -73,21 +73,21 @@ import io.github.freewebmovement.zz.ui.common.RowItem
 
         RowItem(R.drawable.ic_settings, R.string.tab_mine_setting, onClick = {
             println("Setting Clicked")
-            updatePage(Pages.MineProfile)
+            updatePage(PageType.MineProfile)
         })
         RowItem(R.drawable.ic_refresh, R.string.tab_mine_refresh_key, onClick = {
             println("Refresh Clicked")
-            updatePage(Pages.MineKey)
+            updatePage(PageType.MineKey)
 
         })
         RowItem(R.drawable.ic_port, R.string.tab_mine_port, onClick = {
             println("Port Clicked")
-            updatePage(Pages.MineServer)
+            updatePage(PageType.MineServer)
 
         })
         RowItem(R.drawable.ic_mine_local_server, R.string.tab_mine_local_server, onClick = {
             println("Server Clicked")
-            updatePage(Pages.MineServer)
+            updatePage(PageType.MineServer)
         })
     }
 }

@@ -22,10 +22,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.freewebmovement.zz.R
-import io.github.freewebmovement.zz.ui.common.Pages
+import io.github.freewebmovement.zz.ui.common.PageType
 
 @Composable
-fun ProfileEditor(updatePage: (value: Pages) -> Unit) {
+fun ProfileEditor(updatePage: (value: PageType) -> Unit) {
     Column(
         modifier = Modifier.fillMaxHeight(),
     ) {
@@ -69,7 +69,7 @@ fun ProfileEditor(updatePage: (value: Pages) -> Unit) {
             horizontalArrangement = Arrangement.Center
         ) {
             Button(onClick = {
-                updatePage(Pages.MineMain)
+                updatePage(PageType.MineMain)
             }) {
                 Text(stringResource(R.string.action_save))
             }
