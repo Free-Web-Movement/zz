@@ -45,6 +45,12 @@ fun TabView() {
             onClickTab = {
                 selectedTab = it
                 stacked = ContentType.NonStacked
+                page = when(selectedTab) {
+                    TabType.Mine -> PageType.MineMain
+                    TabType.Chats -> PageType.ChatMain
+                    TabType.Contacts -> PageType.ContactMain
+                    TabType.Apps -> PageType.AppMain
+                }
             },
         )
     }
