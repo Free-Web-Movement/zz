@@ -15,5 +15,7 @@
     <string name="tab_mine_profile">Profile</string>
     <string name="action_save">Save</string>
     <string name="signature">Signature</string>
+    <string name="back">Back</string>
+    <string name="menu">Menu</string>
     <string name="title_activity_main">MainActivity</string>
 </resources>

@@ -14,5 +14,7 @@
     <string name="tab_mine_profile">概况</string>
     <string name="action_save">保存</string>
     <string name="signature">签名</string>
+    <string name="back">返回</string>
+    <string name="menu">菜单</string>
     <string name="title_activity_main">MainActivity</string>
 </resources>

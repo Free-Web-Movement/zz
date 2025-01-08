@@ -1,5 +1,10 @@
 [versions]
+activity = "1.9.3"
+activityKtx = "1.9.3"
 agp = "8.7.3"
+appcompat = "1.6.1"
+coilCompose = "3.0.4"
+coilNetworkOkhttp = "3.0.4"
 core = "1.6.1"
 datastorePreferences = "1.1.1"
 kotlin = "2.1.0"
@@ -37,8 +42,12 @@ roomPaging = "2.6.1"
 roomCompiler = "2.6.1"
 roomTesting = "2.6.1"
 navigationCompose = "2.8.5"
+volley = "1.2.1"
 
 [libraries]
+androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
+androidx-activity = { module = "androidx.activity:activity", version.ref = "activity" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 androidx-core = { module = "androidx.test:core", version.ref = "core" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
@@ -53,6 +62,8 @@ androidx-room-paging = { module = "androidx.room:room-paging", version.ref = "ro
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomKtx" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
 androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "roomTesting" }
+coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coilNetworkOkhttp" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
 jetbrains-kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCoreVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -85,6 +96,7 @@ androidx-junit-ktx = { group = "androidx.test.ext", name = "junit-ktx", version.
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+volley = { group = "com.android.volley", name = "volley", version.ref = "volley" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

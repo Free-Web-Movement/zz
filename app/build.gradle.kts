@@ -92,14 +92,18 @@ dependencies {
     implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
-
+    implementation(libs.androidx.activity)
+    implementation(libs.androidx.activity.ktx)
+    implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.navigation.fragment)
     implementation(libs.androidx.navigation.ui)
-
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
     // Feature module support for Fragments
     implementation(libs.androidx.navigation.dynamic.features.fragment)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.volley)
 
 
     // If this project uses any Kotlin source, use Kotlin Symbol Processing (KSP)
