@@ -6,6 +6,7 @@ import io.github.freewebmovement.zz.ui.common.ContentType
 import io.github.freewebmovement.zz.ui.common.PageType
 import io.github.freewebmovement.zz.ui.content.mine.LocalServerIPInfo
 import io.github.freewebmovement.zz.ui.content.mine.LocalServerPort
+import io.github.freewebmovement.zz.ui.content.mine.LocalServerShare
 import io.github.freewebmovement.zz.ui.content.mine.MineMain
 import io.github.freewebmovement.zz.ui.content.mine.ProfileEditor
 import io.github.freewebmovement.zz.ui.content.mine.UpdateKeys
@@ -16,7 +17,6 @@ fun MinContent(page: PageType, updater: (page: PageType, value: ContentType) -> 
         PageType.MineMain -> MineMain {
             updater(it, ContentType.Stacked)
         }
-
         PageType.MineProfile -> ProfileEditor {
             updater(it, ContentType.NonStacked)
         }
@@ -26,11 +26,13 @@ fun MinContent(page: PageType, updater: (page: PageType, value: ContentType) -> 
         PageType.MineServerIP -> LocalServerIPInfo {
             updater(it, ContentType.NonStacked)
         }
-
         PageType.MineKey -> UpdateKeys {
             updater(it, ContentType.NonStacked)
         }
 
+        PageType.MineServerShare -> LocalServerShare {
+            updater(it, ContentType.NonStacked)
+        }
         else -> {
 
         }

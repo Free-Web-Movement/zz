@@ -25,6 +25,7 @@ import io.github.freewebmovement.zz.R
 import io.github.freewebmovement.zz.ui.common.ContentType
 import io.github.freewebmovement.zz.ui.common.PageType
 import io.github.freewebmovement.zz.ui.common.TabType
+import io.github.freewebmovement.zz.ui.topbar.MineTopBar
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -131,46 +132,6 @@ fun AppTopBar(
         navigationIcon = {
             IconButton(onClick = { /* do something */ }) {
                 if (stacked == ContentType.Stacked) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Localized description"
-                    )
-                }
-            }
-        },
-        actions = {
-            IconButton(onClick = { /* do something */ }) {
-                Icon(
-                    imageVector = Icons.Filled.Menu,
-                    contentDescription = "Localized description"
-                )
-            }
-        }
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MineTopBar(
-    selectedTab: TabType,
-    stacked: ContentType,
-    page: PageType,
-    updater: (page: PageType, value: ContentType) -> Unit
-) {
-    CenterAlignedTopAppBar(
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            titleContentColor = MaterialTheme.colorScheme.primary,
-        ),
-        title = {
-            Text(getTitle(selectedTab))
-        },
-        navigationIcon = {
-            IconButton(onClick = {
-                updater(PageType.MineMain, ContentType.NonStacked)
-            }) {
-                if (stacked == ContentType.Stacked) {
-
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Localized description"

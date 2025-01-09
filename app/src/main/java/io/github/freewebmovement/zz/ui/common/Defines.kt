@@ -23,7 +23,8 @@ enum class PageType(i: Int) {
     MineProfile(0x41),
     MineKey(0x42),
     MineServerIP(0x43),
-    MineServerPort (0x44)
+    MineServerPort (0x44),
+    MineServerShare (0x45)
 }
 
 

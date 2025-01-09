@@ -11,11 +11,15 @@
     <string name="tab_mine_settings_message_saving_period">消灭保存时间</string>
     <string name="tab_mine_port">端口号</string>
     <string name="tab_mine_local_server_ips">本地服务器IP信息</string>
+    <string name="tab_mine_local_server_share">本地服务器分享</string>
     <string name="tab_mine_profile">概况</string>
     <string name="action_save">保存</string>
     <string name="signature">签名</string>
     <string name="back">返回</string>
     <string name="menu">菜单</string>
     <string name="update">更新</string>
+    <string name="share">分享</string>
+    <string name="open">打开</string>
+    <string name="copy">复制</string>
     <string name="title_activity_main">MainActivity</string>
 </resources>

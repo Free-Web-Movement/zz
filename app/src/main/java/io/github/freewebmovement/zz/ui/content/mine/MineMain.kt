@@ -89,5 +89,10 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
             println("Server Clicked")
             updatePage(PageType.MineServerIP)
         })
+
+        RowItem(R.drawable.ic_mine_local_server_share, R.string.tab_mine_local_server_share, onClick = {
+            println("Server Clicked")
+            updatePage(PageType.MineServerShare)
+        })
     }
 }

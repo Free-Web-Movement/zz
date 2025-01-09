@@ -12,11 +12,15 @@
     <string name="tab_mine_settings_message_saving_period">Message Saving Period</string>
     <string name="tab_mine_port">Port Number</string>
     <string name="tab_mine_local_server_ips">Local Server IP Info</string>
+    <string name="tab_mine_local_server_share">Local Server Share</string>
     <string name="tab_mine_profile">Profile</string>
     <string name="action_save">Save</string>
     <string name="signature">Signature</string>
     <string name="back">Back</string>
     <string name="menu">Menu</string>
     <string name="update">Update</string>
+    <string name="share">Share</string>
+    <string name="open">Open</string>
+    <string name="copy">Copy</string>
     <string name="title_activity_main">MainActivity</string>
 </resources>

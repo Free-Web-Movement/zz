@@ -41,7 +41,7 @@ class PreferenceAccessor<T>(
     }
 
     operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
-        var editor = preference.edit()
+        val editor = preference.edit()
         when (field) {
             is Int -> editor.putInt(key, value as Int)
             is String -> editor.putString(key, value as String)
@@ -53,28 +53,28 @@ class PreferenceAccessor<T>(
 
 class Settings(private val preference: SharedPreferences) {
     // Message Persistence Period
-    var messagePeriod: Int by PreferenceAccessor<Int>(
+    var messagePeriod: Int by PreferenceAccessor(
         preference, MESSAGE_PERSISTENCE_PERIOD,
         field = 0
     )
-    var messageTypeSupported: Int by PreferenceAccessor<Int>(
+    var messageTypeSupported: Int by PreferenceAccessor(
         preference, MESSAGE_TYPE,
         field = 0
     )
-    var realtimeTypeSupported: Int by PreferenceAccessor<Int>(
+    var realtimeTypeSupported: Int by PreferenceAccessor(
         preference, REALTIME_COMMUNICATION_TYPE,
         field = 0
     )
 
-    var mineProfileImageUri: String by PreferenceAccessor<String>(
+    var mineProfileImageUri: String by PreferenceAccessor(
         preference, MINE_PROFILE_IMAGE_URI,
         field = ""
     )
-    var mineProfileNickname: String by PreferenceAccessor<String>(
+    var mineProfileNickname: String by PreferenceAccessor(
         preference, MINE_PROFILE_NICKNAME,
         field = ""
     )
-    var mineProfileSignature: String by PreferenceAccessor<String>(
+    var mineProfileSignature: String by PreferenceAccessor(
         preference, MINE_PROFILE_SIGNATURE,
         field = ""
     )
