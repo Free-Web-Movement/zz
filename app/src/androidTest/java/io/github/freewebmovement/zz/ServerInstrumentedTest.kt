@@ -2,6 +2,7 @@ package io.github.freewebmovement.zz
 
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import io.github.freewebmovement.zz.bussiness.Settings
 import io.github.freewebmovement.zz.system.database.entity.Peer
 import io.github.freewebmovement.zz.system.net.PeerClient
 import io.github.freewebmovement.zz.system.net.PeerServer
@@ -22,11 +23,13 @@ class ServerInstrumentedTest {
 		val coroutineScope = CoroutineScope(Dispatchers.IO)
 		coroutineScope.launch {
 			val app = ApplicationProvider.getApplicationContext<MainApplication>()
-			PeerServer.start(Server.host, Server.port)
+			val preference = app.preference
+			val setting = Settings(preference)
+			PeerServer.start(Server.host, setting.localServerPort)
 			val timeStamp = System.currentTimeMillis() / 1000
 			val peer = Peer(createdAt = timeStamp, updatedAt = timeStamp)
 			peer.ipAddress = Server.host
-			peer.ipPort = Server.port
+			peer.ipPort = setting.localServerPort
 			val client = PeerClient(peer)
 			val response = client.stepOneGetPublicKey()
 			assertEquals(HttpStatusCode.OK, response.status)
