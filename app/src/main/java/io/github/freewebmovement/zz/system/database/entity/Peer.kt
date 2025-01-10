@@ -43,7 +43,7 @@ data class Peer(
     @ColumnInfo(name = "note")
     var note: String = ""
 
-    var base_url: String = ""
+    val baseUrl: String
         get() {
             return when (addressType) {
                 AddressType.IPV6 -> "http://[$address]:$port"

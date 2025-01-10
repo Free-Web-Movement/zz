@@ -2,7 +2,6 @@
 activity = "1.9.3"
 activityKtx = "1.9.3"
 agp = "8.7.3"
-appcompat = "1.6.1"
 coilCompose = "3.0.4"
 coilNetworkOkhttp = "3.0.4"
 core = "1.6.1"
@@ -11,7 +10,7 @@ kotlin = "2.1.0"
 coreKtx = "1.13.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
-espressoCore = "3.5.1"
+espressoCore = "3.6.1"
 kotlinTest = "2.0.21"
 kotlinxCoroutinesAndroid = "1.10.1"
 kotlinxCoroutinesCoreVersion = "1.10.1"
@@ -27,7 +26,7 @@ ktorServerSessionsVersion = "3.0.2"
 ktorServerTestHostVersion = "3.0.2"
 ktorVersion = "3.0.2"
 lifecycleRuntimeKtx = "2.8.7"
-activityCompose = "1.8.0"
+activityCompose = "1.9.3"
 composeBom = "2024.04.01"
 junitKtx = "1.2.1"
 lifecycleViewmodelCompose = "2.8.7"
@@ -47,7 +46,6 @@ volley = "1.2.1"
 [libraries]
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
 androidx-activity = { module = "androidx.activity:activity", version.ref = "activity" }
-androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 androidx-core = { module = "androidx.test:core", version.ref = "core" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }

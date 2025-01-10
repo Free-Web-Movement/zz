@@ -19,6 +19,10 @@
     <string name="menu">菜单</string>
     <string name="update">更新</string>
     <string name="share">分享</string>
+    <string name="share_server">分享服务器地址</string>
+    <string name="share_app_apk">分享当前应用软件包(.apk)</string>
+    <string name="share_app_apk_through_public_ip">通过公网IP分享当前应用软件包(.apk)</string>
+    <string name="share_app_apk_no_public_ip">你没有公网IP</string>
     <string name="open">打开</string>
     <string name="copy">复制</string>
     <string name="title_activity_main">MainActivity</string>

@@ -3,6 +3,7 @@ package io.github.freewebmovement.zz
 import android.app.Application
 import android.content.SharedPreferences
 import io.github.freewebmovement.zz.bussiness.Settings
+import io.github.freewebmovement.zz.bussiness.Share
 import io.github.freewebmovement.zz.system.database.ZzDatabase
 import io.github.freewebmovement.zz.system.net.IPList
 import io.github.freewebmovement.zz.system.net.PeerServer
@@ -22,6 +23,7 @@ class MainApplication : Application() {
     lateinit var db : ZzDatabase
     lateinit var settings: Settings
     lateinit var ipList: IPList
+    lateinit var share: Share
 
     init {
         instance = this
@@ -30,6 +32,7 @@ class MainApplication : Application() {
             crypto = Crypto.getInstance(preference)
             settings = Settings(preference)
             ipList = IPList.getInstance(settings)
+            share = Share(applicationContext)
             PeerServer.start(instance!!, Server.host, settings.localServerPort)
             db = ZzDatabase.getDatabase(applicationContext)
         }

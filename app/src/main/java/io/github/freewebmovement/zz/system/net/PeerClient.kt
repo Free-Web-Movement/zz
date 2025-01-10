@@ -34,7 +34,7 @@ class PeerClient(var app: MainApplication, var server: Peer) {
 
     // Step 1.
     suspend fun getPublicKey(): HttpResponse {
-        val response = client.get(server.base_url + "/api/key/public")
+        val response = client.get(server.baseUrl + "/api/key/public")
         val json = response.body<PublicKeyJSON>()
         server.rsaPublicKey = json.rsaPublicKey
         return response
@@ -43,7 +43,7 @@ class PeerClient(var app: MainApplication, var server: Peer) {
     suspend fun getApkFile() :  HttpResponse {
         var response: HttpResponse? = null
         var temp = client.prepareRequest {
-            url(server.base_url + "/app/download/apk")
+            url(server.baseUrl + "/app/download/apk")
         }
         temp.execute { r ->
             r.bodyAsChannel().copyAndClose(

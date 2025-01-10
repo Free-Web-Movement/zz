@@ -24,6 +24,7 @@ private const val MINE_PROFILE_NICKNAME = "MINE_PROFILE_NICKNAME"
 private const val MINE_PROFILE_SIGNATURE = "MINE_PROFILE_SIGNATURE"
 
 
+@Suppress("UNCHECKED_CAST")
 class PreferenceAccessor<T>(
     private val preference: SharedPreferences,
     private val key: String,

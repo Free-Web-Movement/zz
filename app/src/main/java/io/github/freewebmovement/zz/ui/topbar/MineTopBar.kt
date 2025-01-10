@@ -1,5 +1,7 @@
 package io.github.freewebmovement.zz.ui.topbar
 
+import android.content.Intent
+import android.widget.Toast
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
@@ -18,7 +20,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.R
 import io.github.freewebmovement.zz.ui.common.ContentType
 import io.github.freewebmovement.zz.ui.common.PageType
@@ -35,6 +39,17 @@ fun MineTopBar(
     updater: (page: PageType, value: ContentType) -> Unit
 ) {
     var showDropDownMenu by remember { mutableStateOf(false) }
+    val content = LocalContext.current
+    val app = MainApplication.instance!!
+    val uri = app.ipList.getPublicUri()
+    val title = stringResource(R.string.share_app_apk)
+    val noIpStr = stringResource(R.string.share_app_apk_no_public_ip)
+    val i = Intent(Intent.ACTION_SEND)
+    if (uri != "") {
+        i.setType("text/plain")
+        i.putExtra(Intent.EXTRA_SUBJECT, title)
+        i.putExtra(Intent.EXTRA_TEXT, "$uri/app/download/apk")
+    }
     CenterAlignedTopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -70,11 +85,51 @@ fun MineTopBar(
                 onDismissRequest = { showDropDownMenu = false }
             ) {
                 DropdownMenuItem(
-                    text = { Text(text = stringResource(R.string.share)) },
-                    leadingIcon = { Icon(Icons.Filled.Share, stringResource(R.string.share)) },
+                    text = { Text(text = stringResource(R.string.share_server)) },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Filled.Share,
+                            stringResource(R.string.share_server)
+                        )
+                    },
                     onClick = {
                         showDropDownMenu = false
+                        if (uri != "") {
+                            content.startActivity(Intent.createChooser(i, title))
+                        } else {
+                            Toast.makeText(content, noIpStr, Toast.LENGTH_SHORT).show()
+                        }
                         updater(PageType.MineServerShare, ContentType.Stacked)
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text(text = stringResource(R.string.share_app_apk_through_public_ip)) },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Filled.Share,
+                            stringResource(R.string.share_app_apk_through_public_ip)
+                        )
+                    },
+                    onClick = {
+                        showDropDownMenu = false
+                        if (uri != "") {
+                            content.startActivity(Intent.createChooser(i, title))
+                        } else {
+                            Toast.makeText(content, noIpStr, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text(text = stringResource(R.string.share_app_apk)) },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Filled.Share,
+                            stringResource(R.string.share_app_apk)
+                        )
+                    },
+                    onClick = {
+                        showDropDownMenu = false
+                        app.share.apk(app.share.myApk())
                     }
                 )
             }

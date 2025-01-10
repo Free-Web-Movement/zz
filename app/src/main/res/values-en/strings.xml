@@ -15,6 +15,10 @@
     <string name="tab_mine_local_server_share">Local Server Share</string>
     <string name="tab_mine_profile">Profile</string>
     <string name="action_save">Save</string>
+    <string name="share_server">Share Servers</string>
+    <string name="share_app_apk">Share this app package(.apk)</string>
+    <string name="share_app_apk_through_public_ip">Share this app package through public IP(.apk)</string>
+    <string name="share_app_apk_no_public_ip">You have no public ip</string>
     <string name="signature">Signature</string>
     <string name="back">Back</string>
     <string name="menu">Menu</string>

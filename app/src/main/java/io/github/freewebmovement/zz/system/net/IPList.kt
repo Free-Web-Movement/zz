@@ -53,6 +53,22 @@ class IPList private constructor(settings: Settings) {
                 !inetAddress.isMCLinkLocal && !inetAddress.isMCSiteLocal
     }
 
+    fun hasPublicIPs() : Boolean {
+        return ipv4IPPublic.isNotEmpty() || ipv6IPPublic.isNotEmpty()
+    }
+
+    fun getPublicUri() : String {
+        var uri = "";
+        var port = settings.localServerPort
+        if (ipv4IPPublic.isNotEmpty()) {
+            uri = "http://${ipv4IPPublic[0]}:$port"
+        }
+        if(ipv6IPPublic.isNotEmpty()) {
+            uri = "http://[${ipv6IPPublic[0]}]:$port"
+        }
+        return uri
+    }
+
     fun toHTTPV6Uris(ipv6s: List<String>): List<String> {
         var uris = ArrayList<String>()
         var port = settings.localServerPort
@@ -73,7 +89,6 @@ class IPList private constructor(settings: Settings) {
 
     companion object {
         private var instance: IPList? = null
-
         fun getInstance(settings: Settings): IPList {
             if (instance == null) {
                 instance = IPList(settings)

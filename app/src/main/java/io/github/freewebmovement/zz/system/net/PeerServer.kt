@@ -28,21 +28,13 @@ fun Application.module() {
 		route("/download") {
 			staticFiles(
 				"/static",
-				Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+				PeerServer.app.share.downloadDir()
 			)
 		}
 
 		route("/app") {
 			get("/download/apk") {
-				// get the base.apk
-				val baseApkLocation =
-					PeerServer.app.applicationContext.packageManager.getApplicationInfo(
-						PeerServer.app.applicationContext.packageName,
-						PackageManager.GET_META_DATA
-					).sourceDir
-				// get the file
-				val baseApk = File(baseApkLocation)
-				call.respondFile(baseApk)
+				call.respondFile(PeerServer.app.share.myApk())
 			}
 		}
 
