@@ -1,19 +1,23 @@
 package io.github.freewebmovement.zz.system.net
 
+import android.content.pm.PackageManager
+import android.os.Environment
 import io.github.freewebmovement.zz.MainApplication
 import io.ktor.server.application.Application
 import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.embeddedServer
+import io.ktor.server.http.content.staticFiles
 import io.ktor.server.netty.Netty
 import io.ktor.server.netty.NettyApplicationEngine
 import io.ktor.server.response.respond
+import io.ktor.server.response.respondFile
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
+import java.io.File
 
 
-const val DOWNLOAD_URI = "download"
 @OptIn(ExperimentalStdlibApi::class)
 fun Application.module() {
 	routing {
@@ -21,15 +25,31 @@ fun Application.module() {
 			call.respondText("Hello From ZZ!\n")
 		}
 
-//		staticFiles(
-//			"/$DOWNLOAD_URI",
-//			Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-//		)
+		route("/download") {
+			staticFiles(
+				"/static",
+				Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+			)
+		}
+
+		route("/app") {
+			get("/download/apk") {
+				// get the base.apk
+				val baseApkLocation =
+					PeerServer.app.applicationContext.packageManager.getApplicationInfo(
+						PeerServer.app.applicationContext.packageName,
+						PackageManager.GET_META_DATA
+					).sourceDir
+				// get the file
+				val baseApk = File(baseApkLocation)
+				call.respondFile(baseApk)
+			}
+		}
 
 		route("/api") {
 			get("/key/public") {
 				val publicKey = HashMap<String, String>()
-				publicKey["rsa_public_key"] = MainApplication.instance!!.crypto.publicKey.encoded.toHexString()
+				publicKey["rsaPublicKey"] = PeerServer.app.crypto.publicKey.encoded.toHexString()
 				call.respond(publicKey)
 			}
 		}
@@ -39,9 +59,10 @@ fun Application.module() {
 class PeerServer {
 
 	companion object {
+		lateinit var app: MainApplication
 		private var server: EmbeddedServer<NettyApplicationEngine, NettyApplicationEngine.Configuration>? = null
-		@OptIn(ExperimentalStdlibApi::class)
-		fun start(host: String = "0.0.0.0", port: Int = 10086) {
+		fun start(app: MainApplication, host: String = "0.0.0.0", port: Int = 10086) {
+			PeerServer.app = app
 			server = embeddedServer(
 				Netty,
 				port = port,
