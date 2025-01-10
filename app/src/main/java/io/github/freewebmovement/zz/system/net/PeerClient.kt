@@ -3,27 +3,27 @@ package io.github.freewebmovement.zz.system.net
 import android.os.Environment
 import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.system.database.entity.Peer
+import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
+import io.ktor.client.request.post
 import io.ktor.client.request.prepareRequest
+import io.ktor.client.request.setBody
 import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.util.cio.writeChannel
 import io.ktor.utils.io.copyAndClose
-import kotlinx.serialization.Serializable
 import okhttp3.internal.wait
 import java.io.File
 
 @Suppress("PLUGIN_IS_NOT_ENABLED")
-@Serializable
-data class PublicKeyJSON(
-    var rsaPublicKey: String
-)
 
 class PeerClient(var app: MainApplication, var server: Peer) {
     var client: HttpClient = HttpClient(CIO) {
@@ -32,7 +32,7 @@ class PeerClient(var app: MainApplication, var server: Peer) {
         }
     }
 
-    // Step 1.
+    // Step 1. Initial step to get public key from a peer server
     suspend fun getPublicKey(): HttpResponse {
         val response = client.get(server.baseUrl + "/api/key/public")
         val json = response.body<PublicKeyJSON>()
@@ -40,9 +40,24 @@ class PeerClient(var app: MainApplication, var server: Peer) {
         return response
     }
 
+    // Step 2. send your public key to the server
+    suspend fun setPublicKey(): HttpResponse {
+        val json = PublicKeyJSON(app.crypto.publicKey.encoded.toString())
+        val response = client.post(server.baseUrl + "/api/key/public") {
+            contentType(ContentType.Application.Json)
+            setBody(json)
+        }
+        return response
+    }
+
+
+
+    /**
+     * get apk file from server, for test only
+     */
     suspend fun getApkFile() :  HttpResponse {
         var response: HttpResponse? = null
-        var temp = client.prepareRequest {
+        val temp = client.prepareRequest {
             url(server.baseUrl + "/app/download/apk")
         }
         temp.execute { r ->

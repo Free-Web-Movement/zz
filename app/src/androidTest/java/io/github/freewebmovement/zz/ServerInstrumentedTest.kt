@@ -61,6 +61,9 @@ class ServerInstrumentedTest {
             val response03 = peerClient.getApkFile()
             assertEquals(file.exists(), true)
             assertEquals(HttpStatusCode.OK, response03.status)
+
+            val response04 = peerClient.setPublicKey()
+            assertEquals(HttpStatusCode.OK, response04.status)
         }
     }
 }
