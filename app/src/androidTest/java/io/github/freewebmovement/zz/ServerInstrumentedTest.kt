@@ -46,9 +46,8 @@ class ServerInstrumentedTest {
 
             val response02 = peerClient.getPublicKey()
             assertEquals(HttpStatusCode.OK, response02.status)
-            println(peerClient.server.rsaPublicKey)
             assertEquals(
-                peerClient.server.rsaPublicKey,
+                peerClient.peer.rsaPublicKey,
                 MainApplication.instance!!.crypto.publicKey.encoded.toHexString()
             )
 

@@ -19,14 +19,14 @@ import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
+import io.ktor.server.sessions.generateSessionId
 import io.ktor.util.cio.writeChannel
 import io.ktor.utils.io.copyAndClose
 import okhttp3.internal.wait
 import java.io.File
 
-@Suppress("PLUGIN_IS_NOT_ENABLED")
-
-class PeerClient(var app: MainApplication, var server: Peer) {
+class PeerClient(var app: MainApplication, a: Peer) {
+    val peer : Peer = a
     var client: HttpClient = HttpClient(CIO) {
         install(ContentNegotiation) {
             json()
@@ -35,28 +35,35 @@ class PeerClient(var app: MainApplication, var server: Peer) {
 
     // Step 1. Initial step to get public key from a peer server
     suspend fun getPublicKey(): HttpResponse {
-        val response = client.get(server.baseUrl + "/api/key/public")
+        val response = client.get(peer.baseUrl + "/api/key/public")
         val json = response.body<PublicKeyJSON>()
-        server.rsaPublicKey = json.rsaPublicKey
+        peer.rsaPublicKey = json.rsaPublicKey.toString()
         return response
     }
 
     // Step 2. send your public key to the server
     @OptIn(ExperimentalStdlibApi::class)
     suspend fun setPublicKey(): HttpResponse {
+        val sessionId = generateSessionId()
         val json = PublicKeyJSON(app.crypto.publicKey.encoded.toHexString())
         if (app.ipList.hasPublicIPs()) {
             json.ip = app.ipList.getPublicUri()
             json.port = app.settings.localServerPort
+            json.sessionId = sessionId
+            peer.sessionId = sessionId
+            app.db.peer().add(peer)
         } else {
-            throw Exception("Not Public IP!")
-//            throw Exception(stringResource(R.string.share_app_apk_no_public_ip))
+            throw Exception(app.applicationContext.getString(R.string.share_app_apk_no_public_ip))
         }
 
-        val response = client.post(server.baseUrl + "/api/key/public") {
+        val response = client.post(peer.baseUrl + "/api/key/public") {
             contentType(ContentType.Application.Json)
             setBody(json)
         }
+        val jsonRes = response.body<PublicKeyJSON>()
+        jsonRes.sessionId?.let { assert(it.isNotEmpty()) }
+        peer.peerSessionId = jsonRes.sessionId.toString()
+        app.db.peer().update(peer)
         return response
     }
 
@@ -68,7 +75,7 @@ class PeerClient(var app: MainApplication, var server: Peer) {
     suspend fun getApkFile() :  HttpResponse {
         var response: HttpResponse? = null
         val temp = client.prepareRequest {
-            url(server.baseUrl + "/app/download/apk")
+            url(peer.baseUrl + "/app/download/apk")
         }
         temp.execute { r ->
             r.bodyAsChannel().copyAndClose(

@@ -28,6 +28,9 @@ data class Peer(
     @ColumnInfo(name = "session_id")
     var sessionId: String = ""
 
+    @ColumnInfo(name = "peer_session_id")
+    var peerSessionId: String = ""
+
     @ColumnInfo(name = "nickname")
     var nickname: String = "Nick Name"
 

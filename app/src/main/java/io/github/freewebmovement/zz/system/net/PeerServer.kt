@@ -1,6 +1,7 @@
 package io.github.freewebmovement.zz.system.net
 
 import io.github.freewebmovement.zz.MainApplication
+import io.github.freewebmovement.zz.system.database.entity.Peer
 import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
 import io.github.freewebmovement.zz.system.persistence.PeerSessionStorage
 import io.ktor.server.application.Application
@@ -14,17 +15,21 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondFile
 import io.ktor.server.response.respondText
+import io.ktor.server.routing.application
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.server.sessions.Sessions
 import io.ktor.server.sessions.cookie
+import io.ktor.server.sessions.generateSessionId
+import io.ktor.server.sessions.get
+import io.ktor.server.sessions.sessions
 import kotlinx.serialization.Serializable
 
 @Suppress("PLUGIN_IS_NOT_ENABLED")
 @Serializable
-data class PeerSession(val ip: String, val port: Int)
+data class PeerSession(val id: String)
 
 
 @OptIn(ExperimentalStdlibApi::class)
@@ -59,8 +64,20 @@ fun Application.module() {
 				call.respond(publicKey)
 			}
 			post("/key/public") {
-				val publicKey = call.receive<PublicKeyJSON>()
-				call.respond({})
+				val sessionId = generateSessionId()
+
+				val json = call.receive<PublicKeyJSON>()
+				val timeStamp = System.currentTimeMillis() / 1000
+				assert(json.ip!!.isNotEmpty())
+				assert(json.port!! > 1 shl 10)
+				val peer = Peer(address = json.ip!!, port = json.port!!,
+					addressType = json.type!!,
+					createdAt = timeStamp,
+					updatedAt = timeStamp
+					)
+				peer.sessionId = sessionId
+				PeerServer.app.db.peer().add(peer)
+				call.respond(PublicKeyJSON(sessionId = peer.sessionId))
 			}
 		}
 	}
