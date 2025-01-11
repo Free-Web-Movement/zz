@@ -2,6 +2,7 @@ package io.github.freewebmovement.zz.system.net
 
 import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
+import io.github.freewebmovement.zz.system.persistence.PeerSessionStorage
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.engine.EmbeddedServer
@@ -18,11 +19,22 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.server.sessions.Sessions
+import io.ktor.server.sessions.cookie
+import kotlinx.serialization.Serializable
+
+@Suppress("PLUGIN_IS_NOT_ENABLED")
+@Serializable
+data class PeerSession(val ip: String, val port: Int)
 
 
 @OptIn(ExperimentalStdlibApi::class)
 fun Application.module() {
-	install(Sessions)
+	install(Sessions) {
+		cookie<PeerSession>("peer_session", PeerSessionStorage()) {
+			cookie.path = "/"
+			cookie.maxAgeInSeconds = 10
+		}
+	}
 	routing {
 		get("/") {
 			call.respondText("Hello From ZZ!\n")

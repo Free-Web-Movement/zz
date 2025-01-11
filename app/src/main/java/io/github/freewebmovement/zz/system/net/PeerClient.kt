@@ -2,6 +2,7 @@ package io.github.freewebmovement.zz.system.net
 
 import android.os.Environment
 import io.github.freewebmovement.zz.MainApplication
+import io.github.freewebmovement.zz.R
 import io.github.freewebmovement.zz.system.database.entity.Peer
 import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
 import io.ktor.client.HttpClient
@@ -41,8 +42,16 @@ class PeerClient(var app: MainApplication, var server: Peer) {
     }
 
     // Step 2. send your public key to the server
+    @OptIn(ExperimentalStdlibApi::class)
     suspend fun setPublicKey(): HttpResponse {
-        val json = PublicKeyJSON(app.crypto.publicKey.encoded.toString())
+        val json = PublicKeyJSON(app.crypto.publicKey.encoded.toHexString())
+        if (app.ipList.hasPublicIPs()) {
+            json.ip = app.ipList.getPublicUri()
+            json.port = app.settings.localServerPort
+        } else {
+            throw Exception(stringResource(R.string.share_app_apk_no_public_ip))
+        }
+
         val response = client.post(server.baseUrl + "/api/key/public") {
             contentType(ContentType.Application.Json)
             setBody(json)

@@ -69,6 +69,16 @@ class IPList private constructor(settings: Settings) {
         return uri
     }
 
+    fun getPublicIP() : String {
+        if (ipv4IPPublic.isNotEmpty()) {
+            return ipv4IPPublic[0]
+        }
+        if(ipv6IPPublic.isNotEmpty()) {
+            return ipv6IPPublic[0]
+        }
+        return ""
+    }
+
     fun toHTTPV6Uris(ipv6s: List<String>): List<String> {
         var uris = ArrayList<String>()
         var port = settings.localServerPort
