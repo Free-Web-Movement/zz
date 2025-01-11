@@ -4,6 +4,7 @@ import android.os.Environment
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.freewebmovement.zz.bussiness.Settings
+import io.github.freewebmovement.zz.system.database.ZzDatabase
 import io.github.freewebmovement.zz.system.database.entity.AddressType
 import io.github.freewebmovement.zz.system.database.entity.Peer
 import io.github.freewebmovement.zz.system.net.PeerClient
@@ -30,6 +31,8 @@ class ServerInstrumentedTest {
             val app = ApplicationProvider.getApplicationContext<MainApplication>()
             val preference = app.preference
             val setting = Settings(preference)
+            val db = ZzDatabase.getDatabase(app.applicationContext)
+            db.peer().clearData()
             PeerServer.start(app, Server.host, setting.localServerPort)
             val timeStamp = System.currentTimeMillis() / 1000
             val peerServer = Peer(
@@ -54,7 +57,7 @@ class ServerInstrumentedTest {
             val file = File(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
                 app.applicationContext.packageName
-            );
+            )
             file.delete()
             assertEquals(file.exists(), false)
             val response03 = peerClient.getApkFile()
@@ -63,6 +66,7 @@ class ServerInstrumentedTest {
 
             val response04 = peerClient.setPublicKey()
             assertEquals(HttpStatusCode.OK, response04.status)
+            assert(db.peer().getAll().size  == 2)
         }
     }
 }
