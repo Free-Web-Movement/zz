@@ -49,7 +49,8 @@ class PeerClient(var app: MainApplication, var server: Peer) {
             json.ip = app.ipList.getPublicUri()
             json.port = app.settings.localServerPort
         } else {
-            throw Exception(stringResource(R.string.share_app_apk_no_public_ip))
+            throw Exception("Not Public IP!")
+//            throw Exception(stringResource(R.string.share_app_apk_no_public_ip))
         }
 
         val response = client.post(server.baseUrl + "/api/key/public") {
