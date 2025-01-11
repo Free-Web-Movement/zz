@@ -1,7 +1,7 @@
 [versions]
 activity = "1.9.3"
 activityKtx = "1.9.3"
-agp = "8.7.3"
+agp = "8.8.0"
 coilCompose = "3.0.4"
 coilNetworkOkhttp = "3.0.4"
 core = "1.6.1"
