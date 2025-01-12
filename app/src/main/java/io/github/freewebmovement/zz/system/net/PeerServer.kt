@@ -2,6 +2,7 @@ package io.github.freewebmovement.zz.system.net
 
 import com.google.gson.Gson
 import io.github.freewebmovement.zz.MainApplication
+import io.github.freewebmovement.zz.system.Time
 import io.github.freewebmovement.zz.system.database.entity.Peer
 import io.github.freewebmovement.zz.system.net.api.crypto.Crypto
 import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
@@ -54,7 +55,7 @@ fun Application.module() {
 				val decStr = Crypto.decrypt(encStr, PeerServer.app.crypto.privateKey)
 				val gson = Gson()
 				val decJSON = gson.fromJson(decStr, PublicKeyJSON::class.java)
-				val timeStamp = System.currentTimeMillis() / 1000
+				val timeStamp = Time.now()
 				assert(decJSON.ip!!.isNotEmpty())
 				assert(decJSON.port!! > 1 shl 10)
 				val peer = Peer(address = decJSON.ip!!, port = decJSON.port!!,

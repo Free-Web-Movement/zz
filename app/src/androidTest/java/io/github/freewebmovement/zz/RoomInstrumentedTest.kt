@@ -3,6 +3,7 @@ package io.github.freewebmovement.zz
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.freewebmovement.zz.bussiness.Settings
+import io.github.freewebmovement.zz.system.Time
 import io.github.freewebmovement.zz.system.database.ZzDatabase
 import io.github.freewebmovement.zz.system.database.entity.AddressType
 import io.github.freewebmovement.zz.system.database.entity.Peer
@@ -29,7 +30,7 @@ class RoomInstrumentedTest {
 			val dao = app.db.peer()
 			dao.clearData()
 			dao.clearSequence()
-			val epochTime = System.currentTimeMillis() / 1000
+			val epochTime = Time.now()
 			val peer = Peer(
 				Server.host,
 				setting.localServerPort,

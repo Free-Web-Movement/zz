@@ -4,6 +4,7 @@ import android.os.Environment
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.freewebmovement.zz.bussiness.Settings
+import io.github.freewebmovement.zz.system.Time
 import io.github.freewebmovement.zz.system.database.ZzDatabase
 import io.github.freewebmovement.zz.system.database.entity.AddressType
 import io.github.freewebmovement.zz.system.database.entity.Peer
@@ -34,7 +35,7 @@ class ServerInstrumentedTest {
             val db = ZzDatabase.getDatabase(app.applicationContext)
             db.peer().clearData()
             PeerServer.start(app, Server.host, setting.localServerPort)
-            val timeStamp = System.currentTimeMillis() / 1000
+            val timeStamp = Time.now()
             val peerServer = Peer(
                 Server.host,
                 setting.localServerPort,

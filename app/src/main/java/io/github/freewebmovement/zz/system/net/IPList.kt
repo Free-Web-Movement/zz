@@ -9,8 +9,7 @@ import java.net.InetAddress
 import java.net.NetworkInterface
 
 
-class IPList private constructor(settings: Settings) {
-    var settings = settings
+class IPList private constructor(var settings: Settings) {
     var ipv4IPLocal = ArrayList<String>()
     var ipv4IPPublic = ArrayList<String>()
     var ipv6IPLocal = ArrayList<String>()
@@ -59,8 +58,8 @@ class IPList private constructor(settings: Settings) {
     }
 
     fun getPublicUri(): String {
-        var uri = "";
-        var port = settings.localServerPort
+        var uri = ""
+        val port = settings.localServerPort
         if (ipv4IPPublic.isNotEmpty()) {
             uri = "http://${ipv4IPPublic[0]}:$port"
         }
@@ -88,8 +87,8 @@ class IPList private constructor(settings: Settings) {
     }
 
     fun toHTTPV6Uris(ipv6s: List<String>): List<String> {
-        var uris = ArrayList<String>()
-        var port = settings.localServerPort
+        val uris = ArrayList<String>()
+        val port = settings.localServerPort
         ipv6s.forEach {
             uris.add("http://[$it]:$port/")
         }
@@ -97,8 +96,8 @@ class IPList private constructor(settings: Settings) {
     }
 
     fun toHTTPV4Uris(ipv4s: List<String>): List<String> {
-        var uris = ArrayList<String>()
-        var port = settings.localServerPort
+        val uris = ArrayList<String>()
+        val port = settings.localServerPort
         ipv4s.forEach {
             uris.add("http://$it:$port/")
         }

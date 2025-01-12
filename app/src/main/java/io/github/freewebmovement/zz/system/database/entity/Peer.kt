@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import io.github.freewebmovement.zz.system.Time
 
 enum class AddressType {
     IPV4,
@@ -45,6 +46,9 @@ data class Peer(
 
     @ColumnInfo(name = "note")
     var note: String = ""
+
+    @ColumnInfo(name = "latest_seen")
+    var latestSeen: Long = Time.now()
 
     val baseUrl: String
         get() {
