@@ -107,6 +107,7 @@ dependencies {
     implementation(libs.volley)
 
 
+
     // If this project uses any Kotlin source, use Kotlin Symbol Processing (KSP)
     // See Add the KSP plugin to your project
     ksp(libs.androidx.room.compiler)
@@ -119,6 +120,7 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.core)
     testImplementation(libs.androidx.room.testing)
+    testImplementation(libs.ktor.client.mock)
 
 
     androidTestImplementation(libs.androidx.junit)

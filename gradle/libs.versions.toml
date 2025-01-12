@@ -18,6 +18,7 @@ kotlinxSerializationJson = "1.7.3"
 ktorClientContentNegotiation = "3.0.2"
 ktorClientCore = "3.0.2"
 ktorClientCio = "3.0.2"
+ktorClientMock = "3.0.3"
 ktorSerializationGson = "3.0.2"
 ktorSerializationKotlinxJson = "3.0.2"
 ktorServerAuth = "3.0.2"
@@ -82,6 +83,7 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktorClientCio" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktorClientContentNegotiation" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktorClientCore" }
+ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktorClientMock" }
 ktor-ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktorServerContentNegotiationVersion" }
 ktor-ktor-server-sessions = { module = "io.ktor:ktor-server-sessions", version.ref = "ktorServerSessionsVersion" }
 ktor-ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktorServerTestHostVersion" }

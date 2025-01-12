@@ -54,7 +54,7 @@ data class Peer(
         get() {
             return when (addressType) {
                 AddressType.IPV6 -> "http://[$address]:$port"
-                else -> "http://[$address]:$port"
+                else -> "http://$address:$port"
             }
         }
 }

@@ -1,6 +1,5 @@
 package io.github.freewebmovement.zz
 
-import android.os.Environment
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.freewebmovement.zz.bussiness.Settings
@@ -13,17 +12,14 @@ import io.github.freewebmovement.zz.system.net.PeerServer
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
-import io.ktor.util.hex
-import junit.framework.TestCase.assertEquals
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.io.File
 
 @RunWith(AndroidJUnit4::class)
 class ServerInstrumentedTest {
-    var peer: Peer? = null
-
     @Test
     fun should_test_server_client() = runTest {
         val app = ApplicationProvider.getApplicationContext<MainApplication>()
@@ -32,21 +28,24 @@ class ServerInstrumentedTest {
         setting.localServerPort = 0
         val db = ZzDatabase.getDatabase(app.applicationContext)
         db.peer().clearData()
-        val port = setting.localServerPort + 1000
+        val port = setting.localServerPort
         PeerServer.start(app, "127.0.0.1", port)
         val timeStamp = Time.now()
-        peer = Peer(
+        val peer = Peer(
             "127.0.0.1",
             port,
             AddressType.IPV4,
             createdAt = timeStamp, updatedAt = timeStamp
         )
-//        val peerClient = PeerClient(app, peerServer)
 
-//        val response01 = peerClient.client.get(peerServer.baseUrl + "/")
-//        val response01 = peerClient.client.get("http://www.baidu.com/")
-//        assertEquals(HttpStatusCode.OK, response01.status)
-//        assertEquals("Hello From ZZ!\n", response01.bodyAsText())
+        runBlocking {
+            val peerClient = PeerClient(app, peer)
+            val response01 = peerClient.client.get("http://www.baidu.com/")
+//            val response01 = peerClient.client.get(peer.baseUrl + "/")
+            assertEquals(HttpStatusCode.OK, response01.status)
+            assertEquals("Hello From ZZ!\n", response01.bodyAsText())
+        }
+
 
 //            val response02 = peerClient.getPublicKey()
 //            assertEquals(HttpStatusCode.OK, response02.status)
