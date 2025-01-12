@@ -4,8 +4,11 @@ import android.os.Environment
 import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.R
 import io.github.freewebmovement.zz.system.Time
+import io.github.freewebmovement.zz.system.database.entity.Message
 import io.github.freewebmovement.zz.system.database.entity.Peer
 import io.github.freewebmovement.zz.system.net.api.crypto.Crypto
+import io.github.freewebmovement.zz.system.net.api.json.MessagReceiverJSON
+import io.github.freewebmovement.zz.system.net.api.json.MessageSenderJSON
 import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -21,6 +24,7 @@ import io.ktor.client.statement.bodyAsChannel
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.sessions.generateSessionId
 import io.ktor.util.cio.writeChannel
+import io.ktor.util.hex
 import io.ktor.utils.io.copyAndClose
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -30,9 +34,6 @@ import java.io.File
 class PeerClient(var app: MainApplication, a: Peer) {
     val peer : Peer = a
     var client: HttpClient = HttpClient(CIO) {
-        install(ContentNegotiation) {
-            json()
-        }
     }
 
     // Step 1. Initial step to get public key from a peer server
@@ -45,11 +46,10 @@ class PeerClient(var app: MainApplication, a: Peer) {
     }
 
     // Step 2. send your public key to the server
-    @OptIn(ExperimentalStdlibApi::class)
     suspend fun setPublicKey(): HttpResponse {
         val sessionId = generateSessionId()
         val responseStr: String
-        val json = PublicKeyJSON(app.crypto.publicKey.encoded.toHexString())
+        val json = PublicKeyJSON(hex(app.crypto.publicKey.encoded))
         if (app.ipList.hasPublicIPs()) {
             json.ip = app.ipList.getPublicUri()
             json.port = app.settings.localServerPort
@@ -59,7 +59,6 @@ class PeerClient(var app: MainApplication, a: Peer) {
             app.db.peer().update(peer)
             val rsaPublicKey = Crypto.revokePublicKey(peer.rsaPublicKeyByteArray.toByteArray())
             responseStr = Crypto.encrypt(Json.encodeToString(json), rsaPublicKey)
-
         } else {
             throw Exception(app.applicationContext.getString(R.string.share_app_apk_no_public_ip))
         }
@@ -78,9 +77,38 @@ class PeerClient(var app: MainApplication, a: Peer) {
         return response
     }
 
+    // Step 3. Now You can start messaging
+    suspend fun sendMessage(messageStr: String): HttpResponse {
+        val rsaPublicKey = Crypto.revokePublicKey(peer.rsaPublicKeyByteArray.toByteArray())
+//
+        val messageJSON = MessageSenderJSON(messageStr, Time.now(), peer.sessionId)
+        val sendStr = Crypto.encrypt(Json.encodeToString(messageJSON), rsaPublicKey)
+        val message = Message(
+            isSending = true,
+            isSucceeded = false,
+            peer = peer.id,
+            message = messageStr,
+            createdAt = messageJSON.createdAt
+        )
+        app.db.message().add(message)
+        val response = client.post(peer.baseUrl + "/api/message") {
+            setBody(sendStr)
+        }
+        val encodeStr = response.body<String>()
 
+        val decodedStr = Crypto.decrypt(encodeStr, app.crypto.privateKey)
+        val messageReceiverJSON = Json.decodeFromString<MessagReceiverJSON>(decodedStr)
+        if(response.status.value == 200) {
+            message.isSucceeded = true
+            message.receivedAt = messageReceiverJSON.receivedAt
+            app.db.message().update(message)
+            return response
+        } else {
+            throw Exception(response.status.description)
+        }
+    }
 
-    /**
+        /**
      * get apk file from server, for test only
      */
     suspend fun getApkFile() :  HttpResponse {

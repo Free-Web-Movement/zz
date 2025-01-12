@@ -12,7 +12,7 @@ class IPUnitTest {
 	@Test
 	fun should_test_ip() {
 		val app = ApplicationProvider.getApplicationContext<MainApplication>()
-		val preferences: SharedPreferences = app.baseContext.getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE);
+		val preferences: SharedPreferences = app.baseContext.getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE)
 		val settings = Settings(preferences)
 		val ipList: IPList = IPList.getInstance(settings)
 		assertTrue(ipList.ipv4IPLocal.isNotEmpty())

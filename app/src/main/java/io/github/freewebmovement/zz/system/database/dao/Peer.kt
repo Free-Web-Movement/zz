@@ -5,8 +5,10 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import io.github.freewebmovement.zz.system.database.entity.Peer
+import io.github.freewebmovement.zz.system.database.entity.PeerMessages
 
 @Dao
 interface Peer {
@@ -16,17 +18,21 @@ interface Peer {
     @Query("SELECT * FROM peer ORDER BY created_at DESC")
     fun getAll(): List<Peer>
 
+    @Query("SELECT * FROM peer where session_id = :sessionId")
+    fun getBySessionId(sessionId: String): Peer
+
+    @Transaction
+    @Query("SELECT * FROM peer where id = :peer")
+    fun getMessage(peer: Long): List<PeerMessages>
+
     @Query("DELETE FROM peer")
     fun clearData()
     @Query("UPDATE sqlite_sequence SET seq = 0 WHERE name = 'peer'")
     fun clearSequence()
 
-//    @Query("SELECT * FROM peer where session_id = {peer.session_id}")
-//    fun get(peer: Peer): Peer
-
     @Update
     suspend fun update(peer: Peer)
 
     @Delete
-    suspend fun deleteNote(peer: Peer)
+    suspend fun delete(peer: Peer)
 }
