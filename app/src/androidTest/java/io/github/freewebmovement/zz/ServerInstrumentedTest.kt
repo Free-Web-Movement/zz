@@ -10,7 +10,6 @@ import io.github.freewebmovement.zz.system.database.entity.AddressType
 import io.github.freewebmovement.zz.system.database.entity.Peer
 import io.github.freewebmovement.zz.system.net.PeerClient
 import io.github.freewebmovement.zz.system.net.PeerServer
-import io.github.freewebmovement.zz.system.settings.Server
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode

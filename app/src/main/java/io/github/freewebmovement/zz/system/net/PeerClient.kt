@@ -3,6 +3,7 @@ package io.github.freewebmovement.zz.system.net
 import android.os.Environment
 import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.R
+import io.github.freewebmovement.zz.system.Time
 import io.github.freewebmovement.zz.system.database.entity.Peer
 import io.github.freewebmovement.zz.system.net.api.crypto.Crypto
 import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
@@ -71,6 +72,7 @@ class PeerClient(var app: MainApplication, a: Peer) {
         val decodedStr = Crypto.decrypt(resStr, app.crypto.privateKey)
         val decodedJSON = Json.decodeFromString<PublicKeyJSON>(decodedStr)
         decodedJSON.sessionId?.let { assert(it.isNotEmpty()) }
+        peer.latestSeen = Time.now()
         peer.peerSessionId = decodedJSON.sessionId.toString()
         app.db.peer().update(peer)
         return response

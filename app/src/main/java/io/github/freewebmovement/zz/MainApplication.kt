@@ -8,7 +8,6 @@ import io.github.freewebmovement.zz.system.database.ZzDatabase
 import io.github.freewebmovement.zz.system.net.IPList
 import io.github.freewebmovement.zz.system.net.PeerServer
 import io.github.freewebmovement.zz.system.net.api.crypto.Crypto
-import io.github.freewebmovement.zz.system.settings.Server
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -33,7 +32,7 @@ class MainApplication : Application() {
             settings = Settings(preference)
             ipList = IPList.getInstance(settings)
             share = Share(applicationContext)
-            PeerServer.start(instance!!, Server.host, settings.localServerPort)
+            PeerServer.start(instance!!, "0.0.0.0", settings.localServerPort)
             db = ZzDatabase.getDatabase(applicationContext)
         }
     }

@@ -8,7 +8,6 @@ import io.github.freewebmovement.zz.system.database.ZzDatabase
 import io.github.freewebmovement.zz.system.database.entity.AddressType
 import io.github.freewebmovement.zz.system.database.entity.Peer
 import io.github.freewebmovement.zz.system.net.PeerServer
-import io.github.freewebmovement.zz.system.settings.Server
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +31,7 @@ class RoomInstrumentedTest {
 			dao.clearSequence()
 			val epochTime = Time.now()
 			val peer = Peer(
-				Server.host,
+				"0.0.0.0",
 				setting.localServerPort,
 				AddressType.IPV4,
 				createdAt = epochTime, updatedAt = epochTime)
