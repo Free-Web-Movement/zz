@@ -24,25 +24,7 @@ class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
     // For public keys
     var privateKey: PrivateKey = aPrivateKey
     var publicKey: PublicKey = aPublicKey
-
-    @OptIn(ExperimentalEncodingApi::class)
-    fun encrypt(str: String): String {
-        val cipher = Cipher.getInstance(CRYPTO_ALGORITHM_RSA)
-        cipher.init(Cipher.ENCRYPT_MODE, publicKey)
-        val strBytes = str.toByteArray(StandardCharsets.UTF_8)
-        val encBytes = cipher.doFinal(strBytes)
-        return Base64.encode(encBytes)
-    }
-
-    @OptIn(ExperimentalEncodingApi::class)
-    fun decrypt(str: String): String {
-        val cipher = Cipher.getInstance(CRYPTO_ALGORITHM_RSA)
-        cipher.init(Cipher.DECRYPT_MODE, privateKey)
-        val encBytes = Base64.decode(str)
-        val strBytes = cipher.doFinal(encBytes)
-        return strBytes.toString(StandardCharsets.UTF_8)
-    }
-
+    
     companion object {
         private val kpg: KeyPairGenerator = KeyPairGenerator.getInstance(CRYPTO_ALGORITHM_RSA)
         private val keyFactory: KeyFactory = KeyFactory.getInstance(CRYPTO_ALGORITHM_RSA)
@@ -53,6 +35,34 @@ class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
             editor.putBoolean(IS_INIT_KEY, false)
             editor.apply()
             return getInstance(preference)
+        }
+
+        @OptIn(ExperimentalEncodingApi::class)
+        fun encrypt(str: String, key: PublicKey): String {
+            val cipher = Cipher.getInstance(CRYPTO_ALGORITHM_RSA)
+            cipher.init(Cipher.ENCRYPT_MODE, key)
+            val strBytes = str.toByteArray(StandardCharsets.UTF_8)
+            val encBytes = cipher.doFinal(strBytes)
+            return Base64.encode(encBytes)
+        }
+
+        @OptIn(ExperimentalEncodingApi::class)
+        fun decrypt(str: String, key: PrivateKey): String {
+            val cipher = Cipher.getInstance(CRYPTO_ALGORITHM_RSA)
+            cipher.init(Cipher.DECRYPT_MODE, key)
+            val encBytes = Base64.decode(str)
+            val strBytes = cipher.doFinal(encBytes)
+            return strBytes.toString(StandardCharsets.UTF_8)
+        }
+
+        fun revokePublicKey(publicKeyBytes: ByteArray): PublicKey {
+            val publicKeySpec: EncodedKeySpec = X509EncodedKeySpec(publicKeyBytes)
+            return keyFactory.generatePublic(publicKeySpec)
+        }
+
+        fun revokePrivateKey(privateKeyBytes: ByteArray): PrivateKey {
+            val privateKeySpec: EncodedKeySpec = PKCS8EncodedKeySpec(privateKeyBytes)
+            return keyFactory.generatePrivate(privateKeySpec)
         }
         fun getInstance(preference: SharedPreferences): Crypto {
                 if (instance == null) {
@@ -67,11 +77,9 @@ class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
                     } else {
                         val privateKeyBytes = preference.getString(PRIVATE_KEY, "")?.toByteArray()
                         val publicKeyBytes = preference.getString(PUBLIC_KEY, "")?.toByteArray()
-                        val privateKeySpec: EncodedKeySpec = PKCS8EncodedKeySpec(privateKeyBytes)
-                        val privateKey = keyFactory.generatePrivate(privateKeySpec)
-                        val publicKeySpec: EncodedKeySpec = X509EncodedKeySpec(publicKeyBytes)
-                        val publicKey = keyFactory.generatePublic(publicKeySpec)
-                        instance = Crypto(privateKey, publicKey)
+                        instance = Crypto(revokePrivateKey(privateKeyBytes!!),
+                            revokePublicKey(publicKeyBytes!!)
+                        )
                     }
                 }
             return instance!!

@@ -19,8 +19,8 @@ class CryptoInstrumentedTest {
 			val app = ApplicationProvider.getApplicationContext<MainApplication>()
 			val crypto = Crypto.getInstance(app.preference)
 			val str = "Hello World!"
-			val enc = crypto.encrypt(str)
-			val decStr = crypto.decrypt(enc)
+			val enc = Crypto.encrypt(str, crypto.publicKey)
+			val decStr = Crypto.decrypt(enc, crypto.privateKey)
 			assertEquals(str, decStr)
 			Crypto.refresh(app.preference)
 		}

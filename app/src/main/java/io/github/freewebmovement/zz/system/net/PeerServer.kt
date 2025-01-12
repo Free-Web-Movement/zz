@@ -1,7 +1,9 @@
 package io.github.freewebmovement.zz.system.net
 
+import com.google.gson.Gson
 import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.system.database.entity.Peer
+import io.github.freewebmovement.zz.system.net.api.crypto.Crypto
 import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
 import io.github.freewebmovement.zz.system.persistence.PeerSessionStorage
 import io.ktor.server.application.Application
@@ -60,24 +62,29 @@ fun Application.module() {
 
 		route("/api") {
 			get("/key/public") {
-				val publicKey = PublicKeyJSON(PeerServer.app.crypto.publicKey.encoded.toHexString())
+				val publicKey = PublicKeyJSON(
+					rsaPublicKeyByteArray = PeerServer.app.crypto.publicKey.encoded.toHexString()
+				)
 				call.respond(publicKey)
 			}
 			post("/key/public") {
 				val sessionId = generateSessionId()
-
-				val json = call.receive<PublicKeyJSON>()
+				val encStr = call.receive<String>()
+				val decStr = Crypto.decrypt(encStr, PeerServer.app.crypto.privateKey)
+				val gson = Gson()
+				val decJSON = gson.fromJson(decStr, PublicKeyJSON::class.java)
 				val timeStamp = System.currentTimeMillis() / 1000
-				assert(json.ip!!.isNotEmpty())
-				assert(json.port!! > 1 shl 10)
-				val peer = Peer(address = json.ip!!, port = json.port!!,
-					addressType = json.type!!,
+				assert(decJSON.ip!!.isNotEmpty())
+				assert(decJSON.port!! > 1 shl 10)
+				val peer = Peer(address = decJSON.ip!!, port = decJSON.port!!,
+					addressType = decJSON.type!!,
 					createdAt = timeStamp,
 					updatedAt = timeStamp
 					)
 				peer.sessionId = sessionId
 				PeerServer.app.db.peer().add(peer)
-				call.respond(PublicKeyJSON(sessionId = peer.sessionId))
+				val encStr01 = Crypto.encrypt(PublicKeyJSON(sessionId = peer.sessionId).toString(), PeerServer.app.crypto.publicKey)
+				call.respondText(encStr01)
 			}
 		}
 	}

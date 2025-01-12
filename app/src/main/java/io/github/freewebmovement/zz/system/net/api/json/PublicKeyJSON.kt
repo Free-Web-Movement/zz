@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Suppress("PLUGIN_IS_NOT_ENABLED")
 @Serializable
 data class PublicKeyJSON(
-    var rsaPublicKey: String? = null,
+    var rsaPublicKeyByteArray: String? = null,
     var ip: String? = null,
     var port: Int? = null,
     var type: AddressType? = null,

@@ -41,7 +41,7 @@ data class Peer(
     var avatar: String = "avatar"
 
     @ColumnInfo(name = "rsa_public_key")
-    var rsaPublicKey: String = ""
+    var rsaPublicKeyByteArray: String = ""
 
     @ColumnInfo(name = "note")
     var note: String = ""
