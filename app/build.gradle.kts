@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
 
+    kotlin("plugin.serialization")
     id("com.google.devtools.ksp")
 }
 

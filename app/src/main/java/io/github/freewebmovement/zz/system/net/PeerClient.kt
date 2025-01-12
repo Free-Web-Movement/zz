@@ -18,8 +18,6 @@ import io.ktor.client.request.setBody
 import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.sessions.generateSessionId
 import io.ktor.util.cio.writeChannel
@@ -48,7 +46,7 @@ class PeerClient(var app: MainApplication, a: Peer) {
     @OptIn(ExperimentalStdlibApi::class)
     suspend fun setPublicKey(): HttpResponse {
         val sessionId = generateSessionId()
-        var responseStr = ""
+        val responseStr: String
         val json = PublicKeyJSON(app.crypto.publicKey.encoded.toHexString())
         if (app.ipList.hasPublicIPs()) {
             json.ip = app.ipList.getPublicUri()
@@ -56,7 +54,7 @@ class PeerClient(var app: MainApplication, a: Peer) {
             json.sessionId = sessionId
             peer.sessionId = sessionId
             app.db.peer().update(peer)
-            var rsaPublicKey = Crypto.revokePublicKey(peer.rsaPublicKeyByteArray.toByteArray())
+            val rsaPublicKey = Crypto.revokePublicKey(peer.rsaPublicKeyByteArray.toByteArray())
             responseStr = Crypto.encrypt(json.toString(), rsaPublicKey)
 
         } else {
@@ -70,7 +68,7 @@ class PeerClient(var app: MainApplication, a: Peer) {
         val resStr = response.body<String>()
         val decodedStr = Crypto.decrypt(resStr, app.crypto.privateKey)
         val gson = Gson()
-        val decodedJSON = gson?.fromJson(decodedStr, PublicKeyJSON::class.java)
+        val decodedJSON = gson.fromJson(decodedStr, PublicKeyJSON::class.java)
         decodedJSON?.sessionId?.let { assert(it.isNotEmpty()) }
         peer.peerSessionId = decodedJSON?.sessionId.toString()
         app.db.peer().update(peer)
