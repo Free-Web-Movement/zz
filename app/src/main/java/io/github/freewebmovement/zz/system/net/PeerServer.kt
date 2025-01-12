@@ -1,6 +1,5 @@
 package io.github.freewebmovement.zz.system.net
 
-import com.google.gson.Gson
 import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.system.Time
 import io.github.freewebmovement.zz.system.database.entity.Peer
@@ -21,6 +20,8 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.server.sessions.generateSessionId
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 @OptIn(ExperimentalStdlibApi::class)
 fun Application.module() {
@@ -53,8 +54,7 @@ fun Application.module() {
 				val sessionId = generateSessionId()
 				val encStr = call.receive<String>()
 				val decStr = Crypto.decrypt(encStr, PeerServer.app.crypto.privateKey)
-				val gson = Gson()
-				val decJSON = gson.fromJson(decStr, PublicKeyJSON::class.java)
+				val decJSON = Json.decodeFromString<PublicKeyJSON>(decStr)
 				val timeStamp = Time.now()
 				assert(decJSON.ip!!.isNotEmpty())
 				assert(decJSON.port!! > 1 shl 10)
@@ -65,7 +65,7 @@ fun Application.module() {
 					)
 				peer.sessionId = sessionId
 				PeerServer.app.db.peer().add(peer)
-				val encStr01 = Crypto.encrypt(PublicKeyJSON(sessionId = peer.sessionId).toString(), PeerServer.app.crypto.publicKey)
+				val encStr01 = Crypto.encrypt(Json.encodeToString(PublicKeyJSON(sessionId = peer.sessionId)), PeerServer.app.crypto.publicKey)
 				call.respondText(encStr01)
 			}
 		}
