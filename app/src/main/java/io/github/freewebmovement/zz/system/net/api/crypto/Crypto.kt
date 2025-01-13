@@ -1,6 +1,7 @@
 package io.github.freewebmovement.zz.system.net.api.crypto
 
 import android.content.SharedPreferences
+import io.github.freewebmovement.zz.system.persistence.Preference
 import io.ktor.util.hex
 import java.nio.charset.StandardCharsets
 import java.security.KeyFactory
@@ -30,11 +31,9 @@ class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
         private val kpg: KeyPairGenerator = KeyPairGenerator.getInstance(CRYPTO_ALGORITHM_RSA)
         private val keyFactory: KeyFactory = KeyFactory.getInstance(CRYPTO_ALGORITHM_RSA)
         private lateinit var instance: Crypto
-        private lateinit var preference: SharedPreferences
-        fun refresh(preference: SharedPreferences): Crypto {
-            val editor = preference.edit()
-            editor.putBoolean(IS_INIT_KEY, false)
-            editor.apply()
+        private lateinit var preference: Preference
+        fun refresh(preference: Preference): Crypto {
+            preference.save(IS_INIT_KEY, false)
             return getInstance(preference)
         }
 
@@ -56,14 +55,12 @@ class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
             return strBytes.toString(StandardCharsets.UTF_8)
         }
 
-        fun saveKey(key: String, value: ByteArray) {
-            val editor = preference.edit()
-            editor.putString(key, hex(value))
-            editor.apply()
+        fun saveKey(preference: Preference, key: String, value: ByteArray) {
+            preference.save(key, hex(value))
         }
 
-        fun readKey(key: String): ByteArray {
-            return preference.getString(key, "")?.toByteArray()!!
+        fun readKey(preference: Preference, key: String): ByteArray {
+            return preference.read(key, "")?.toByteArray()!!
         }
 
         fun revokePublicKey(publicKeyBytes: ByteArray): PublicKey {
@@ -75,19 +72,24 @@ class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
             val privateKeySpec: EncodedKeySpec = PKCS8EncodedKeySpec(privateKeyBytes)
             return keyFactory.generatePrivate(privateKeySpec)
         }
+        
+        fun createCrypto(): Crypto {
+            val keyPair = kpg.genKeyPair()
+            return Crypto(keyPair.private, keyPair.public)
+        }
 
-        fun getInstance(prefer: SharedPreferences): Crypto {
+        fun getInstance(prefer: Preference): Crypto {
             preference = prefer
-            val isInit = preference.getBoolean(IS_INIT_KEY, false)
+            val isInit: Boolean = prefer.read(IS_INIT_KEY, false)
             if (!isInit) {
                 kpg.initialize(KEY_SIZE)
                 val keyPair = kpg.genKeyPair()
-                saveKey(PRIVATE_KEY, keyPair.private.encoded)
-                saveKey(PUBLIC_KEY, keyPair.public.encoded)
+                saveKey(prefer, PRIVATE_KEY, keyPair.private.encoded)
+                saveKey(prefer, PUBLIC_KEY, keyPair.public.encoded)
                 instance = Crypto(keyPair.private, keyPair.public)
             } else {
-                val privateKeyBytes = readKey(PRIVATE_KEY)
-                val publicKeyBytes = readKey(PUBLIC_KEY)
+                val privateKeyBytes = readKey(prefer, PRIVATE_KEY)
+                val publicKeyBytes = readKey(prefer, PUBLIC_KEY)
                 instance = Crypto(
                     revokePrivateKey(privateKeyBytes),
                     revokePublicKey(publicKeyBytes)

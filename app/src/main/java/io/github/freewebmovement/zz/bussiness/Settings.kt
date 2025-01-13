@@ -1,19 +1,19 @@
 package io.github.freewebmovement.zz.bussiness
 
-import android.content.SharedPreferences
+import io.github.freewebmovement.zz.system.persistence.Preference
 import kotlin.reflect.KProperty
 
-enum class MessageType(i: Int) {
-    TEXT(0b1),
-    IMAGE(0b10),
-    VOICE(0b100),
-    VIDEO(0b1000)
-}
-
-enum class RealtimeType(i: Int) {
-    VOICE(0b1),
-    VIDEO(0b10)
-}
+//enum class MessageType(i: Int) {
+//    TEXT(0b1),
+//    IMAGE(0b10),
+//    VOICE(0b100),
+//    VIDEO(0b1000)
+//}
+//
+//enum class RealtimeType(i: Int) {
+//    VOICE(0b1),
+//    VIDEO(0b10)
+//}
 
 private const val MESSAGE_PERSISTENCE_PERIOD = "MESSAGE_PERSISTENCE_PERIOD"
 private const val LOCAL_SERVER_PORT = "LOCAL_SERVER_PORT"
@@ -24,35 +24,23 @@ private const val MINE_PROFILE_NICKNAME = "MINE_PROFILE_NICKNAME"
 private const val MINE_PROFILE_SIGNATURE = "MINE_PROFILE_SIGNATURE"
 
 
-@Suppress("UNCHECKED_CAST")
 class PreferenceAccessor<T>(
-    private val preference: SharedPreferences,
+    private val preference: Preference,
     private val key: String,
     private var field: T
 ) {
     operator fun getValue(thisRef: Any?, property: KProperty<*>): T {
-        field = when (field) {
-            is Int -> preference.getInt(key, field as Int) as T
-            is String -> preference.getString(key, field as String) as T
-            else -> {
-                throw IllegalArgumentException("Unsupported Type!")
-            }
-        }
+        field = preference.read(key, field)
         return field
     }
 
     operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
-        val editor = preference.edit()
-        when (field) {
-            is Int -> editor.putInt(key, value as Int)
-            is String -> editor.putString(key, value as String)
-        }
-        editor.apply()
+        preference.save(key, value)
         field = value
     }
 }
 
-class Settings(private val preference: SharedPreferences) {
+class Settings(private val preference: Preference) {
     // Message Persistence Period
     var messagePeriod: Int by PreferenceAccessor(
         preference, MESSAGE_PERSISTENCE_PERIOD,
@@ -81,14 +69,12 @@ class Settings(private val preference: SharedPreferences) {
     )
     var localServerPort: Int = 0
         get() {
-            field = preference.getInt(LOCAL_SERVER_PORT, 0)
+            field = preference.read(LOCAL_SERVER_PORT, 0)
             if (field == 0) {
                 val min = (1u shl 10) + 1u
                 val max = (1u shl 16) - 1u
                 field = (min..max).random().toInt()
-                val editor = preference.edit()
-                editor.putInt(LOCAL_SERVER_PORT, field)
-                editor.apply()
+                preference.save(LOCAL_SERVER_PORT, field)
             }
             return field
         }
@@ -96,9 +82,7 @@ class Settings(private val preference: SharedPreferences) {
             if (value <= 1024 && value != 0) {
                 throw Exception("Value must be larger than 1024!")
             }
-            val editor = preference.edit()
-            editor.putInt(LOCAL_SERVER_PORT, value)
-            editor.apply()
+            preference.save(LOCAL_SERVER_PORT, value)
             field = value
         }
 }

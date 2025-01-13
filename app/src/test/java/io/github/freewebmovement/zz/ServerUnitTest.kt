@@ -48,5 +48,7 @@ class ServerUnitTest {
 
 //        val response02 = client.get("/download/statics")
 //        assertEquals(HttpStatusCode.OK, response02.status)
+
+
     }
 }

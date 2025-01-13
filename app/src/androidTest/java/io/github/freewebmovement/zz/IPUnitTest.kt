@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import androidx.test.core.app.ApplicationProvider
 import io.github.freewebmovement.zz.bussiness.Settings
 import io.github.freewebmovement.zz.system.net.IPList
+import io.github.freewebmovement.zz.system.persistence.Preference
 import junit.framework.TestCase.assertTrue
 import org.junit.Test
 
@@ -12,8 +13,9 @@ class IPUnitTest {
 	@Test
 	fun should_test_ip() {
 		val app = ApplicationProvider.getApplicationContext<MainApplication>()
-		val preferences: SharedPreferences = app.baseContext.getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE)
-		val settings = Settings(preferences)
+		val sharedPreference: SharedPreferences = app.baseContext.getSharedPreferences(PREFERENCES_NAME, MODE_PRIVATE)
+		val preference = Preference(sharedPreference)
+		val settings = Settings(preference)
 		val ipList: IPList = IPList.getInstance(settings)
 		assertTrue(ipList.ipv4IPLocal.isNotEmpty())
 		assertTrue(ipList.ipv6IPLocal.isNotEmpty())
