@@ -55,11 +55,11 @@ class ServerInstrumentedTest {
 
 //            val response01 = peerClient.client.get(peer.baseUrl + "/")
             assertEquals(HttpStatusCode.OK.value, urlConnection.responseCode)
-            var strCurrentLine: String = ""
+            var strCurrentLine = ""
             try {
                 val inputStream: InputStream = BufferedInputStream(urlConnection.inputStream)
                 val br = BufferedReader(InputStreamReader(inputStream))
-                var temp = ""
+                var temp: String
                 while ((br.readLine().also { temp = it }) != null) {
                     strCurrentLine += temp
                     println(temp)

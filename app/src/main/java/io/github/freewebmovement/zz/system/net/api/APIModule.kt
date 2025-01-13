@@ -21,26 +21,19 @@ import kotlinx.serialization.json.Json
 import io.ktor.server.application.Application
 import io.ktor.server.routing.routing
 
-interface RoomHandler {
-    fun addPeer(peer: Peer)
-    fun getPeerBySessionId(id: String): Peer
-    fun addMessage(message: Message)
-
-}
-
-fun Application.api(crypto: Crypto, execute: RoomHandler) {
+fun Application.api(execute: IInstrumentedHandler) {
     routing {
         route("/api") {
             get("/key/public") {
                 val publicKey = PublicKeyJSON(
-                    rsaPublicKeyByteArray = hex(crypto.publicKey.encoded)
+                    rsaPublicKeyByteArray = hex(execute.getCrypto().publicKey.encoded)
                 )
                 call.respond(publicKey)
             }
             post("/key/public") {
                 val sessionId = generateSessionId()
                 val encStr = call.receive<String>()
-                val decStr = Crypto.decrypt(encStr, crypto.privateKey)
+                val decStr = Crypto.decrypt(encStr, execute.getCrypto().privateKey)
                 val decJSON = Json.decodeFromString<PublicKeyJSON>(decStr)
                 val timeStamp = Time.now()
                 assert(decJSON.ip!!.isNotEmpty())
@@ -56,14 +49,14 @@ fun Application.api(crypto: Crypto, execute: RoomHandler) {
 //                PeerServer.app.db.peer().add(peer)
                 val encStr01 = Crypto.encrypt(
                     Json.encodeToString(PublicKeyJSON(sessionId = peer.sessionId)),
-                    crypto.publicKey
+                    execute.getCrypto().publicKey
                 )
                 call.respondText(encStr01)
             }
 
             post("/message") {
                 val encStr = call.receive<String>()
-                val decStr = Crypto.decrypt(encStr, crypto.privateKey)
+                val decStr = Crypto.decrypt(encStr, execute.getCrypto().privateKey)
                 val decJSON = Json.decodeFromString<MessageSenderJSON>(decStr)
 
 //                val peer = decJSON.sessionId?.let { PeerServer.app.db.peer().getBySessionId(it) }

@@ -1,11 +1,9 @@
 package io.github.freewebmovement.zz.system.net
 
-import android.os.Environment
-import io.github.freewebmovement.zz.MainApplication
-import io.github.freewebmovement.zz.R
 import io.github.freewebmovement.zz.system.Time
 import io.github.freewebmovement.zz.system.database.entity.Message
 import io.github.freewebmovement.zz.system.database.entity.Peer
+import io.github.freewebmovement.zz.system.net.api.IInstrumentedHandler
 import io.github.freewebmovement.zz.system.net.api.crypto.Crypto
 import io.github.freewebmovement.zz.system.net.api.json.MessagReceiverJSON
 import io.github.freewebmovement.zz.system.net.api.json.MessageSenderJSON
@@ -22,16 +20,14 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.server.sessions.generateSessionId
 import io.ktor.util.cio.writeChannel
-import io.ktor.util.hex
 import io.ktor.utils.io.copyAndClose
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.internal.wait
-import java.io.File
 
-class PeerClient(var app: MainApplication, a: Peer) {
+class PeerClient(private var crypto: Crypto, private var execute: IInstrumentedHandler, a: Peer) {
     val peer : Peer = a
-    var client: HttpClient = HttpClient(CIO) {
+    private var client: HttpClient = HttpClient(CIO) {
     }
 
     // Step 1. Initial step to get public key from a peer server
@@ -39,7 +35,8 @@ class PeerClient(var app: MainApplication, a: Peer) {
         val response = client.get(peer.baseUrl + "/api/key/public")
         val json = response.body<PublicKeyJSON>()
         peer.rsaPublicKeyByteArray = json.rsaPublicKeyByteArray.toString()
-        app.db.peer().add(peer)
+        execute.addPeer(peer)
+//        app.db.peer().add(peer)
         return response
     }
 
@@ -47,31 +44,36 @@ class PeerClient(var app: MainApplication, a: Peer) {
     suspend fun setPublicKey(): HttpResponse {
         val sessionId = generateSessionId()
         val responseStr: String
-        val json = PublicKeyJSON(hex(app.crypto.publicKey.encoded))
-        if (app.ipList.hasPublicIPs()) {
-            json.ip = app.ipList.getPublicUri()
-            json.port = app.settings.localServerPort
-            json.type = app.ipList.getPublicType()
-            json.sessionId = sessionId
-            peer.sessionId = sessionId
-            app.db.peer().update(peer)
-            val rsaPublicKey = Crypto.revokePublicKey(peer.rsaPublicKeyByteArray.toByteArray())
-            responseStr = Crypto.encrypt(Json.encodeToString(json), rsaPublicKey)
-        } else {
-            throw Exception(app.applicationContext.getString(R.string.share_app_apk_no_public_ip))
-        }
+        val json = execute.getPublicKeyJSON(crypto.publicKey)
+        json.sessionId = sessionId
+        execute.updatePeer(peer)
+        val rsaPublicKey = Crypto.revokePublicKey(peer.rsaPublicKeyByteArray.toByteArray())
+        responseStr = Crypto.encrypt(Json.encodeToString(json), rsaPublicKey)
+//        if (app.ipList.hasPublicIPs()) {
+//            json.ip = app.ipList.getPublicUri()
+//            json.port = app.settings.localServerPort
+//            json.type = app.ipList.getPublicType()
+//            json.sessionId = sessionId
+//            peer.sessionId = sessionId
+//            app.db.peer().update(peer)
+//            val rsaPublicKey = Crypto.revokePublicKey(peer.rsaPublicKeyByteArray.toByteArray())
+//            responseStr = Crypto.encrypt(Json.encodeToString(json), rsaPublicKey)
+//        } else {
+//            throw Exception(app.applicationContext.getString(R.string.share_app_apk_no_public_ip))
+//        }
 
 
         val response = client.post(peer.baseUrl + "/api/key/public") {
             setBody(responseStr)
         }
         val resStr = response.body<String>()
-        val decodedStr = Crypto.decrypt(resStr, app.crypto.privateKey)
+        val decodedStr = Crypto.decrypt(resStr, crypto.privateKey)
         val decodedJSON = Json.decodeFromString<PublicKeyJSON>(decodedStr)
         decodedJSON.sessionId?.let { assert(it.isNotEmpty()) }
         peer.latestSeen = Time.now()
         peer.peerSessionId = decodedJSON.sessionId.toString()
-        app.db.peer().update(peer)
+        execute.updatePeer(peer)
+//        app.db.peer().update(peer)
         return response
     }
 
@@ -88,18 +90,20 @@ class PeerClient(var app: MainApplication, a: Peer) {
             message = messageStr,
             createdAt = messageJSON.createdAt
         )
-        app.db.message().add(message)
+        execute.addMessage(message)
+        //app.db.message().add(message)
         val response = client.post(peer.baseUrl + "/api/message") {
             setBody(sendStr)
         }
         val encodeStr = response.body<String>()
 
-        val decodedStr = Crypto.decrypt(encodeStr, app.crypto.privateKey)
+        val decodedStr = Crypto.decrypt(encodeStr, crypto.privateKey)
         val messageReceiverJSON = Json.decodeFromString<MessagReceiverJSON>(decodedStr)
         if(response.status.value == 200) {
             message.isSucceeded = true
             message.receivedAt = messageReceiverJSON.receivedAt
-            app.db.message().update(message)
+            execute.updateMessage(message)
+//            app.db.message().update(message)
             return response
         } else {
             throw Exception(response.status.description)
@@ -116,10 +120,11 @@ class PeerClient(var app: MainApplication, a: Peer) {
         }
         temp.execute { r ->
             r.bodyAsChannel().copyAndClose(
-                File(
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                    app.applicationContext.packageName
-                ).writeChannel()
+                execute.getDownloadDir().writeChannel()
+//                File(
+//                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+//                    app.applicationContext.packageName
+//                ).writeChannel()
             )
             response = r
         }.wait()

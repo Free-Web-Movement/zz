@@ -1,7 +1,6 @@
 package io.github.freewebmovement.zz.system.net.api
 
 import io.github.freewebmovement.zz.bussiness.IDownload
-import io.github.freewebmovement.zz.system.net.PeerServer
 import io.ktor.server.application.Application
 import io.ktor.server.http.content.staticFiles
 import io.ktor.server.response.respondFile

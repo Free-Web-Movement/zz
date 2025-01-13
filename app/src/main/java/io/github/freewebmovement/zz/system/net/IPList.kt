@@ -57,6 +57,21 @@ class IPList private constructor(var settings: Settings) {
         return ipv4IPPublic.isNotEmpty() || ipv6IPPublic.isNotEmpty()
     }
 
+    fun getUri(): String {
+        var uri = ""
+        val port = settings.localServerPort
+        if (ipv4IPLocal.isNotEmpty()) {
+            uri = "http://${ipv4IPPublic[0]}:$port"
+        }
+        if (ipv4IPPublic.isNotEmpty()) {
+            uri = "http://${ipv4IPPublic[0]}:$port"
+        }
+        if (ipv6IPPublic.isNotEmpty()) {
+            uri = "http://[${ipv6IPPublic[0]}]:$port"
+        }
+        return uri
+    }
+
     fun getPublicUri(): String {
         var uri = ""
         val port = settings.localServerPort
@@ -70,10 +85,10 @@ class IPList private constructor(var settings: Settings) {
     }
 
     fun getPublicType(): AddressType {
-        if (ipv4IPPublic.isNotEmpty()) {
-            return AddressType.IPV4
+        if (ipv6IPPublic.isNotEmpty()) {
+            return AddressType.IPV6
         }
-        return AddressType.IPV6
+        return AddressType.IPV4
     }
 
     fun getPublicIP(): String {
