@@ -1,51 +1,28 @@
-package io.github.freewebmovement.zz.system.net
+package io.github.freewebmovement.zz.system.net.api
 
-import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.system.Time
 import io.github.freewebmovement.zz.system.database.entity.Message
 import io.github.freewebmovement.zz.system.database.entity.Peer
+import io.github.freewebmovement.zz.system.net.PeerServer
 import io.github.freewebmovement.zz.system.net.api.crypto.Crypto
-import io.github.freewebmovement.zz.system.net.api.download
 import io.github.freewebmovement.zz.system.net.api.json.MessagReceiverJSON
 import io.github.freewebmovement.zz.system.net.api.json.MessageSenderJSON
 import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
-import io.github.freewebmovement.zz.system.net.api.mainModule
-import io.ktor.server.application.Application
-import io.ktor.server.engine.EmbeddedServer
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.http.content.staticFiles
-import io.ktor.server.netty.Netty
-import io.ktor.server.netty.NettyApplicationEngine
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
-import io.ktor.server.response.respondFile
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
-import io.ktor.server.routing.routing
 import io.ktor.server.sessions.generateSessionId
 import io.ktor.util.hex
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import io.ktor.server.application.Application
+import io.ktor.server.routing.routing
 
-fun Application.module() {
-    mainModule()
-    download(PeerServer.app.share)
+fun Application.api() {
     routing {
-//        route("/download") {
-//            staticFiles(
-//                "/static",
-//                PeerServer.app.share.downloadDir()
-//            )
-//        }
-//
-//        route("/app") {
-//            get("/download/apk") {
-//                call.respondFile(PeerServer.app.share.myApk())
-//            }
-//        }
-
         route("/api") {
             get("/key/public") {
                 val publicKey = PublicKeyJSON(
@@ -101,25 +78,6 @@ fun Application.module() {
                 )
                 call.respondText(res)
             }
-        }
-    }
-}
-
-class PeerServer {
-
-    companion object {
-        lateinit var app: MainApplication
-        private var server: EmbeddedServer<NettyApplicationEngine, NettyApplicationEngine.Configuration>? =
-            null
-
-        fun start(app: MainApplication, host: String = "0.0.0.0", port: Int = 10086) {
-            PeerServer.app = app
-            server = embeddedServer(
-                factory = Netty,
-                port = port,
-                host = host,
-                module = Application::module
-            ).start(wait = false)
         }
     }
 }

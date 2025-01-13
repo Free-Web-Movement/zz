@@ -4,12 +4,18 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Environment
-import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import io.github.freewebmovement.zz.system.net.PeerServer
 import java.io.File
 
-class Share(private var context: Context) {
+
+interface IDownload {
+    fun myApk(): File
+    fun downloadDir(): File
+}
+
+
+class Share(private var context: Context) : IDownload {
     fun apk(file: File) {
         val uri =
             FileProvider.getUriForFile(context, context.packageName+".provider", file)
@@ -21,7 +27,7 @@ class Share(private var context: Context) {
         context.startActivity(intent)
     }
 
-    fun myApk(): File {
+    override fun myApk(): File {
         // get the base.apk
         val baseApkLocation =
             PeerServer.app.applicationContext.packageManager.getApplicationInfo(
@@ -31,7 +37,7 @@ class Share(private var context: Context) {
         // get the file
         return File(baseApkLocation)
     }
-    fun downloadDir(): File {
+    override fun downloadDir(): File {
         return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)!!
     }
 }

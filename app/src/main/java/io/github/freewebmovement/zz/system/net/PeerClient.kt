@@ -13,7 +13,6 @@ import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.prepareRequest
@@ -21,7 +20,6 @@ import io.ktor.client.request.setBody
 import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
-import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.sessions.generateSessionId
 import io.ktor.util.cio.writeChannel
 import io.ktor.util.hex
@@ -114,7 +112,7 @@ class PeerClient(var app: MainApplication, a: Peer) {
     suspend fun getApkFile() :  HttpResponse {
         var response: HttpResponse? = null
         val temp = client.prepareRequest {
-            url(peer.baseUrl + "/app/download/apk")
+            url(peer.baseUrl + "/download/apk")
         }
         temp.execute { r ->
             r.bodyAsChannel().copyAndClose(
