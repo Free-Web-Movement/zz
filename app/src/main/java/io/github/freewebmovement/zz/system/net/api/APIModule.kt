@@ -21,19 +21,26 @@ import kotlinx.serialization.json.Json
 import io.ktor.server.application.Application
 import io.ktor.server.routing.routing
 
-fun Application.api() {
+interface RoomHandler {
+    fun addPeer(peer: Peer)
+    fun getPeerBySessionId(id: String): Peer
+    fun addMessage(message: Message)
+
+}
+
+fun Application.api(crypto: Crypto, execute: RoomHandler) {
     routing {
         route("/api") {
             get("/key/public") {
                 val publicKey = PublicKeyJSON(
-                    rsaPublicKeyByteArray = hex(PeerServer.app.crypto.publicKey.encoded)
+                    rsaPublicKeyByteArray = hex(crypto.publicKey.encoded)
                 )
                 call.respond(publicKey)
             }
             post("/key/public") {
                 val sessionId = generateSessionId()
                 val encStr = call.receive<String>()
-                val decStr = Crypto.decrypt(encStr, PeerServer.app.crypto.privateKey)
+                val decStr = Crypto.decrypt(encStr, crypto.privateKey)
                 val decJSON = Json.decodeFromString<PublicKeyJSON>(decStr)
                 val timeStamp = Time.now()
                 assert(decJSON.ip!!.isNotEmpty())
@@ -45,31 +52,32 @@ fun Application.api() {
                     updatedAt = timeStamp
                 )
                 peer.sessionId = sessionId
-                PeerServer.app.db.peer().add(peer)
+                execute.addPeer(peer)
+//                PeerServer.app.db.peer().add(peer)
                 val encStr01 = Crypto.encrypt(
                     Json.encodeToString(PublicKeyJSON(sessionId = peer.sessionId)),
-                    PeerServer.app.crypto.publicKey
+                    crypto.publicKey
                 )
                 call.respondText(encStr01)
             }
 
             post("/message") {
                 val encStr = call.receive<String>()
-                val decStr = Crypto.decrypt(encStr, PeerServer.app.crypto.privateKey)
+                val decStr = Crypto.decrypt(encStr, crypto.privateKey)
                 val decJSON = Json.decodeFromString<MessageSenderJSON>(decStr)
 
-                val peer = decJSON.sessionId?.let { PeerServer.app.db.peer().getBySessionId(it) }
-                if (peer != null) {
-                    val message = Message(
-                        isSending = false,
-                        isSucceeded = true,
-                        peer = peer.id,
-                        message = decJSON.message,
-                        createdAt = decJSON.createdAt
-                    )
-                    message.receivedAt = Time.now()
-                    PeerServer.app.db.message().add(message)
-                }
+//                val peer = decJSON.sessionId?.let { PeerServer.app.db.peer().getBySessionId(it) }
+                val peer: Peer = execute.getPeerBySessionId(decJSON.sessionId!!)
+                val message = Message(
+                    isSending = false,
+                    isSucceeded = true,
+                    peer = peer.id,
+                    message = decJSON.message,
+                    createdAt = decJSON.createdAt
+                )
+                message.receivedAt = Time.now()
+                execute.addMessage(message)
+//                    PeerServer.app.db.message().add(message)
 
                 val messageReceiverJSON = MessagReceiverJSON(Time.now())
                 val res = Crypto.encrypt(
