@@ -46,6 +46,8 @@ class ServerUnitTest {
         val str = file.readText()
         assertEquals(str, "Test APK")
 
+        file.delete()
+
 //        val response02 = client.get("/download/statics")
 //        assertEquals(HttpStatusCode.OK, response02.status)
     }

@@ -3,20 +3,25 @@ package io.github.freewebmovement.zz
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.freewebmovement.zz.bussiness.Settings
+import io.github.freewebmovement.zz.bussiness.Share
 import io.github.freewebmovement.zz.system.Time
 import io.github.freewebmovement.zz.system.database.ZzDatabase
 import io.github.freewebmovement.zz.system.database.entity.AddressType
 import io.github.freewebmovement.zz.system.database.entity.Peer
-import io.github.freewebmovement.zz.system.net.PeerClient
 import io.github.freewebmovement.zz.system.net.PeerServer
-import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.BufferedInputStream
+import java.io.BufferedReader
+import java.io.InputStream
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
+import java.net.URL
+
 
 @RunWith(AndroidJUnit4::class)
 class ServerInstrumentedTest {
@@ -29,6 +34,9 @@ class ServerInstrumentedTest {
         val db = ZzDatabase.getDatabase(app.applicationContext)
         db.peer().clearData()
         val port = setting.localServerPort
+        app.db = db
+        app.settings = setting
+        app.share = Share(app.applicationContext)
         PeerServer.start(app, "127.0.0.1", port)
         val timeStamp = Time.now()
         val peer = Peer(
@@ -39,11 +47,27 @@ class ServerInstrumentedTest {
         )
 
         runBlocking {
-            val peerClient = PeerClient(app, peer)
-            val response01 = peerClient.client.get("http://www.baidu.com/")
+//            val peerClient = PeerClient(app, peer)
+//            val response01 = peerClient.client.get("http://www.baidu.com/")
+            val url = URL(peer.baseUrl + "/")
+            val urlConnection = url.openConnection() as HttpURLConnection
+            urlConnection.responseCode
+
 //            val response01 = peerClient.client.get(peer.baseUrl + "/")
-            assertEquals(HttpStatusCode.OK, response01.status)
-//            assertEquals("Hello From ZZ!\n", response01.bodyAsText())
+            assertEquals(HttpStatusCode.OK.value, urlConnection.responseCode)
+            var strCurrentLine: String = ""
+            try {
+                val inputStream: InputStream = BufferedInputStream(urlConnection.inputStream)
+                val br = BufferedReader(InputStreamReader(inputStream))
+                var temp = ""
+                while ((br.readLine().also { temp = it }) != null) {
+                    strCurrentLine += temp
+                    println(temp)
+                }
+            } finally {
+                urlConnection.disconnect()
+            }
+            assertEquals("Hello From ZZ!", strCurrentLine)
         }
 
 
