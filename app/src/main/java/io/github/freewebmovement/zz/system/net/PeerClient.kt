@@ -17,6 +17,7 @@ import io.ktor.client.request.setBody
 import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
+import io.ktor.client.statement.bodyAsText
 import io.ktor.server.sessions.generateSessionId
 import io.ktor.util.cio.writeChannel
 import io.ktor.utils.io.copyAndClose
@@ -28,10 +29,10 @@ class PeerClient(var client : HttpClient, private var execute: IInstrumentedHand
     // Step 1. Initial step to get public key from a peer server
     suspend fun getPublicKey(peer: Peer): HttpResponse {
         val response = client.get(peer.baseUrl + "/api/key/public")
-        val json = response.body<PublicKeyJSON>()
+        val jsonStr = response.bodyAsText()
+        val json = Json.decodeFromString<PublicKeyJSON>(jsonStr)
         peer.rsaPublicKeyByteArray = json.rsaPublicKeyByteArray!!
         execute.addPeer(peer)
-//        app.db.peer().add(peer)
         return response
     }
 
