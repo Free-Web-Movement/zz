@@ -24,7 +24,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.internal.wait
 
-class PeerClient(private var client : HttpClient, private var execute: IInstrumentedHandler) {
+class PeerClient(private var client: HttpClient, private var execute: IInstrumentedHandler) {
     // Step 1. Initial step to get public key from a peer server
     suspend fun getPublicKey(peer: Peer): HttpResponse {
         val response = client.get(peer.baseUrl + "/api/key/public")
@@ -53,43 +53,34 @@ class PeerClient(private var client : HttpClient, private var execute: IInstrume
     }
 
     // Step 3. Now You can start messaging
-    suspend fun sendMessage(messageStr: String, peer: Peer): HttpResponse {
+    suspend fun sendMessage(sendStr: String, peer: Peer): HttpResponse {
         //
-        val messageJSON = MessageSenderJSON(messageStr, Time.now(), peer.sessionId)
-        val sendStr = execute.encrypt(Json.encodeToString(messageJSON), peer)
-//        val sendStr = Crypto.encrypt(Json.encodeToString(messageJSON), rsaPublicKey)
+        val messageJSON = MessageSenderJSON("", Time.now(), peer.peerSessionId)
+        messageJSON.message = execute.encrypt(sendStr, peer)
         val message = Message(
             isSending = true,
             isSucceeded = false,
             peer = peer.id,
-            message = messageStr,
+            message = sendStr,
             createdAt = messageJSON.createdAt
         )
         execute.addMessage(message)
-        //app.db.message().add(message)
         val response = client.post(peer.baseUrl + "/api/message") {
-            setBody(sendStr)
+            setBody(Json.encodeToString(messageJSON))
         }
-        val encodeStr = response.body<String>()
+        val receiverStr = response.body<String>()
 
-        val decodedStr = execute.decrypt(encodeStr)
-//        val decodedStr = Crypto.decrypt(encodeStr, crypto.privateKey)
-        val messageReceiverJSON = Json.decodeFromString<MessageReceiverJSON>(decodedStr)
-        if(response.status.value == 200) {
-            message.isSucceeded = true
-            message.receivedAt = messageReceiverJSON.receivedAt
-            execute.updateMessage(message)
-//            app.db.message().update(message)
-            return response
-        } else {
-            throw Exception(response.status.description)
-        }
+        val messageReceiverJSON = Json.decodeFromString<MessageReceiverJSON>(receiverStr)
+        message.isSucceeded = true
+        message.receivedAt = messageReceiverJSON.receivedAt
+        execute.updateMessage(message)
+        return response
     }
 
-        /**
+    /**
      * get apk file from server, for test only
      */
-    suspend fun getApkFile(peer: Peer) :  HttpResponse {
+    suspend fun getApkFile(peer: Peer): HttpResponse {
         var response: HttpResponse? = null
         val temp = client.prepareRequest {
             url(peer.baseUrl + "/download/apk")

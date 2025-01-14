@@ -3,9 +3,7 @@ package io.github.freewebmovement.zz.system.net.api.module
 import io.github.freewebmovement.zz.system.Time
 import io.github.freewebmovement.zz.system.database.entity.Message
 import io.github.freewebmovement.zz.system.database.entity.Peer
-import io.github.freewebmovement.zz.system.net.PeerServer
 import io.github.freewebmovement.zz.system.net.api.IInstrumentedHandler
-import io.github.freewebmovement.zz.system.net.api.crypto.Crypto
 import io.github.freewebmovement.zz.system.net.api.json.MessageReceiverJSON
 import io.github.freewebmovement.zz.system.net.api.json.MessageSenderJSON
 import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
@@ -17,7 +15,6 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.server.sessions.generateSessionId
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -47,29 +44,21 @@ fun Application.api(execute: IInstrumentedHandler) {
             }
 
             post("/message") {
-                val encStr = call.receive<String>()
-                val decStr = Crypto.decrypt(encStr, execute.getCrypto().privateKey)
-                val decJSON = Json.decodeFromString<MessageSenderJSON>(decStr)
+                val receiveStr = call.receive<String>()
+                val json = Json.decodeFromString<MessageSenderJSON>(receiveStr)
 
-//                val peer = decJSON.sessionId?.let { PeerServer.app.db.peer().getBySessionId(it) }
-                val peer: Peer = execute.getPeerBySessionId(decJSON.sessionId!!)
+                val peer: Peer = execute.getPeerBySessionId(json.sessionId!!)
                 val message = Message(
                     isSending = false,
                     isSucceeded = true,
                     peer = peer.id,
-                    message = decJSON.message,
-                    createdAt = decJSON.createdAt
+                    message = execute.decrypt(json.message),
+                    createdAt = json.createdAt
                 )
                 message.receivedAt = Time.now()
                 execute.addMessage(message)
-//                    PeerServer.app.db.message().add(message)
-
                 val messageReceiverJSON = MessageReceiverJSON(Time.now())
-                val res = Crypto.encrypt(
-                    Json.encodeToString(messageReceiverJSON),
-                    PeerServer.app.crypto.publicKey
-                )
-                call.respondText(res)
+                call.respondText(Json.encodeToString(messageReceiverJSON))
             }
         }
     }

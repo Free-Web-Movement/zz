@@ -41,7 +41,7 @@ class TestDownload : IDownload {
 class APIHandler(private var crypto: Crypto) : IInstrumentedHandler {
     companion object {
         var peerList = ArrayList<Peer>()
-        private var messageList = ArrayList<Message>()
+        var messageList = ArrayList<Message>()
     }
 
     override suspend fun addPeer(peer: Peer) {
@@ -76,8 +76,14 @@ class APIHandler(private var crypto: Crypto) : IInstrumentedHandler {
     }
 
     override suspend fun addMessage(message: Message) {
+        var id = 0
+        messageList.forEach {
+            if (it.id > id) {
+                id = it.id
+            }
+        }
+        message.id = id + 1
         messageList.add(message)
-
     }
 
     override suspend fun updateMessage(message: Message) {
@@ -139,8 +145,8 @@ class ServerUnitTest {
         val response01 = client.get("/download/apk")
         response01.bodyAsChannel().copyAndClose(file.writeChannel())
         assertEquals(HttpStatusCode.OK, response01.status)
-        val str = file.readText()
-        assertEquals(str, "Test APK")
+        val readText = file.readText()
+        assertEquals(readText, "Test APK")
 
         file.delete()
 
@@ -163,6 +169,21 @@ class ServerUnitTest {
             val response04 = peerClient.setPublicKey(peerServer)
             assert(peerServer.sessionId.isNotEmpty())
             assert(peerServer.peerSessionId.isNotEmpty())
+            assertEquals(HttpStatusCode.OK, response04.status)
+            assert(APIHandler.peerList.size == 2)
+            assert(APIHandler.messageList.size == 0)
+        }
+
+        runBlocking {
+            val str = "Hello world!"
+            val response04 = peerClient.sendMessage(str, peerServer)
+            assert(APIHandler.messageList.size == 2)
+            val message = APIHandler.messageList[0]
+            val message01 = APIHandler.messageList[1]
+            assert(message.message == str)
+            assert(message01.message == str)
+            assert(message.isSending)
+            assert(!message01.isSending)
             assertEquals(HttpStatusCode.OK, response04.status)
         }
     }
