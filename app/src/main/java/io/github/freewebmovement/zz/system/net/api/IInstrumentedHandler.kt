@@ -8,18 +8,18 @@ import io.github.freewebmovement.zz.system.net.api.crypto.Crypto
 import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
 import io.ktor.util.hex
 import java.io.File
-import java.security.PublicKey
 
 interface IInstrumentedHandler {
     suspend fun addPeer(peer: Peer)
     suspend fun updatePeer(peer: Peer)
-    suspend fun getPeerBySessionId(id: String): Peer
+    suspend fun getPeerBySessionId(sessionId: String): Peer
     suspend fun addMessage(message: Message)
     suspend fun updateMessage(message: Message)
-    suspend fun getPublicKeyJSON(publicKey: PublicKey): PublicKeyJSON
-
+    suspend fun getPublicKeyJSON(keyOnly: Boolean = false): PublicKeyJSON
     fun getDownloadDir(): File
     fun getCrypto(): Crypto
+    fun decrypt(enc:String): String
+    fun encrypt(dec:String, peer: Peer): String
 }
 
 class RoomHandler(var app: MainApplication) : IInstrumentedHandler {
@@ -31,21 +31,21 @@ class RoomHandler(var app: MainApplication) : IInstrumentedHandler {
         app.db.peer().update(peer)
     }
 
-    override suspend fun getPeerBySessionId(id: String): Peer {
-        return app.db.peer().getBySessionId(id)
+    override suspend fun getPeerBySessionId(sessionId: String): Peer {
+        return app.db.peer().getBySessionId(sessionId)
     }
 
     override suspend fun addMessage(message: Message) {
         app.db.message().update(message)
-
     }
 
     override suspend fun updateMessage(message: Message) {
         app.db.message().update(message)
     }
 
-    override suspend fun getPublicKeyJSON(publicKey: PublicKey): PublicKeyJSON {
-        val json = PublicKeyJSON(hex(publicKey.encoded))
+    override suspend fun getPublicKeyJSON(isKeyOnly: Boolean): PublicKeyJSON {
+        val json = PublicKeyJSON(hex(app.crypto.publicKey.encoded))
+        if(isKeyOnly) return json
         json.ip = app.ipList.getUri()
         json.port = app.settings.localServerPort
         json.type = app.ipList.getPublicType()
@@ -63,4 +63,12 @@ class RoomHandler(var app: MainApplication) : IInstrumentedHandler {
         return app.crypto
     }
 
+    override fun decrypt(enc: String): String {
+        return Crypto.decrypt(enc, app.crypto.privateKey)
+    }
+
+    override fun encrypt(dec: String, peer: Peer): String {
+        val rsaPublicKey = Crypto.revokePublicKey(peer.rsaPublicKeyByteArray.toByteArray())
+        return Crypto.encrypt(dec, rsaPublicKey)
+    }
 }

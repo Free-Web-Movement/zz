@@ -25,33 +25,40 @@ fun Application.api(execute: IInstrumentedHandler) {
     routing {
         route("/api") {
             get("/key/public") {
-                val publicKey = PublicKeyJSON(
-                    rsaPublicKeyByteArray = hex(execute.getCrypto().publicKey.encoded)
-                )
-                call.respond(publicKey)
+                call.respondText("Hello From Key Public GET!\n")
+//                val publicKey = execute.getPublicKeyJSON(true);
+//                call.respond(publicKey)
+
+//                val publicKey = PublicKeyJSON(
+//                    rsaPublicKeyByteArray = hex(execute.getCrypto().publicKey.encoded)
+//                )
+//                call.respond(publicKey)
             }
+
             post("/key/public") {
-                val sessionId = generateSessionId()
-                val encStr = call.receive<String>()
-                val decStr = Crypto.decrypt(encStr, execute.getCrypto().privateKey)
-                val decJSON = Json.decodeFromString<PublicKeyJSON>(decStr)
-                val timeStamp = Time.now()
-                assert(decJSON.ip!!.isNotEmpty())
-                assert(decJSON.port!! > 1 shl 10)
-                val peer = Peer(
-                    address = decJSON.ip!!, port = decJSON.port!!,
-                    addressType = decJSON.type!!,
-                    createdAt = timeStamp,
-                    updatedAt = timeStamp
-                )
-                peer.sessionId = sessionId
-                execute.addPeer(peer)
-//                PeerServer.app.db.peer().add(peer)
-                val encStr01 = Crypto.encrypt(
-                    Json.encodeToString(PublicKeyJSON(sessionId = peer.sessionId)),
-                    execute.getCrypto().publicKey
-                )
-                call.respondText(encStr01)
+                call.respondText("Hello From Key Public POST!\n")
+
+//                val sessionId = generateSessionId()
+//                val encStr = call.receive<String>()
+//                val decStr = Crypto.decrypt(encStr, execute.getCrypto().privateKey)
+//                val decJSON = Json.decodeFromString<PublicKeyJSON>(decStr)
+//                val timeStamp = Time.now()
+//                assert(decJSON.ip!!.isNotEmpty())
+//                assert(decJSON.port!! > 1 shl 10)
+//                val peer = Peer(
+//                    address = decJSON.ip!!, port = decJSON.port!!,
+//                    addressType = decJSON.type!!,
+//                    createdAt = timeStamp,
+//                    updatedAt = timeStamp
+//                )
+//                peer.sessionId = sessionId
+//                execute.addPeer(peer)
+////                PeerServer.app.db.peer().add(peer)
+//                val encStr01 = Crypto.encrypt(
+//                    Json.encodeToString(PublicKeyJSON(sessionId = peer.sessionId)),
+//                    execute.getCrypto().publicKey
+//                )
+//                call.respondText(encStr01)
             }
 
             post("/message") {

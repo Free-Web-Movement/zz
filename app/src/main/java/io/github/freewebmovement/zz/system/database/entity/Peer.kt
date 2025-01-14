@@ -50,8 +50,11 @@ data class Peer(
     @ColumnInfo(name = "latest_seen")
     var latestSeen: Long = Time.now()
 
+    var isTesting: Boolean = false
+
     val baseUrl: String
         get() {
+            if(isTesting) return ""
             return when (addressType) {
                 AddressType.IPV6 -> "http://[$address]:$port"
                 else -> "http://$address:$port"

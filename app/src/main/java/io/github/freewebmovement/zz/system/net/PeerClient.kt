@@ -4,7 +4,6 @@ import io.github.freewebmovement.zz.system.Time
 import io.github.freewebmovement.zz.system.database.entity.Message
 import io.github.freewebmovement.zz.system.database.entity.Peer
 import io.github.freewebmovement.zz.system.net.api.IInstrumentedHandler
-import io.github.freewebmovement.zz.system.net.api.crypto.Crypto
 import io.github.freewebmovement.zz.system.net.api.json.MessagReceiverJSON
 import io.github.freewebmovement.zz.system.net.api.json.MessageSenderJSON
 import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
@@ -25,30 +24,27 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.internal.wait
 
-class PeerClient(private var crypto: Crypto, private var execute: IInstrumentedHandler, a: Peer) {
-    val peer : Peer = a
-    private var client: HttpClient = HttpClient(CIO) {
-    }
-
+class PeerClient(var client : HttpClient, private var execute: IInstrumentedHandler) {
     // Step 1. Initial step to get public key from a peer server
-    suspend fun getPublicKey(): HttpResponse {
+    suspend fun getPublicKey(peer: Peer): HttpResponse {
         val response = client.get(peer.baseUrl + "/api/key/public")
         val json = response.body<PublicKeyJSON>()
-        peer.rsaPublicKeyByteArray = json.rsaPublicKeyByteArray.toString()
+        peer.rsaPublicKeyByteArray = json.rsaPublicKeyByteArray!!
         execute.addPeer(peer)
 //        app.db.peer().add(peer)
         return response
     }
 
     // Step 2. send your public key to the server
-    suspend fun setPublicKey(): HttpResponse {
+    suspend fun setPublicKey(peer: Peer): HttpResponse {
         val sessionId = generateSessionId()
         val responseStr: String
-        val json = execute.getPublicKeyJSON(crypto.publicKey)
+        val json = execute.getPublicKeyJSON()
         json.sessionId = sessionId
         execute.updatePeer(peer)
-        val rsaPublicKey = Crypto.revokePublicKey(peer.rsaPublicKeyByteArray.toByteArray())
-        responseStr = Crypto.encrypt(Json.encodeToString(json), rsaPublicKey)
+        responseStr = execute.encrypt(Json.encodeToString(json), peer)
+//        val rsaPublicKey = Crypto.revokePublicKey(peer.rsaPublicKeyByteArray.toByteArray())
+//        responseStr = Crypto.encrypt(Json.encodeToString(json), rsaPublicKey)
 //        if (app.ipList.hasPublicIPs()) {
 //            json.ip = app.ipList.getPublicUri()
 //            json.port = app.settings.localServerPort
@@ -67,7 +63,8 @@ class PeerClient(private var crypto: Crypto, private var execute: IInstrumentedH
             setBody(responseStr)
         }
         val resStr = response.body<String>()
-        val decodedStr = Crypto.decrypt(resStr, crypto.privateKey)
+        val decodedStr = execute.decrypt(resStr)
+//        val decodedStr = Crypto.decrypt(resStr, crypto.privateKey)
         val decodedJSON = Json.decodeFromString<PublicKeyJSON>(decodedStr)
         decodedJSON.sessionId?.let { assert(it.isNotEmpty()) }
         peer.latestSeen = Time.now()
@@ -78,11 +75,11 @@ class PeerClient(private var crypto: Crypto, private var execute: IInstrumentedH
     }
 
     // Step 3. Now You can start messaging
-    suspend fun sendMessage(messageStr: String): HttpResponse {
-        val rsaPublicKey = Crypto.revokePublicKey(peer.rsaPublicKeyByteArray.toByteArray())
-//
+    suspend fun sendMessage(messageStr: String, peer: Peer): HttpResponse {
+        //
         val messageJSON = MessageSenderJSON(messageStr, Time.now(), peer.sessionId)
-        val sendStr = Crypto.encrypt(Json.encodeToString(messageJSON), rsaPublicKey)
+        val sendStr = execute.encrypt(Json.encodeToString(messageJSON), peer)
+//        val sendStr = Crypto.encrypt(Json.encodeToString(messageJSON), rsaPublicKey)
         val message = Message(
             isSending = true,
             isSucceeded = false,
@@ -97,7 +94,8 @@ class PeerClient(private var crypto: Crypto, private var execute: IInstrumentedH
         }
         val encodeStr = response.body<String>()
 
-        val decodedStr = Crypto.decrypt(encodeStr, crypto.privateKey)
+        val decodedStr = execute.decrypt(encodeStr)
+//        val decodedStr = Crypto.decrypt(encodeStr, crypto.privateKey)
         val messageReceiverJSON = Json.decodeFromString<MessagReceiverJSON>(decodedStr)
         if(response.status.value == 200) {
             message.isSucceeded = true
@@ -113,7 +111,7 @@ class PeerClient(private var crypto: Crypto, private var execute: IInstrumentedH
         /**
      * get apk file from server, for test only
      */
-    suspend fun getApkFile() :  HttpResponse {
+    suspend fun getApkFile(peer: Peer) :  HttpResponse {
         var response: HttpResponse? = null
         val temp = client.prepareRequest {
             url(peer.baseUrl + "/download/apk")
