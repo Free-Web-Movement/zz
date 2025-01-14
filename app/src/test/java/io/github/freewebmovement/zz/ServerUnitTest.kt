@@ -1,11 +1,9 @@
 package io.github.freewebmovement.zz
 
 import io.github.freewebmovement.zz.bussiness.IDownload
-import io.github.freewebmovement.zz.system.Time
 import io.github.freewebmovement.zz.system.database.entity.AddressType
 import io.github.freewebmovement.zz.system.database.entity.Message
 import io.github.freewebmovement.zz.system.database.entity.Peer
-import io.github.freewebmovement.zz.system.net.PeerClient
 import io.github.freewebmovement.zz.system.net.api.IInstrumentedHandler
 import io.github.freewebmovement.zz.system.net.api.api
 import io.github.freewebmovement.zz.system.net.api.crypto.Crypto
@@ -23,6 +21,7 @@ import io.ktor.util.cio.writeChannel
 import io.ktor.util.hex
 import io.ktor.utils.io.copyAndClose
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
 import java.io.File
 import java.nio.file.Paths
 import kotlin.test.Test
@@ -40,8 +39,7 @@ class TestDownload : IDownload {
     }
 }
 
-class APIHandler : IInstrumentedHandler {
-    private var crypto = Crypto.createCrypto()
+class APIHandler(private var crypto: Crypto) : IInstrumentedHandler {
     private var peerList = ArrayList<Peer>()
     private var messageList = ArrayList<Message>()
 
@@ -114,7 +112,7 @@ class APIHandler : IInstrumentedHandler {
 class ServerUnitTest {
     @Test
     fun testRoot() = testApplication {
-        val handler = APIHandler()
+        val handler = APIHandler(Crypto.createCrypto())
         application {
             mainModule()
             download(TestDownload())
@@ -140,8 +138,14 @@ class ServerUnitTest {
 //        val peerClient = PeerClient(client, handler)
 //        val response03 = peerClient.getPublicKey(peerServer)
 
-        val response03 = client.get("/api/key/public")
-        assertEquals(HttpStatusCode.OK, response03.status)
+        runBlocking {
+            val response03 = client.get("/api/key/public")
+            val jsonStr = response03.bodyAsText()
+            val json = Json.decodeFromString<PublicKeyJSON>(jsonStr)
+            json.rsaPublicKeyByteArray?.let { assert(it.isNotEmpty()) }
+            assertEquals(HttpStatusCode.OK, response03.status)
+        }
+
         val response04 = client.post("/api/key/public") {
             setBody("")
         }

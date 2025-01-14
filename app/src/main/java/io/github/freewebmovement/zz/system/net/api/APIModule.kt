@@ -25,9 +25,8 @@ fun Application.api(execute: IInstrumentedHandler) {
     routing {
         route("/api") {
             get("/key/public") {
-                call.respondText("Hello From Key Public GET!\n")
-//                val publicKey = execute.getPublicKeyJSON(true);
-//                call.respond(publicKey)
+                val publicKey = execute.getPublicKeyJSON(true);
+                call.respondText(Json.encodeToString(publicKey))
 
 //                val publicKey = PublicKeyJSON(
 //                    rsaPublicKeyByteArray = hex(execute.getCrypto().publicKey.encoded)
