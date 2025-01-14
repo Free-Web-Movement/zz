@@ -10,6 +10,6 @@ data class MessageSenderJSON(
 )
 
 @Serializable
-data class MessagReceiverJSON(
+data class MessageReceiverJSON(
     var receivedAt: Long,
 )

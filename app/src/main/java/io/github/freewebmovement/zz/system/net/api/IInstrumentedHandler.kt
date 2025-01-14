@@ -19,7 +19,7 @@ interface IInstrumentedHandler {
     fun getDownloadDir(): File
     fun getCrypto(): Crypto
     fun decrypt(enc:String): String
-    fun encrypt(dec:String, peer: Peer): String
+    fun encrypt(dec:String, peer: Peer? = null): String
 }
 
 class RoomHandler(var app: MainApplication) : IInstrumentedHandler {
@@ -43,9 +43,9 @@ class RoomHandler(var app: MainApplication) : IInstrumentedHandler {
         app.db.message().update(message)
     }
 
-    override suspend fun getPublicKeyJSON(isKeyOnly: Boolean): PublicKeyJSON {
+    override suspend fun getPublicKeyJSON(keyOnly: Boolean): PublicKeyJSON {
         val json = PublicKeyJSON(hex(app.crypto.publicKey.encoded))
-        if(isKeyOnly) return json
+        if(keyOnly) return json
         json.ip = app.ipList.getUri()
         json.port = app.settings.localServerPort
         json.type = app.ipList.getPublicType()
@@ -67,7 +67,10 @@ class RoomHandler(var app: MainApplication) : IInstrumentedHandler {
         return Crypto.decrypt(enc, app.crypto.privateKey)
     }
 
-    override fun encrypt(dec: String, peer: Peer): String {
+    override fun encrypt(dec: String, peer: Peer?): String {
+        if(peer == null) {
+            return Crypto.encrypt(dec, app.crypto.publicKey)
+        }
         val rsaPublicKey = Crypto.revokePublicKey(peer.rsaPublicKeyByteArray.toByteArray())
         return Crypto.encrypt(dec, rsaPublicKey)
     }

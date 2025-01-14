@@ -25,5 +25,21 @@ class CryptoInstrumentedTest {
         val enc01 = Crypto.encrypt(str01, crypto01.publicKey)
         val decStr01 = Crypto.decrypt(enc01, crypto01.privateKey)
         assertEquals(str01, decStr01)
+
+        val publicKeyKey = "PUBLIC_KEY"
+        val privateKeyKey = "PRIVATE_KEY"
+        Crypto.saveKey(app.preference, publicKeyKey, crypto.publicKey.encoded)
+        val publicEncoded = Crypto.readKey(app.preference, publicKeyKey)
+        assert(publicEncoded.contentEquals(crypto.publicKey.encoded))
+
+        Crypto.saveKey(app.preference, privateKeyKey, crypto.privateKey.encoded)
+        val privateEncoded = Crypto.readKey(app.preference, privateKeyKey)
+        assert(privateEncoded.contentEquals(crypto.privateKey.encoded))
+
+        val revokedPrivate = Crypto.revokePrivateKey(privateEncoded)
+        val revokedPublic = Crypto.revokePublicKey(publicEncoded)
+
+        assert(revokedPublic == crypto.publicKey)
+        assert(revokedPrivate == crypto.privateKey)
     }
 }

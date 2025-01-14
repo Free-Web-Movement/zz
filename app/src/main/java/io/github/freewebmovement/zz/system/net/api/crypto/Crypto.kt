@@ -1,6 +1,5 @@
 package io.github.freewebmovement.zz.system.net.api.crypto
 
-import android.content.SharedPreferences
 import io.github.freewebmovement.zz.system.persistence.Preference
 import io.ktor.util.hex
 import java.nio.charset.StandardCharsets
@@ -59,8 +58,14 @@ class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
             preference.save(key, hex(value))
         }
 
+        @OptIn(ExperimentalStdlibApi::class)
         fun readKey(preference: Preference, key: String): ByteArray {
-            return preference.read(key, "")?.toByteArray()!!
+            return preference.read(key, "").hexToByteArray()
+        }
+
+        @OptIn(ExperimentalStdlibApi::class)
+        fun toPublicKey(key: String): PublicKey {
+            return revokePublicKey(key.hexToByteArray())
         }
 
         fun revokePublicKey(publicKeyBytes: ByteArray): PublicKey {
