@@ -1,9 +1,10 @@
-package io.github.freewebmovement.zz.system.net.api
+package io.github.freewebmovement.zz.system.net.api.module
 
 import io.github.freewebmovement.zz.system.Time
 import io.github.freewebmovement.zz.system.database.entity.Message
 import io.github.freewebmovement.zz.system.database.entity.Peer
 import io.github.freewebmovement.zz.system.net.PeerServer
+import io.github.freewebmovement.zz.system.net.api.IInstrumentedHandler
 import io.github.freewebmovement.zz.system.net.api.crypto.Crypto
 import io.github.freewebmovement.zz.system.net.api.json.MessageReceiverJSON
 import io.github.freewebmovement.zz.system.net.api.json.MessageSenderJSON
@@ -16,6 +17,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.server.sessions.generateSessionId
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -29,26 +31,19 @@ fun Application.api(execute: IInstrumentedHandler) {
 
             post("/key/public") {
                 val sessionId = generateSessionId()
-//                val encStr = call.receive<String>()
-//                val decStr = execute.decrypt(encStr)
-//                val decJSON = Json.decodeFromString<PublicKeyJSON>(decStr)
-//                val timeStamp = Time.now()
-//                val peer = Peer(
-//                    address = decJSON.ip!!,
-//                    port = decJSON.port!!,
-//                    addressType = decJSON.type!!,
-//                    createdAt = timeStamp,
-//                    updatedAt = timeStamp
-//                )
-//                peer.sessionId = sessionId
-//                execute.addPeer(peer)
-//                val encStr01 = Crypto.encrypt(
-//                    Json.encodeToString(PublicKeyJSON(sessionId = peer.sessionId)),
-//                    execute.getCrypto().publicKey
-//                )
-
-                var encJSON = PublicKeyJSON(sessionId = sessionId)
-                call.respondText(execute.encrypt(Json.encodeToString(encJSON)))
+                val jsonStr = call.receive<String>()
+                val json = Json.decodeFromString<PublicKeyJSON>(jsonStr)
+                val timeStamp = Time.now()
+                val peer = Peer(
+                    address = json.ip!!,
+                    port = json.port!!,
+                    addressType = json.type!!,
+                    createdAt = timeStamp,
+                    updatedAt = timeStamp
+                )
+                peer.sessionId = sessionId
+                execute.addPeer(peer)
+                call.respondText(Json.encodeToString(PublicKeyJSON(sessionId = sessionId))               )
             }
 
             post("/message") {

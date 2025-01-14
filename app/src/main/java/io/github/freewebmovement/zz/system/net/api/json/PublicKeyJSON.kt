@@ -9,5 +9,6 @@ data class PublicKeyJSON(
     var ip: String? = null,
     var port: Int? = null,
     var type: AddressType? = null,
+    // enc
     var sessionId: String? = null
 )

@@ -1,4 +1,4 @@
-package io.github.freewebmovement.zz.system.net.api
+package io.github.freewebmovement.zz.system.net.api.module
 
 import io.ktor.server.application.Application
 import io.ktor.server.response.respondText

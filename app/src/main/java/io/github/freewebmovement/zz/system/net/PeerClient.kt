@@ -38,25 +38,17 @@ class PeerClient(private var client : HttpClient, private var execute: IInstrume
     // Step 2. send your public key to the server
     suspend fun setPublicKey(peer: Peer): HttpResponse {
         val sessionId = generateSessionId()
-        val responseStr: String
         val json = execute.getPublicKeyJSON()
         json.sessionId = sessionId
-        execute.updatePeer(peer)
-//        responseStr = execute.encrypt(Json.encodeToString(json), peer)
-
-        val response = client.get(peer.baseUrl + "/api/key/public") {
-            setBody("")
+        peer.sessionId = sessionId
+        val response = client.post(peer.baseUrl + "/api/key/public") {
+            setBody(Json.encodeToString(json))
         }
-//        val resStr = response.body<String>()
-//        val decodedStr = execute.decrypt(resStr)
-//        println(decodedStr)
-////        val decodedStr = Crypto.decrypt(resStr, crypto.privateKey)
-//        val decodedJSON = Json.decodeFromString<PublicKeyJSON>(decodedStr)
-//        decodedJSON.sessionId?.let { assert(it.isNotEmpty()) }
-//        peer.latestSeen = Time.now()
-//        peer.peerSessionId = decodedJSON.sessionId.toString()
-//        execute.updatePeer(peer)
-//        app.db.peer().update(peer)
+        val resStr = response.body<String>()
+        val decodedJSON = Json.decodeFromString<PublicKeyJSON>(resStr)
+        peer.latestSeen = Time.now()
+        peer.peerSessionId = decodedJSON.sessionId.toString()
+        execute.updatePeer(peer)
         return response
     }
 

@@ -7,11 +7,11 @@ import io.github.freewebmovement.zz.system.database.entity.Message
 import io.github.freewebmovement.zz.system.database.entity.Peer
 import io.github.freewebmovement.zz.system.net.PeerClient
 import io.github.freewebmovement.zz.system.net.api.IInstrumentedHandler
-import io.github.freewebmovement.zz.system.net.api.api
+import io.github.freewebmovement.zz.system.net.api.module.api
 import io.github.freewebmovement.zz.system.net.api.crypto.Crypto
-import io.github.freewebmovement.zz.system.net.api.download
+import io.github.freewebmovement.zz.system.net.api.module.download
 import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
-import io.github.freewebmovement.zz.system.net.api.mainModule
+import io.github.freewebmovement.zz.system.net.api.module.mainModule
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.bodyAsText
@@ -40,11 +40,18 @@ class TestDownload : IDownload {
 
 class APIHandler(private var crypto: Crypto) : IInstrumentedHandler {
     companion object {
-        private var peerList = ArrayList<Peer>()
+        var peerList = ArrayList<Peer>()
         private var messageList = ArrayList<Message>()
     }
 
     override suspend fun addPeer(peer: Peer) {
+        var id = 0
+        peerList.forEach {
+            if (it.id > id) {
+                id = it.id
+            }
+        }
+        peer.id = id + 1
         peerList.add(peer)
     }
 
@@ -104,7 +111,7 @@ class APIHandler(private var crypto: Crypto) : IInstrumentedHandler {
     }
 
     override fun encrypt(dec: String, peer: Peer?): String {
-        if(peer == null) {
+        if (peer == null) {
             return Crypto.encrypt(dec, crypto.publicKey)
         }
 //        val rsaPublicKey = peer.rsaPublicKeyByteArray.let { Crypto.revokePublicKey(it.toByteArray()) }
@@ -140,17 +147,22 @@ class ServerUnitTest {
 //        val response02 = client.get("/download/statics")
 //        assertEquals(HttpStatusCode.OK, response02.status)
         val peerServer = Peer("127.0.0.1", 0, AddressType.IPV4, Time.now(), Time.now())
+        peerServer.id = 1
         peerServer.rsaPublicKeyByteArray = hex(serverHandler.getCrypto().publicKey.encoded)
         peerServer.isTesting = true
         val peerClient = PeerClient(client, clientHandler)
         runBlocking {
-
             val response003 = peerClient.getPublicKey(peerServer)
+            assert(peerServer.rsaPublicKeyByteArray.isNotEmpty())
             assertEquals(HttpStatusCode.OK, response003.status)
         }
 
         runBlocking {
+            assert(peerServer.sessionId.isEmpty())
+            assert(peerServer.peerSessionId.isEmpty())
             val response04 = peerClient.setPublicKey(peerServer)
+            assert(peerServer.sessionId.isNotEmpty())
+            assert(peerServer.peerSessionId.isNotEmpty())
             assertEquals(HttpStatusCode.OK, response04.status)
         }
     }

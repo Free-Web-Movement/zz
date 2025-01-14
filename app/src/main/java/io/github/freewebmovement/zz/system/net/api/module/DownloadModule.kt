@@ -1,4 +1,4 @@
-package io.github.freewebmovement.zz.system.net.api
+package io.github.freewebmovement.zz.system.net.api.module
 
 import io.github.freewebmovement.zz.bussiness.IDownload
 import io.ktor.server.application.Application
