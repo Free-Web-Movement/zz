@@ -11,27 +11,27 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.netty.NettyApplicationEngine
 
-fun Application.module() {
-    mainModule()
-    download(PeerServer.app.share)
-    api(RoomHandler(PeerServer.app))
+fun Application.module(app: MainApplication) {
+    mainModule(RoomHandler(app))
+    download(app.share)
+    api(RoomHandler(app))
 }
 
 class PeerServer {
-
     companion object {
         lateinit var app: MainApplication
         private var server: EmbeddedServer<NettyApplicationEngine, NettyApplicationEngine.Configuration>? =
             null
 
-        fun start(app: MainApplication, host: String = "0.0.0.0", port: Int = 10086) {
+        fun start(app: MainApplication, host: String, port: Int) {
             PeerServer.app = app
             server = embeddedServer(
                 factory = Netty,
                 port = port,
-                host = host,
-                module = Application::module
-            ).start(wait = false)
+                host = host
+            ) {
+                module(app)
+            }.start(wait = false)
         }
     }
 }

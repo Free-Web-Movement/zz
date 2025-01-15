@@ -7,6 +7,7 @@ import io.github.freewebmovement.zz.system.net.api.IInstrumentedHandler
 import io.github.freewebmovement.zz.system.net.api.json.MessageReceiverJSON
 import io.github.freewebmovement.zz.system.net.api.json.MessageSenderJSON
 import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
+import io.github.freewebmovement.zz.system.net.api.json.UserJSON
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -27,6 +28,7 @@ import okhttp3.internal.wait
 class PeerClient(private var client: HttpClient, private var execute: IInstrumentedHandler) {
     // Step 1. Initial step to get public key from a peer server
     suspend fun getPublicKey(peer: Peer): HttpResponse {
+
         val response = client.get(peer.baseUrl + "/api/key/public")
         val jsonStr = response.bodyAsText()
         val json = Json.decodeFromString<PublicKeyJSON>(jsonStr)
@@ -74,6 +76,17 @@ class PeerClient(private var client: HttpClient, private var execute: IInstrumen
         message.isSucceeded = true
         message.receivedAt = messageReceiverJSON.receivedAt
         execute.updateMessage(message)
+        return response
+    }
+
+    suspend fun getProfile(peer: Peer) : HttpResponse {
+        val response = client.get(peer.baseUrl + "/user/profile")
+        val jsonStr = response.body<String>()
+        val user = Json.decodeFromString<UserJSON>(jsonStr)
+        peer.avatar = user.avatar
+        peer.nickname = user.nickname
+        peer.signature = user.signature
+        execute.updatePeer(peer)
         return response
     }
 

@@ -7,10 +7,11 @@ import io.github.freewebmovement.zz.system.database.entity.Message
 import io.github.freewebmovement.zz.system.database.entity.Peer
 import io.github.freewebmovement.zz.system.net.PeerClient
 import io.github.freewebmovement.zz.system.net.api.IInstrumentedHandler
-import io.github.freewebmovement.zz.system.net.api.module.api
 import io.github.freewebmovement.zz.system.net.api.crypto.Crypto
-import io.github.freewebmovement.zz.system.net.api.module.download
 import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
+import io.github.freewebmovement.zz.system.net.api.json.UserJSON
+import io.github.freewebmovement.zz.system.net.api.module.api
+import io.github.freewebmovement.zz.system.net.api.module.download
 import io.github.freewebmovement.zz.system.net.api.module.mainModule
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsChannel
@@ -43,6 +44,10 @@ class APIHandler(private var crypto: Crypto) : IInstrumentedHandler {
         var peerList = ArrayList<Peer>()
         var messageList = ArrayList<Message>()
     }
+
+    var avatar = ""
+    var nickname = "nickname"
+    var signature = "signature"
 
     override suspend fun addPeer(peer: Peer) {
         var id = 0
@@ -108,6 +113,10 @@ class APIHandler(private var crypto: Crypto) : IInstrumentedHandler {
         return File(".")
     }
 
+    override fun getProfile(): UserJSON {
+        return UserJSON(nickname = nickname, signature = signature, avatar = avatar)
+    }
+
     override fun getCrypto(): Crypto {
         return crypto
     }
@@ -132,7 +141,7 @@ class ServerUnitTest {
         val serverHandler = APIHandler(Crypto.createCrypto())
         val clientHandler = APIHandler(Crypto.createCrypto())
         application {
-            mainModule()
+            mainModule(serverHandler)
             download(TestDownload())
             api(serverHandler)
         }
@@ -184,6 +193,14 @@ class ServerUnitTest {
             assert(message01.message == str)
             assert(message.isSending)
             assert(!message01.isSending)
+            assertEquals(HttpStatusCode.OK, response04.status)
+        }
+
+        runBlocking {
+            val response04 = peerClient.getProfile(peerServer)
+            assert(peerServer.avatar == serverHandler.avatar)
+            assert(peerServer.nickname == serverHandler.nickname)
+            assert(peerServer.signature == serverHandler.signature)
             assertEquals(HttpStatusCode.OK, response04.status)
         }
     }
