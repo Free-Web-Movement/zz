@@ -2,7 +2,9 @@ package io.github.freewebmovement.zz
 
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import io.github.freewebmovement.zz.system.net.api.crypto.Crypto
+import io.github.freewebmovement.zz.system.crypto.AddressScriptType
+import io.github.freewebmovement.zz.system.crypto.Crypto
+import io.github.freewebmovement.zz.system.crypto.M2PK_PREFIX_VERSION
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -41,5 +43,13 @@ class CryptoInstrumentedTest {
 
         assert(revokedPublic == crypto.publicKey)
         assert(revokedPrivate == crypto.privateKey)
+
+        val address01 = Crypto.toAddress(crypto.publicKey)
+        val address02 = Crypto.toAddress(crypto.publicKey)
+
+        assert(address01.substring(0, 3) == M2PK_PREFIX_VERSION)
+        assert(address02 == address01)
+
+
     }
 }

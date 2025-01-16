@@ -1,12 +1,15 @@
-package io.github.freewebmovement.zz.system.net.api.crypto
+package io.github.freewebmovement.zz.system.crypto
 
 import io.github.freewebmovement.zz.system.persistence.Preference
 import io.ktor.util.hex
+import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.nio.charset.StandardCharsets
 import java.security.KeyFactory
 import java.security.KeyPairGenerator
+import java.security.MessageDigest
 import java.security.PrivateKey
 import java.security.PublicKey
+import java.security.Security
 import java.security.spec.EncodedKeySpec
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
@@ -19,7 +22,14 @@ private const val IS_INIT_KEY = "kp_is_init"
 private const val PRIVATE_KEY = "kp_private_key"
 private const val PUBLIC_KEY = "kp_public_key"
 private const val CRYPTO_ALGORITHM_RSA = "RSA"
+private const val CRYPTO_ALGORITHM_RIPEMD160 = "RIPEMD160"
 private const val KEY_SIZE = 2048
+
+enum class AddressScriptType {
+    M2PK // Message to Public Key Script Type
+}
+
+const val M2PK_PREFIX_VERSION = "VIG0"
 
 class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
     // For public keys
@@ -34,6 +44,25 @@ class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
         fun refresh(preference: Preference): Crypto {
             preference.save(IS_INIT_KEY, false)
             return getInstance(preference)
+        }
+
+        fun toAddress(
+            publicKey: PublicKey,
+            // reserved for further scripts matching new address formats
+            addressType: AddressScriptType = AddressScriptType.M2PK
+        ): String {
+            return when (addressType) {
+                AddressScriptType.M2PK -> M2PK_PREFIX_VERSION + toHash160(publicKey)
+            }
+        }
+
+        @OptIn(ExperimentalStdlibApi::class)
+        fun toHash160(publicKey: PublicKey) {
+            Security.addProvider(BouncyCastleProvider())
+            MessageDigest
+                .getInstance(CRYPTO_ALGORITHM_RIPEMD160)
+                .digest(publicKey.encoded)
+                .toHexString()
         }
 
         @OptIn(ExperimentalEncodingApi::class)
@@ -77,7 +106,7 @@ class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
             val privateKeySpec: EncodedKeySpec = PKCS8EncodedKeySpec(privateKeyBytes)
             return keyFactory.generatePrivate(privateKeySpec)
         }
-        
+
         fun createCrypto(): Crypto {
             val keyPair = kpg.genKeyPair()
             return Crypto(keyPair.private, keyPair.public)

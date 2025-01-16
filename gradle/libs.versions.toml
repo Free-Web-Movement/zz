@@ -2,6 +2,7 @@
 activity = "1.9.3"
 activityKtx = "1.9.3"
 agp = "8.8.0"
+bcpkixJdk15on = "1.56"
 coilCompose = "3.0.4"
 coilNetworkOkhttp = "3.0.4"
 core = "1.6.1"
@@ -61,6 +62,7 @@ androidx-room-paging = { module = "androidx.room:room-paging", version.ref = "ro
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomKtx" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
 androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "roomTesting" }
+bcpkix-jdk15on = { module = "org.bouncycastle:bcpkix-jdk15on", version.ref = "bcpkixJdk15on" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coilNetworkOkhttp" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
 jetbrains-kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCoreVersion" }

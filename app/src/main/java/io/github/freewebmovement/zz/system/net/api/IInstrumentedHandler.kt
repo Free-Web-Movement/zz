@@ -6,7 +6,7 @@ import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.system.Image
 import io.github.freewebmovement.zz.system.database.entity.Message
 import io.github.freewebmovement.zz.system.database.entity.Peer
-import io.github.freewebmovement.zz.system.net.api.crypto.Crypto
+import io.github.freewebmovement.zz.system.crypto.Crypto
 import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
 import io.github.freewebmovement.zz.system.net.api.json.UserJSON
 import io.ktor.util.hex
