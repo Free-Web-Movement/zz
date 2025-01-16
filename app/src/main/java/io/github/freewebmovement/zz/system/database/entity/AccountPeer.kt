@@ -4,11 +4,11 @@ import androidx.room.Embedded
 import androidx.room.Relation
 
 
-data class PeerMessages (
-    @Embedded val peer: Peer,
+data class AccountPeer(
+    @Embedded val account: Account,
     @Relation(
         parentColumn = "id",
-        entityColumn = "peer"
+        entityColumn = "account"
     )
-    val messages: List<Message>
+    val peers: List<Peer>
 )

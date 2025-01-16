@@ -5,10 +5,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class PublicKeyJSON(
-    var rsaPublicKeyByteArray: String? = null,
+    var key: String? = null,
     var ip: String? = null,
     var port: Int? = null,
     var type: IPType? = null,
-    // enc
-    var sessionId: String? = null
+    var code : Int? = 0
 )

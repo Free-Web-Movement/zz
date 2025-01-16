@@ -13,8 +13,10 @@ enum class IPType {
     IPV6
 }
 
-@Entity(indices = [Index(value = ["session_id"], unique = true)], tableName = "peer")
+@Entity(tableName = "peer")
 data class Peer(
+    @ColumnInfo(name = "account")
+    var account: Int,
     @ColumnInfo(name = "ip")
     var ip: String,
     @ColumnInfo(name = "port")
@@ -26,24 +28,6 @@ data class Peer(
 ) {
     @PrimaryKey(autoGenerate = true)
     var id: Int = 0
-
-    @ColumnInfo(name = "session_id")
-    var sessionId: String = ""
-
-    @ColumnInfo(name = "peer_session_id")
-    var peerSessionId: String = ""
-
-    @ColumnInfo(name = "nickname")
-    var nickname: String = "Nick Name"
-
-    @ColumnInfo(name = "signature")
-    var signature: String = "Signature"
-
-    @ColumnInfo(name = "avatar")
-    var avatar: String = "avatar"
-
-    @ColumnInfo(name = "rsa_public_key")
-    var rsaPublicKeyByteArray: String = ""
 
     @ColumnInfo(name = "note")
     var note: String = ""

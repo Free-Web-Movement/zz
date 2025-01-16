@@ -4,7 +4,9 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.freewebmovement.zz.bussiness.Settings
 import io.github.freewebmovement.zz.system.Time
+import io.github.freewebmovement.zz.system.crypto.Crypto
 import io.github.freewebmovement.zz.system.database.ZzDatabase
+import io.github.freewebmovement.zz.system.database.entity.Account
 import io.github.freewebmovement.zz.system.database.entity.IPType
 import io.github.freewebmovement.zz.system.database.entity.Peer
 import junit.framework.TestCase.assertEquals
@@ -21,11 +23,19 @@ class RoomInstrumentedTest {
         val setting = Settings(preference)
         val db = ZzDatabase.getDatabase(app.applicationContext)
         app.db = db
+        val crypto = Crypto.createCrypto()
+        val address = Crypto.toAddress(crypto.publicKey)
+        val account = Account(address)
+        app.db.account().add(account)
+        val account01 = app.db.account().getAccountByAddress(account.address)
+        assert(account01!=null)
+        assert(account01!!.id != 0)
         val dao = app.db.peer()
         dao.clearData()
         dao.clearSequence()
         val epochTime = Time.now()
         val peer = Peer(
+            account.id,
             "0.0.0.0",
             setting.localServerPort,
             IPType.IPV4,

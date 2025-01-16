@@ -7,15 +7,18 @@ import io.github.freewebmovement.zz.system.Image
 import io.github.freewebmovement.zz.system.database.entity.Message
 import io.github.freewebmovement.zz.system.database.entity.Peer
 import io.github.freewebmovement.zz.system.crypto.Crypto
+import io.github.freewebmovement.zz.system.database.entity.Account
 import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
 import io.github.freewebmovement.zz.system.net.api.json.UserJSON
 import io.ktor.util.hex
 import java.io.File
 
 interface IInstrumentedHandler {
+    suspend fun addAccount(account: Account)
+    suspend fun updateAccount(account: Account)
     suspend fun addPeer(peer: Peer)
     suspend fun updatePeer(peer: Peer)
-    suspend fun getPeerBySessionId(sessionId: String): Peer
+    suspend fun getAccountByAddress(address: String): Account?
     suspend fun addMessage(message: Message)
     suspend fun updateMessage(message: Message)
     suspend fun getPublicKeyJSON(keyOnly: Boolean = false): PublicKeyJSON
@@ -23,10 +26,23 @@ interface IInstrumentedHandler {
     fun getProfile(): UserJSON
     fun getCrypto(): Crypto
     fun decrypt(enc:String): String
-    fun encrypt(dec:String, peer: Peer? = null): String
+    fun encrypt(dec:String, account: Account? = null): String
 }
 
 class RoomHandler(var app: MainApplication) : IInstrumentedHandler {
+    override suspend fun addAccount(account: Account) {
+        val find = app.db.account().getAccountByAddress(account.address)
+        if(find != null ) {
+            account.id = find.id
+            return
+        }
+        app.db.account().add(account)
+    }
+
+    override suspend fun updateAccount(account: Account) {
+        app.db.account().update(account)
+    }
+
     override suspend fun addPeer(peer: Peer) {
         app.db.peer().add(peer)
     }
@@ -35,8 +51,8 @@ class RoomHandler(var app: MainApplication) : IInstrumentedHandler {
         app.db.peer().update(peer)
     }
 
-    override suspend fun getPeerBySessionId(sessionId: String): Peer {
-        return app.db.peer().getBySessionId(sessionId)
+    override suspend fun getAccountByAddress(address: String): Account? {
+        return app.db.account().getAccountByAddress(address)
     }
 
     override suspend fun addMessage(message: Message) {
@@ -83,11 +99,11 @@ class RoomHandler(var app: MainApplication) : IInstrumentedHandler {
         return Crypto.decrypt(enc, app.crypto.privateKey)
     }
 
-    override fun encrypt(dec: String, peer: Peer?): String {
-        if(peer == null) {
+    override fun encrypt(dec: String, account: Account?): String {
+        if(account == null) {
             return Crypto.encrypt(dec, app.crypto.publicKey)
         }
-        val rsaPublicKey = Crypto.revokePublicKey(peer.rsaPublicKeyByteArray.toByteArray())
+        val rsaPublicKey = Crypto.toPublicKey(account.publicKey)
         return Crypto.encrypt(dec, rsaPublicKey)
     }
 }

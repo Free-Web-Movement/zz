@@ -8,6 +8,7 @@ import io.github.freewebmovement.zz.system.database.entity.Peer
 import io.github.freewebmovement.zz.system.net.PeerClient
 import io.github.freewebmovement.zz.system.net.api.IInstrumentedHandler
 import io.github.freewebmovement.zz.system.crypto.Crypto
+import io.github.freewebmovement.zz.system.database.entity.Account
 import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
 import io.github.freewebmovement.zz.system.net.api.json.UserJSON
 import io.github.freewebmovement.zz.system.net.api.module.api
@@ -41,6 +42,7 @@ class TestDownload : IDownload {
 
 class APIHandler(private var crypto: Crypto) : IInstrumentedHandler {
     companion object {
+        var accountList = ArrayList<Account>()
         var peerList = ArrayList<Peer>()
         var messageList = ArrayList<Message>()
     }
@@ -48,6 +50,25 @@ class APIHandler(private var crypto: Crypto) : IInstrumentedHandler {
     var avatar = ""
     var nickname = "nickname"
     var signature = "signature"
+    override suspend fun addAccount(account: Account) {
+        var id = 0
+        accountList.forEach {
+            if (it.id > id) {
+                id = it.id
+            }
+        }
+        account.id = id + 1
+        accountList.add(account)
+    }
+
+    override suspend fun updateAccount(account: Account) {
+        accountList.forEachIndexed { i, it ->
+            if (it.id == account.id) {
+                accountList[i] = account
+                return@forEachIndexed
+            }
+        }
+    }
 
     override suspend fun addPeer(peer: Peer) {
         var id = 0
@@ -69,15 +90,15 @@ class APIHandler(private var crypto: Crypto) : IInstrumentedHandler {
         }
     }
 
-    override suspend fun getPeerBySessionId(sessionId: String): Peer {
-        var peer: Peer? = null
-        peerList.forEachIndexed { i, it ->
-            if (it.sessionId == sessionId) {
-                peer = peerList[i]
+    override suspend fun getAccountByAddress(address: String): Account? {
+        var found: Account? = null
+        accountList.forEachIndexed { i, it ->
+            if (it.address == address) {
+                found = accountList[i]
                 return@forEachIndexed
             }
         }
-        return peer!!
+        return found
     }
 
     override suspend fun addMessage(message: Message) {
@@ -125,12 +146,12 @@ class APIHandler(private var crypto: Crypto) : IInstrumentedHandler {
         return Crypto.decrypt(enc, crypto.privateKey)
     }
 
-    override fun encrypt(dec: String, peer: Peer?): String {
-        if (peer == null) {
+    override fun encrypt(dec: String, account: Account?): String {
+        if (account == null) {
             return Crypto.encrypt(dec, crypto.publicKey)
         }
 //        val rsaPublicKey = peer.rsaPublicKeyByteArray.let { Crypto.revokePublicKey(it.toByteArray()) }
-        return Crypto.encrypt(dec, Crypto.toPublicKey(peer.rsaPublicKeyByteArray))
+        return Crypto.encrypt(dec, Crypto.toPublicKey(account.publicKey))
     }
 
 }
@@ -138,13 +159,29 @@ class APIHandler(private var crypto: Crypto) : IInstrumentedHandler {
 class ServerUnitTest {
     @Test
     fun testRoot() = testApplication {
-        val serverHandler = APIHandler(Crypto.createCrypto())
-        val clientHandler = APIHandler(Crypto.createCrypto())
+
+        val serverCrypto = Crypto.createCrypto()
+        val clientCrypto = Crypto.createCrypto()
+        val serverHandler = APIHandler(serverCrypto)
+        val clientHandler = APIHandler(clientCrypto)
         application {
             mainModule(serverHandler)
             download(TestDownload())
             api(serverHandler)
         }
+
+        val serverAddress = Crypto.toAddress(serverCrypto.publicKey)
+        val serverAccount = Account(serverAddress)
+        serverAccount.publicKey = hex(serverCrypto.publicKey.encoded)
+        serverHandler.addAccount(serverAccount)
+        assert(serverAccount.id != 0)
+
+        val clientAddress = Crypto.toAddress(clientCrypto.publicKey)
+        val clientAccount = Account(clientAddress)
+        clientAccount.publicKey = hex(clientCrypto.publicKey.encoded)
+
+        clientHandler.addAccount(clientAccount)
+        assert(clientAccount.id != 0)
 
         val response = client.get("/")
         assertEquals(HttpStatusCode.OK, response.status)
@@ -161,23 +198,23 @@ class ServerUnitTest {
 
 //        val response02 = client.get("/download/statics")
 //        assertEquals(HttpStatusCode.OK, response02.status)
-        val peerServer = Peer("127.0.0.1", 0, IPType.IPV4, Time.now(), Time.now())
+        val peerServer = Peer(
+            serverAccount.id,
+            "127.0.0.1", 0, IPType.IPV4, Time.now(), Time.now())
         peerServer.id = 1
-        peerServer.rsaPublicKeyByteArray = hex(serverHandler.getCrypto().publicKey.encoded)
+//        account.publicKey = hex(serverHandler.getCrypto().publicKey.encoded)
         peerServer.isTesting = true
         val peerClient = PeerClient(client, clientHandler)
         runBlocking {
             val response003 = peerClient.getPublicKey(peerServer)
-            assert(peerServer.rsaPublicKeyByteArray.isNotEmpty())
+            val address = Crypto.toAddress(serverCrypto.publicKey)
+            val account = clientHandler.getAccountByAddress(address)
+            assert(account!=null)
             assertEquals(HttpStatusCode.OK, response003.status)
         }
 
         runBlocking {
-            assert(peerServer.sessionId.isEmpty())
-            assert(peerServer.peerSessionId.isEmpty())
             val response04 = peerClient.setPublicKey(peerServer)
-            assert(peerServer.sessionId.isNotEmpty())
-            assert(peerServer.peerSessionId.isNotEmpty())
             assertEquals(HttpStatusCode.OK, response04.status)
             assert(APIHandler.peerList.size == 2)
             assert(APIHandler.messageList.size == 0)
@@ -185,7 +222,7 @@ class ServerUnitTest {
 
         runBlocking {
             val str = "Hello world!"
-            val response04 = peerClient.sendMessage(str, peerServer)
+            val response04 = peerClient.sendMessage(str, peerServer, clientAccount, serverAccount)
             assert(APIHandler.messageList.size == 2)
             val message = APIHandler.messageList[0]
             val message01 = APIHandler.messageList[1]
@@ -197,10 +234,10 @@ class ServerUnitTest {
         }
 
         runBlocking {
-            val response04 = peerClient.getProfile(peerServer)
-            assert(peerServer.avatar == serverHandler.avatar)
-            assert(peerServer.nickname == serverHandler.nickname)
-            assert(peerServer.signature == serverHandler.signature)
+            val response04 = peerClient.getProfile(peerServer, serverAccount)
+            assert(serverAccount.avatar == serverHandler.avatar)
+            assert(serverAccount.nickname == serverHandler.nickname)
+            assert(serverAccount.signature == serverHandler.signature)
             assertEquals(HttpStatusCode.OK, response04.status)
         }
     }

@@ -1,6 +1,8 @@
 package io.github.freewebmovement.zz.system.net.api.module
 
 import io.github.freewebmovement.zz.system.Time
+import io.github.freewebmovement.zz.system.crypto.Crypto
+import io.github.freewebmovement.zz.system.database.entity.Account
 import io.github.freewebmovement.zz.system.database.entity.Message
 import io.github.freewebmovement.zz.system.database.entity.Peer
 import io.github.freewebmovement.zz.system.net.api.IInstrumentedHandler
@@ -27,38 +29,46 @@ fun Application.api(execute: IInstrumentedHandler) {
             }
 
             post("/key/public") {
-                val sessionId = generateSessionId()
                 val jsonStr = call.receive<String>()
                 val json = Json.decodeFromString<PublicKeyJSON>(jsonStr)
                 val timeStamp = Time.now()
+                val account = Account(json.key!!)
+                execute.addAccount(account)
                 val peer = Peer(
+                    account.id,
                     ip = json.ip!!,
                     port = json.port!!,
                     ipType = json.type!!,
                     createdAt = timeStamp,
                     updatedAt = timeStamp
                 )
-                peer.sessionId = sessionId
                 execute.addPeer(peer)
-                call.respondText(Json.encodeToString(PublicKeyJSON(sessionId = sessionId))               )
+                call.respondText(Json.encodeToString(PublicKeyJSON()))
             }
 
             post("/message") {
                 val receiveStr = call.receive<String>()
                 val json = Json.decodeFromString<MessageSenderJSON>(receiveStr)
 
-                val peer: Peer = execute.getPeerBySessionId(json.sessionId!!)
-                val message = Message(
-                    isSending = false,
-                    isSucceeded = true,
-                    peer = peer.id,
-                    message = execute.decrypt(json.message),
-                    createdAt = json.createdAt
-                )
-                message.receivedAt = Time.now()
-                execute.addMessage(message)
-                val messageReceiverJSON = MessageReceiverJSON(Time.now())
-                call.respondText(Json.encodeToString(messageReceiverJSON))
+                val account: Account? = execute.getAccountByAddress(json.sender!!)
+                val address = Crypto.toAddress(execute.getCrypto().publicKey)
+                if (account != null) {
+                    val message = Message(
+                        isSending = false,
+                        isSucceeded = true,
+                        from = account.address,
+                        to = address,
+                        message = execute.decrypt(json.message),
+                        createdAt = json.createdAt
+                    )
+                    message.receivedAt = Time.now()
+                    execute.addMessage(message)
+                    val messageReceiverJSON = MessageReceiverJSON(Time.now())
+                    call.respondText(Json.encodeToString(messageReceiverJSON))
+                } else {
+                    val messageReceiverJSON = MessageReceiverJSON(Time.now(), 1)
+                    call.respondText(Json.encodeToString(messageReceiverJSON))
+                }
             }
         }
     }
