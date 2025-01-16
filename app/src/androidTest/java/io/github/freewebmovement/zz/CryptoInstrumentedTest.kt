@@ -47,9 +47,7 @@ class CryptoInstrumentedTest {
         val address01 = Crypto.toAddress(crypto.publicKey)
         val address02 = Crypto.toAddress(crypto.publicKey)
 
-        assert(address01.substring(0, 3) == M2PK_PREFIX_VERSION)
+        assert(address01.substring(0, 4) == M2PK_PREFIX_VERSION)
         assert(address02 == address01)
-
-
     }
 }

@@ -2,6 +2,7 @@ package io.github.freewebmovement.zz.system.crypto
 
 import io.github.freewebmovement.zz.system.persistence.Preference
 import io.ktor.util.hex
+import org.bouncycastle.crypto.digests.RIPEMD160Digest
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.nio.charset.StandardCharsets
 import java.security.KeyFactory
@@ -22,7 +23,7 @@ private const val IS_INIT_KEY = "kp_is_init"
 private const val PRIVATE_KEY = "kp_private_key"
 private const val PUBLIC_KEY = "kp_public_key"
 private const val CRYPTO_ALGORITHM_RSA = "RSA"
-private const val CRYPTO_ALGORITHM_RIPEMD160 = "RIPEMD160"
+private const val CRYPTO_ALGORITHM_SHA256 = "SHA-256"
 private const val KEY_SIZE = 2048
 
 enum class AddressScriptType {
@@ -57,12 +58,17 @@ class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
         }
 
         @OptIn(ExperimentalStdlibApi::class)
-        fun toHash160(publicKey: PublicKey) {
+        fun toHash160(publicKey: PublicKey) : String {
             Security.addProvider(BouncyCastleProvider())
-            MessageDigest
-                .getInstance(CRYPTO_ALGORITHM_RIPEMD160)
+            val sha256 = MessageDigest
+                .getInstance(CRYPTO_ALGORITHM_SHA256)
                 .digest(publicKey.encoded)
-                .toHexString()
+
+            val d = RIPEMD160Digest()
+            d.update(sha256, 0, sha256.size)
+            var o = ByteArray(d.digestSize)
+            d.doFinal(o, 0)
+            return o.toHexString()
         }
 
         @OptIn(ExperimentalEncodingApi::class)
