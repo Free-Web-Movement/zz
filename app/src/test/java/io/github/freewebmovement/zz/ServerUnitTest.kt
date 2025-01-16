@@ -2,7 +2,7 @@ package io.github.freewebmovement.zz
 
 import io.github.freewebmovement.zz.bussiness.IDownload
 import io.github.freewebmovement.zz.system.Time
-import io.github.freewebmovement.zz.system.database.entity.AddressType
+import io.github.freewebmovement.zz.system.database.entity.IPType
 import io.github.freewebmovement.zz.system.database.entity.Message
 import io.github.freewebmovement.zz.system.database.entity.Peer
 import io.github.freewebmovement.zz.system.net.PeerClient
@@ -105,7 +105,7 @@ class APIHandler(private var crypto: Crypto) : IInstrumentedHandler {
         if (keyOnly) return json
         json.ip = "127.0.0.1"
         json.port = 0
-        json.type = AddressType.IPV4
+        json.type = IPType.IPV4
         return json
     }
 
@@ -161,7 +161,7 @@ class ServerUnitTest {
 
 //        val response02 = client.get("/download/statics")
 //        assertEquals(HttpStatusCode.OK, response02.status)
-        val peerServer = Peer("127.0.0.1", 0, AddressType.IPV4, Time.now(), Time.now())
+        val peerServer = Peer("127.0.0.1", 0, IPType.IPV4, Time.now(), Time.now())
         peerServer.id = 1
         peerServer.rsaPublicKeyByteArray = hex(serverHandler.getCrypto().publicKey.encoded)
         peerServer.isTesting = true

@@ -6,7 +6,7 @@ import io.github.freewebmovement.zz.bussiness.Settings
 import io.github.freewebmovement.zz.bussiness.Share
 import io.github.freewebmovement.zz.system.Time
 import io.github.freewebmovement.zz.system.database.ZzDatabase
-import io.github.freewebmovement.zz.system.database.entity.AddressType
+import io.github.freewebmovement.zz.system.database.entity.IPType
 import io.github.freewebmovement.zz.system.database.entity.Peer
 import io.github.freewebmovement.zz.system.net.PeerServer
 import io.ktor.http.HttpStatusCode
@@ -42,7 +42,7 @@ class ServerInstrumentedTest {
         val peer = Peer(
             "127.0.0.1",
             port,
-            AddressType.IPV4,
+            IPType.IPV4,
             createdAt = timeStamp, updatedAt = timeStamp
         )
 

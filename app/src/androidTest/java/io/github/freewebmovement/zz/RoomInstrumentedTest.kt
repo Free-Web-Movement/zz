@@ -5,7 +5,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.freewebmovement.zz.bussiness.Settings
 import io.github.freewebmovement.zz.system.Time
 import io.github.freewebmovement.zz.system.database.ZzDatabase
-import io.github.freewebmovement.zz.system.database.entity.AddressType
+import io.github.freewebmovement.zz.system.database.entity.IPType
 import io.github.freewebmovement.zz.system.database.entity.Peer
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.test.runTest
@@ -28,7 +28,7 @@ class RoomInstrumentedTest {
         val peer = Peer(
             "0.0.0.0",
             setting.localServerPort,
-            AddressType.IPV4,
+            IPType.IPV4,
             createdAt = epochTime, updatedAt = epochTime
         )
         dao.add(peer)

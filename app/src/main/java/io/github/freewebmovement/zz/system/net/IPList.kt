@@ -2,7 +2,7 @@ package io.github.freewebmovement.zz.system.net
 
 import android.util.Log
 import io.github.freewebmovement.zz.bussiness.Settings
-import io.github.freewebmovement.zz.system.database.entity.AddressType
+import io.github.freewebmovement.zz.system.database.entity.IPType
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
@@ -84,11 +84,11 @@ class IPList private constructor(var settings: Settings) {
         return uri
     }
 
-    fun getPublicType(): AddressType {
+    fun getPublicType(): IPType {
         if (ipv6IPPublic.isNotEmpty()) {
-            return AddressType.IPV6
+            return IPType.IPV6
         }
-        return AddressType.IPV4
+        return IPType.IPV4
     }
 
     fun getPublicIP(): String {

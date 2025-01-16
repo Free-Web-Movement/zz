@@ -6,20 +6,21 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import io.github.freewebmovement.zz.system.Time
 
-enum class AddressType {
+
+// Only IP is Allowed
+enum class IPType {
     IPV4,
-    IPV6,
-    DOMAIN
+    IPV6
 }
 
 @Entity(indices = [Index(value = ["session_id"], unique = true)], tableName = "peer")
 data class Peer(
-    @ColumnInfo(name = "address")
-    var address: String,
+    @ColumnInfo(name = "ip")
+    var ip: String,
     @ColumnInfo(name = "port")
     var port: Int,
-    @ColumnInfo(name = "address_type")
-    var addressType: AddressType,
+    @ColumnInfo(name = "ip_type")
+    var ipType: IPType,
     @ColumnInfo(name = "created_at") val createdAt: Long,
     @ColumnInfo(name = "updated_at") val updatedAt: Long
 ) {
@@ -55,9 +56,9 @@ data class Peer(
     val baseUrl: String
         get() {
             if(isTesting) return ""
-            return when (addressType) {
-                AddressType.IPV6 -> "http://[$address]:$port"
-                else -> "http://$address:$port"
+            return when (ipType) {
+                IPType.IPV6 -> "http://[$ip]:$port"
+                else -> "http://$ip:$port"
             }
         }
 }

@@ -32,9 +32,9 @@ fun Application.api(execute: IInstrumentedHandler) {
                 val json = Json.decodeFromString<PublicKeyJSON>(jsonStr)
                 val timeStamp = Time.now()
                 val peer = Peer(
-                    address = json.ip!!,
+                    ip = json.ip!!,
                     port = json.port!!,
-                    addressType = json.type!!,
+                    ipType = json.type!!,
                     createdAt = timeStamp,
                     updatedAt = timeStamp
                 )
