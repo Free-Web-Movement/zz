@@ -29,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -53,7 +52,6 @@ fun ProfileEditor(updatePage: (value: PageType) -> Unit) {
             colors = rainbowColors
         )
     }
-
 
     with(MainApplication.instance!!.settings) {
         var nickname by remember { mutableStateOf(mineProfileNickname) }
