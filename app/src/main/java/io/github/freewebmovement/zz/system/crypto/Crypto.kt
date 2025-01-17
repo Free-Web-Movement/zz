@@ -40,20 +40,6 @@ class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
     var privateKey: PrivateKey = aPrivateKey
     var publicKey: PublicKey = aPublicKey
 
-    fun sign(message: String): ByteArray {
-        val signature = Signature.getInstance(CRYPTO_ALGORITHM_SHA256_WITH_RSA)
-        signature.initSign(privateKey)
-        signature.update(message.toByteArray())
-        return signature.sign()
-    }
-
-    fun verify(message: String, sign: ByteArray, publicKey: PublicKey): Boolean {
-        val signature = Signature.getInstance(CRYPTO_ALGORITHM_SHA256_WITH_RSA)
-        signature.initVerify(publicKey)
-        signature.update(message.toByteArray())
-        return signature.verify(sign)
-    }
-
     companion object {
         private val kpg: KeyPairGenerator = KeyPairGenerator.getInstance(CRYPTO_ALGORITHM_RSA)
         private val keyFactory: KeyFactory = KeyFactory.getInstance(CRYPTO_ALGORITHM_RSA)
@@ -63,6 +49,20 @@ class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
         fun refresh(preference: Preference): Crypto {
             preference.save(IS_INIT_KEY, false)
             return getInstance(preference)
+        }
+
+        fun sign(message: ByteArray, privateKey: PrivateKey): ByteArray {
+            val signature = Signature.getInstance(CRYPTO_ALGORITHM_SHA256_WITH_RSA)
+            signature.initSign(privateKey)
+            signature.update(message)
+            return signature.sign()
+        }
+
+        fun verify(message: ByteArray, sign: ByteArray, publicKey: PublicKey): Boolean {
+            val signature = Signature.getInstance(CRYPTO_ALGORITHM_SHA256_WITH_RSA)
+            signature.initVerify(publicKey)
+            signature.update(message)
+            return signature.verify(sign)
         }
 
         fun toAddress(

@@ -20,8 +20,8 @@ class CryptoInstrumentedTest {
         val enc = Crypto.encrypt(str, crypto.publicKey)
         val decStr = Crypto.decrypt(enc, crypto.privateKey)
         assertEquals(str, decStr)
-        val sign = crypto.sign(str);
-        val verify = crypto.verify(str, sign, crypto.publicKey);
+        val sign = Crypto.sign(str.toByteArray(), crypto.privateKey);
+        val verify = Crypto.verify(str.toByteArray(), sign, crypto.publicKey);
 
         assert(verify)
 

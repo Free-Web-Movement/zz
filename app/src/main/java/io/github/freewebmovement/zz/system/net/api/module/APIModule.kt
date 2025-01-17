@@ -9,6 +9,7 @@ import io.github.freewebmovement.zz.system.net.api.IInstrumentedHandler
 import io.github.freewebmovement.zz.system.net.api.json.MessageReceiverJSON
 import io.github.freewebmovement.zz.system.net.api.json.MessageSenderJSON
 import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
+import io.github.freewebmovement.zz.system.net.api.json.SignJSON
 import io.ktor.server.application.Application
 import io.ktor.server.request.receive
 import io.ktor.server.response.respondText
@@ -20,20 +21,30 @@ import io.ktor.server.sessions.generateSessionId
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+@OptIn(ExperimentalStdlibApi::class)
 fun Application.api(execute: IInstrumentedHandler) {
     routing {
         route("/api") {
             get("/key/public") {
                 val publicKey = execute.getPublicKeyJSON(true)
-                call.respondText(Json.encodeToString(publicKey))
+                var json = Json.encodeToString(publicKey);
+                var signature = execute.sign(json).toHexString()
+                call.respondText(Json.encodeToString(SignJSON(json, signature)))
             }
 
             post("/key/public") {
                 val jsonStr = call.receive<String>()
-                val json = Json.decodeFromString<PublicKeyJSON>(jsonStr)
+                val signJSON = Json.decodeFromString<SignJSON>(jsonStr)
+                val json = Json.decodeFromString<PublicKeyJSON>(signJSON.json)
+                val publicKey = Crypto.toPublicKey(json.key!!)
+                assert(execute.verify(signJSON.json, signJSON.signature.hexToByteArray(),
+                    publicKey))
                 val timeStamp = Time.now()
-                val account = Account(json.key!!)
+                val address = Crypto.toAddress(publicKey)
+                var account = Account(address)
+                account.publicKey = json.key!!
                 execute.addAccount(account)
+                account = execute.getAccountByAddress(address)!!
                 val peer = Peer(
                     account.id,
                     ip = json.ip!!,
@@ -43,15 +54,23 @@ fun Application.api(execute: IInstrumentedHandler) {
                     updatedAt = timeStamp
                 )
                 execute.addPeer(peer)
-                call.respondText(Json.encodeToString(PublicKeyJSON()))
+                var publicKeyJSON = Json.encodeToString(PublicKeyJSON())
+                var sign = execute.sign(publicKeyJSON).toHexString()
+                call.respondText(Json.encodeToString(SignJSON(publicKeyJSON, sign)))
             }
 
             post("/message") {
                 val receiveStr = call.receive<String>()
-                val json = Json.decodeFromString<MessageSenderJSON>(receiveStr)
-
-                val account: Account? = execute.getAccountByAddress(json.sender!!)
+                val signJSON = Json.decodeFromString<SignJSON>(receiveStr)
+                val json = Json.decodeFromString<MessageSenderJSON>(signJSON.json)
+                val account: Account = execute.getAccountByAddress(json.sender!!)!!
                 val address = Crypto.toAddress(execute.getCrypto().publicKey)
+                val sender = execute.getAccountByAddress(address)
+                assert(sender != null)
+                assert(execute.verify(signJSON.json, signJSON.signature.hexToByteArray(),
+                    Crypto.toPublicKey(account.publicKey)))
+
+                var code = 0
                 if (account != null) {
                     val message = Message(
                         isSending = false,
@@ -63,12 +82,13 @@ fun Application.api(execute: IInstrumentedHandler) {
                     )
                     message.receivedAt = Time.now()
                     execute.addMessage(message)
-                    val messageReceiverJSON = MessageReceiverJSON(Time.now())
-                    call.respondText(Json.encodeToString(messageReceiverJSON))
                 } else {
-                    val messageReceiverJSON = MessageReceiverJSON(Time.now(), 1)
-                    call.respondText(Json.encodeToString(messageReceiverJSON))
+                    code = 1
                 }
+                val messageReceiverJSON = MessageReceiverJSON(Time.now(), code)
+                var toJson = Json.encodeToString(messageReceiverJSON)
+                var sign = execute.sign(toJson).toHexString()
+                call.respondText(Json.encodeToString(SignJSON(toJson, sign)))
             }
         }
     }

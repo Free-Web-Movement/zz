@@ -20,8 +20,8 @@ class Account(
     @ColumnInfo(name = "nickname")
     var nickname: String = "Nick Name"
 
-    @ColumnInfo(name = "signature")
-    var signature: String = "Signature"
+    @ColumnInfo(name = "intro")
+    var intro: String = "Intro"
 
     @ColumnInfo(name = "avatar")
     var avatar: String = "avatar"

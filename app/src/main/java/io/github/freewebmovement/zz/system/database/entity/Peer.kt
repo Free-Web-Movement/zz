@@ -2,7 +2,6 @@ package io.github.freewebmovement.zz.system.database.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.Index
 import androidx.room.PrimaryKey
 import io.github.freewebmovement.zz.system.Time
 

@@ -7,7 +7,7 @@ data class MessageSenderJSON(
     var sender: String,
     var message: String,
     var createdAt: Long,
-)
+    )
 
 @Serializable
 data class MessageReceiverJSON(

@@ -57,7 +57,7 @@ fun ProfileEditor(updatePage: (value: PageType) -> Unit) {
 
     with(MainApplication.instance!!.settings) {
         var nickname by remember { mutableStateOf(mineProfileNickname) }
-        var signature by remember { mutableStateOf(mineProfileSignature) }
+        var intro by remember { mutableStateOf(mineProfileIntro) }
         var imageUri by remember { mutableStateOf<Uri?>(Uri.parse(mineProfileImageUri)) }
         val pickMedia =
             rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -122,8 +122,8 @@ fun ProfileEditor(updatePage: (value: PageType) -> Unit) {
             }
             Row {
                 TextField(
-                    value = signature,
-                    onValueChange = { signature = it },
+                    value = intro,
+                    onValueChange = { intro = it },
                     label = { Text(stringResource(R.string.signature)) },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -143,7 +143,7 @@ fun ProfileEditor(updatePage: (value: PageType) -> Unit) {
                     with(MainApplication.instance!!.settings) {
                             mineProfileImageUri = imageUri.toString()
                         mineProfileNickname = nickname
-                        mineProfileSignature = signature
+                        mineProfileIntro = intro
                     }
                     Text(stringResource(R.string.action_save))
                 }

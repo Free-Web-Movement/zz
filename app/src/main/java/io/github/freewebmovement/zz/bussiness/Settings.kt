@@ -21,7 +21,7 @@ private const val MESSAGE_TYPE = "MESSAGE_TYPE"
 private const val REALTIME_COMMUNICATION_TYPE = "REALTIME_COMMUNICATION_TYPE"
 private const val MINE_PROFILE_IMAGE_URI = "MINE_PROFILE_IMAGE_URI"
 private const val MINE_PROFILE_NICKNAME = "MINE_PROFILE_NICKNAME"
-private const val MINE_PROFILE_SIGNATURE = "MINE_PROFILE_SIGNATURE"
+private const val MINE_PROFILE_INTRO = "MINE_PROFILE_INTRO"
 
 
 class PreferenceAccessor<T>(
@@ -63,8 +63,8 @@ class Settings(private val preference: Preference) {
         preference, MINE_PROFILE_NICKNAME,
         field = ""
     )
-    var mineProfileSignature: String by PreferenceAccessor(
-        preference, MINE_PROFILE_SIGNATURE,
+    var mineProfileIntro: String by PreferenceAccessor(
+        preference, MINE_PROFILE_INTRO,
         field = ""
     )
     var localServerPort: Int = 0

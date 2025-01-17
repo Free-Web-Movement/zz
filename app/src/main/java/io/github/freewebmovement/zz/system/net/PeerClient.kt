@@ -9,6 +9,7 @@ import io.github.freewebmovement.zz.system.net.api.IInstrumentedHandler
 import io.github.freewebmovement.zz.system.net.api.json.MessageReceiverJSON
 import io.github.freewebmovement.zz.system.net.api.json.MessageSenderJSON
 import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
+import io.github.freewebmovement.zz.system.net.api.json.SignJSON
 import io.github.freewebmovement.zz.system.net.api.json.UserJSON
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -28,31 +29,40 @@ import okhttp3.internal.wait
 
 class PeerClient(private var client: HttpClient, private var execute: IInstrumentedHandler) {
     // Step 1. Initial step to get public key from a peer server
+    @OptIn(ExperimentalStdlibApi::class)
     suspend fun getPublicKey(peer: Peer): HttpResponse {
 
         val response = client.get(peer.baseUrl + "/api/key/public")
         val jsonStr = response.bodyAsText()
-        val json = Json.decodeFromString<PublicKeyJSON>(jsonStr)
-//        account.publicKey = json.key!!
+        val json = Json.decodeFromString<SignJSON>(jsonStr)
+        val publicKeyJSON = Json.decodeFromString<PublicKeyJSON>(json.json)
+        val publicKey = Crypto.toPublicKey(publicKeyJSON.key!!)
+        assert(execute.verify(json.json, json.signature.hexToByteArray(), publicKey))
 
         // Save Peer and Account address
-        val publicKey = Crypto.toPublicKey(json.key!!)
         val address = Crypto.toAddress(publicKey)
         val account = Account(address = address)
-        account.publicKey = json.key!!
+        account.publicKey = publicKeyJSON.key!!
         execute.addAccount(account)
         execute.addPeer(peer)
         return response
     }
 
     // Step 2. send your public key to the server
-    suspend fun setPublicKey(peer: Peer): HttpResponse {
+    @OptIn(ExperimentalStdlibApi::class)
+    suspend fun setPublicKey(peer: Peer, from: Account, to: Account): HttpResponse {
         val json = execute.getPublicKeyJSON()
+        val jsonStr = Json.encodeToString(json)
+        val sign = execute.sign(jsonStr).toHexString()
         val response = client.post(peer.baseUrl + "/api/key/public") {
-            setBody(Json.encodeToString(json))
+            setBody(Json.encodeToString(SignJSON(jsonStr, sign)))
         }
         val resStr = response.body<String>()
-        val resJson = Json.decodeFromString<PublicKeyJSON>(resStr)
+        val signJSON = Json.decodeFromString<SignJSON>(resStr)
+        assert(execute.verify(signJSON.json, signJSON.signature.hexToByteArray(),
+            Crypto.toPublicKey(to.publicKey)))
+
+        val resJson = Json.decodeFromString<PublicKeyJSON>(signJSON.json)
         assert(resJson.code == 0)
         peer.latestSeen = Time.now()
         execute.updatePeer(peer)
@@ -60,9 +70,11 @@ class PeerClient(private var client: HttpClient, private var execute: IInstrumen
     }
 
     // Step 3. Now You can start messaging
+    @OptIn(ExperimentalStdlibApi::class)
     suspend fun sendMessage(sendStr: String, peer: Peer, from: Account, to: Account): HttpResponse {
         // Sending your address as session id
-        val messageJSON = MessageSenderJSON(from.address, "", Time.now())
+        val messageJSON = MessageSenderJSON(
+            from.address, "", Time.now())
         messageJSON.message = execute.encrypt(sendStr, to)
         val message = Message(
             isSending = true,
@@ -73,12 +85,16 @@ class PeerClient(private var client: HttpClient, private var execute: IInstrumen
             createdAt = messageJSON.createdAt
         )
         execute.addMessage(message)
+        val json = Json.encodeToString(messageJSON)
+        val sign = execute.sign(json).toHexString()
+
         val response = client.post(peer.baseUrl + "/api/message") {
-            setBody(Json.encodeToString(messageJSON))
+            setBody(Json.encodeToString(SignJSON(json, sign)))
         }
         val receiverStr = response.body<String>()
-
-        val messageReceiverJSON = Json.decodeFromString<MessageReceiverJSON>(receiverStr)
+        var signJSON = Json.decodeFromString<SignJSON>(receiverStr)
+        assert(execute.verify(signJSON.json, signJSON.signature.hexToByteArray(), Crypto.toPublicKey(to.publicKey)))
+        val messageReceiverJSON = Json.decodeFromString<MessageReceiverJSON>(signJSON.json)
         message.isSucceeded = true
         message.receivedAt = messageReceiverJSON.receivedAt
         execute.updateMessage(message)
@@ -91,7 +107,7 @@ class PeerClient(private var client: HttpClient, private var execute: IInstrumen
         val user = Json.decodeFromString<UserJSON>(jsonStr)
         account.avatar = user.avatar
         account.nickname = user.nickname
-        account.signature = user.signature
+        account.intro = user.intro
         execute.updateAccount(account)
         return response
     }
@@ -107,10 +123,6 @@ class PeerClient(private var client: HttpClient, private var execute: IInstrumen
         temp.execute { r ->
             r.bodyAsChannel().copyAndClose(
                 execute.getDownloadDir().writeChannel()
-//                File(
-//                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-//                    app.applicationContext.packageName
-//                ).writeChannel()
             )
             response = r
         }.wait()

@@ -55,7 +55,7 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
                     fontSize = 24.sp,
                 )
                 Text(
-                    text = stringResource(R.string.signature),
+                    text = stringResource(R.string.intro),
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }

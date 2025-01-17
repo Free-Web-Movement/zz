@@ -25,6 +25,7 @@ import io.ktor.utils.io.copyAndClose
 import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.nio.file.Paths
+import java.security.PublicKey
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -49,7 +50,7 @@ class APIHandler(private var crypto: Crypto) : IInstrumentedHandler {
 
     var avatar = ""
     var nickname = "nickname"
-    var signature = "signature"
+    var intro = "intro"
     override suspend fun addAccount(account: Account) {
         var id = 0
         accountList.forEach {
@@ -135,7 +136,7 @@ class APIHandler(private var crypto: Crypto) : IInstrumentedHandler {
     }
 
     override fun getProfile(): UserJSON {
-        return UserJSON(nickname = nickname, signature = signature, avatar = avatar)
+        return UserJSON(nickname = nickname, intro = intro, avatar = avatar)
     }
 
     override fun getCrypto(): Crypto {
@@ -154,6 +155,13 @@ class APIHandler(private var crypto: Crypto) : IInstrumentedHandler {
         return Crypto.encrypt(dec, Crypto.toPublicKey(account.publicKey))
     }
 
+    override fun sign(message: String): ByteArray {
+        return Crypto.sign(message.toByteArray(), crypto.privateKey)
+    }
+
+    override fun verify(message: String, signature: ByteArray, publicKey: PublicKey): Boolean {
+        return Crypto.verify(message.toByteArray(), signature, publicKey)
+    }
 }
 
 class ServerUnitTest {
@@ -214,7 +222,7 @@ class ServerUnitTest {
         }
 
         runBlocking {
-            val response04 = peerClient.setPublicKey(peerServer)
+            val response04 = peerClient.setPublicKey(peerServer, clientAccount, serverAccount)
             assertEquals(HttpStatusCode.OK, response04.status)
             assert(APIHandler.peerList.size == 2)
             assert(APIHandler.messageList.size == 0)
@@ -237,7 +245,7 @@ class ServerUnitTest {
             val response04 = peerClient.getProfile(peerServer, serverAccount)
             assert(serverAccount.avatar == serverHandler.avatar)
             assert(serverAccount.nickname == serverHandler.nickname)
-            assert(serverAccount.signature == serverHandler.signature)
+            assert(serverAccount.intro == serverHandler.intro)
             assertEquals(HttpStatusCode.OK, response04.status)
         }
     }

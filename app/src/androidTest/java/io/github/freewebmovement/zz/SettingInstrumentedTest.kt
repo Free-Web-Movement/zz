@@ -58,13 +58,13 @@ class SettingInstrumentedTest {
         assert(setting.mineProfileImageUri.isNotEmpty())
         setting.mineProfileNickname = "NickName"
         assert(setting.mineProfileNickname.isNotEmpty())
-        setting.mineProfileSignature = "Signature"
-        assert(setting.mineProfileSignature.isNotEmpty())
+        setting.mineProfileIntro = "Intro"
+        assert(setting.mineProfileIntro.isNotEmpty())
         setting.mineProfileImageUri = ""
         assert(setting.mineProfileImageUri.isEmpty())
         setting.mineProfileNickname = ""
         assert(setting.mineProfileNickname.isEmpty())
-        setting.mineProfileSignature = ""
-        assert(setting.mineProfileSignature.isEmpty())
+        setting.mineProfileIntro = ""
+        assert(setting.mineProfileIntro.isEmpty())
     }
 }

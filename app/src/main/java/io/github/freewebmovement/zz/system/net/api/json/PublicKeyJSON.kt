@@ -10,4 +10,4 @@ data class PublicKeyJSON(
     var port: Int? = null,
     var type: IPType? = null,
     var code : Int? = 0
-)
+    )
