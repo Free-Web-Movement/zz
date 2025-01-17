@@ -11,6 +11,7 @@ import java.security.MessageDigest
 import java.security.PrivateKey
 import java.security.PublicKey
 import java.security.Security
+import java.security.Signature
 import java.security.spec.EncodedKeySpec
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
@@ -24,6 +25,8 @@ private const val PRIVATE_KEY = "kp_private_key"
 private const val PUBLIC_KEY = "kp_public_key"
 private const val CRYPTO_ALGORITHM_RSA = "RSA"
 private const val CRYPTO_ALGORITHM_SHA256 = "SHA-256"
+private const val CRYPTO_ALGORITHM_SHA256_WITH_RSA = "SHA256withRSA"
+
 private const val KEY_SIZE = 2048
 
 enum class AddressScriptType {
@@ -37,9 +40,24 @@ class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
     var privateKey: PrivateKey = aPrivateKey
     var publicKey: PublicKey = aPublicKey
 
+    fun sign(message: String): ByteArray {
+        val signature = Signature.getInstance(CRYPTO_ALGORITHM_SHA256_WITH_RSA)
+        signature.initSign(privateKey)
+        signature.update(message.toByteArray())
+        return signature.sign()
+    }
+
+    fun verify(message: String, sign: ByteArray, publicKey: PublicKey): Boolean {
+        val signature = Signature.getInstance(CRYPTO_ALGORITHM_SHA256_WITH_RSA)
+        signature.initVerify(publicKey)
+        signature.update(message.toByteArray())
+        return signature.verify(sign)
+    }
+
     companion object {
         private val kpg: KeyPairGenerator = KeyPairGenerator.getInstance(CRYPTO_ALGORITHM_RSA)
         private val keyFactory: KeyFactory = KeyFactory.getInstance(CRYPTO_ALGORITHM_RSA)
+
         private lateinit var instance: Crypto
         private lateinit var preference: Preference
         fun refresh(preference: Preference): Crypto {

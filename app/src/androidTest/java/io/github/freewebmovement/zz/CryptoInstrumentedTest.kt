@@ -20,6 +20,11 @@ class CryptoInstrumentedTest {
         val enc = Crypto.encrypt(str, crypto.publicKey)
         val decStr = Crypto.decrypt(enc, crypto.privateKey)
         assertEquals(str, decStr)
+        val sign = crypto.sign(str);
+        val verify = crypto.verify(str, sign, crypto.publicKey);
+
+        assert(verify)
+
         Crypto.refresh(app.preference)
 
         val crypto01 = Crypto.getInstance(app.preference)
