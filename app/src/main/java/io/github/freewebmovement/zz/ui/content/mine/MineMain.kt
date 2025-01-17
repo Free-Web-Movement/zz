@@ -2,6 +2,7 @@ package io.github.freewebmovement.zz.ui.content.mine
 
 import android.net.Uri
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,8 +33,10 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.R
+import io.github.freewebmovement.zz.system.crypto.Crypto
 import io.github.freewebmovement.zz.ui.common.PageType
 import io.github.freewebmovement.zz.ui.common.RowItem
+import io.github.freewebmovement.zz.ui.theme.backColor
 
 
 @Composable
@@ -44,12 +48,12 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
             var nickname by remember { mutableStateOf(mineProfileNickname) }
             var intro by remember { mutableStateOf(mineProfileIntro) }
             val imageUri by remember { mutableStateOf<Uri?>(Uri.parse(mineProfileImageUri)) }
-            if(nickname == "") {
+            if (nickname == "") {
                 nickname = stringResource(R.string.tab_mine_nickname)
             }
-            if(intro == "") {
-                intro = stringResource(R.string.intro)
-            }
+            intro = stringResource(R.string.intro) + ":\n" + intro
+            val address =
+                stringResource(R.string.address) + ":\n" + Crypto.toAddress(app.crypto.publicKey)
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -59,7 +63,11 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
                         updatePage(PageType.MineProfile)
                     }),
             ) {
-                Column(modifier = Modifier.weight(1.2f).wrapContentSize(Alignment.Center)) {
+                Column(
+                    modifier = Modifier
+                        .weight(1.2f)
+                        .wrapContentSize(Alignment.Center)
+                ) {
                     if (imageUri != null) {
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
@@ -92,10 +100,6 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
                             .height(32.dp),
                         fontSize = 24.sp,
                     )
-                    Text(
-                        text = intro,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
                 }
 
                 Column(
@@ -104,6 +108,42 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_chevron_right),
                         contentDescription = stringResource(R.string.tab_mine_profile)
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp)
+                    .padding(vertical = 4.dp)
+                    .height(40.dp)
+                    .background(
+                        backColor
+                    )
+            ) {
+                Text(
+                    text = intro,
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .weight(1f)
+                )
+            }
+            SelectionContainer() {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp)
+                        .padding(vertical = 4.dp)
+                        .height(40.dp)
+                        .background(
+                            backColor
+                        )
+                ) {
+                    Text(
+                        text = address,
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .weight(1f)
                     )
                 }
             }
@@ -128,9 +168,12 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
             updatePage(PageType.MineServerIP)
         })
 
-        RowItem(R.drawable.ic_mine_local_server_share, R.string.tab_mine_local_server_share, onClick = {
-            println("Server Clicked")
-            updatePage(PageType.MineServerShare)
-        })
+        RowItem(
+            R.drawable.ic_mine_local_server_share,
+            R.string.tab_mine_local_server_share,
+            onClick = {
+                println("Server Clicked")
+                updatePage(PageType.MineServerShare)
+            })
     }
 }

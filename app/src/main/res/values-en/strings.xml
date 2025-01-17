@@ -21,6 +21,7 @@
     <string name="share_app_apk_no_public_ip">You have no public ip</string>
     <string name="signature">Signature</string>
     <string name="intro">Introduction</string>
+    <string name="address">Address</string>
     <string name="back">Back</string>
     <string name="menu">Menu</string>
     <string name="update">Update</string>

@@ -27,6 +27,7 @@ fun RowItem(
 ) {
     RowItem(icon, R.drawable.ic_chevron_right, title, onClick)
 }
+
 @Composable
 fun RowItem(
     leftIcon: Int,
