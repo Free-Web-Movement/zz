@@ -2,6 +2,8 @@
 <resources>
     <string name="app_name">zz</string>
     <string name="title_session">Sessions</string>
+    <string name="add_new_session">Add New Session</string>
+    <string name="add_new_peer">Add New Peer</string>
     <string name="title_peer">Peers</string>
     <string name="title_app">Apps</string>
     <string name="title_mine">Mine</string>
@@ -23,6 +25,9 @@
     <string name="intro">Introduction</string>
     <string name="address">Address</string>
     <string name="back">Back</string>
+    <string name="search">Search</string>
+    <string name="add">Add</string>
+    <string name="scan">Scan</string>
     <string name="menu">Menu</string>
     <string name="update">Update</string>
     <string name="share">Share</string>

@@ -1,13 +1,12 @@
 package io.github.freewebmovement.zz
 
 import android.app.Application
-import android.content.SharedPreferences
 import io.github.freewebmovement.zz.bussiness.Settings
 import io.github.freewebmovement.zz.bussiness.Share
+import io.github.freewebmovement.zz.system.crypto.Crypto
 import io.github.freewebmovement.zz.system.database.ZzDatabase
 import io.github.freewebmovement.zz.system.net.IPList
 import io.github.freewebmovement.zz.system.net.PeerServer
-import io.github.freewebmovement.zz.system.crypto.Crypto
 import io.github.freewebmovement.zz.system.persistence.Preference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

@@ -16,7 +16,7 @@ enum class ContentType {
 }
 
 enum class PageType(i: Int) {
-    ChatMain(0x10),
+    SessionMain(0x10),
     PeerMain(0x20),
     AppMain(0x30),
     MineMain(0x40),

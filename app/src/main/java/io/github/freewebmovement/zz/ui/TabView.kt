@@ -25,7 +25,6 @@ fun TabView() {
         TopBar(
             selectedTab = selectedTab,
             stacked = stacked,
-            page = page,
             updater = { vPage, vStacked ->
                 stacked = vStacked
                 page = vPage
@@ -47,7 +46,7 @@ fun TabView() {
                 stacked = ContentType.NonStacked
                 page = when(selectedTab) {
                     TabType.Mine -> PageType.MineMain
-                    TabType.Sessions -> PageType.ChatMain
+                    TabType.Sessions -> PageType.SessionMain
                     TabType.Peers -> PageType.PeerMain
                     TabType.Apps -> PageType.AppMain
                 }

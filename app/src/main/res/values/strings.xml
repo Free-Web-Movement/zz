@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">zz</string>
     <string name="title_session">会话</string>
+    <string name="add_new_session">添加新会话</string>
+    <string name="add_new_peer">添加新节点</string>
     <string name="title_peer">节点</string>
     <string name="title_app">应用市场</string>
     <string name="title_mine">我的</string>
@@ -18,6 +20,9 @@
     <string name="intro">介绍</string>
     <string name="address">地址</string>
     <string name="back">返回</string>
+    <string name="search">搜索</string>
+    <string name="add">添加</string>
+    <string name="scan">扫码</string>
     <string name="menu">菜单</string>
     <string name="update">更新</string>
     <string name="share">分享</string>

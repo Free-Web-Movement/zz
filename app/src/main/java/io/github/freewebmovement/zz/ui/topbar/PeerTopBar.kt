@@ -1,11 +1,10 @@
 package io.github.freewebmovement.zz.ui.topbar
 
 import android.content.Intent
-import android.widget.Toast
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -20,7 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import io.github.freewebmovement.zz.MainApplication
@@ -31,25 +30,33 @@ import io.github.freewebmovement.zz.ui.common.TabType
 import io.github.freewebmovement.zz.ui.getTitle
 
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ContactTopBar(
-    selectedTab: TabType,
-    stacked: ContentType,
-    updater: (page: PageType, value: ContentType) -> Unit
-) {
-    var showDropDownMenu by remember { mutableStateOf(false) }
-    val content = LocalContext.current
-    val app = MainApplication.instance!!
-    val uri = app.ipList.getPublicUri()
-    val title = stringResource(R.string.share_app_apk)
-    val noIpStr = stringResource(R.string.share_app_apk_no_public_ip)
+fun getUri(): String {
+    return MainApplication.instance?.ipList?.getPublicUri() ?: ""
+}
+
+fun getIntent(uri: String, title: String): Intent {
     val i = Intent(Intent.ACTION_SEND)
     if (uri != "") {
         i.setType("text/plain")
         i.putExtra(Intent.EXTRA_SUBJECT, title)
         i.putExtra(Intent.EXTRA_TEXT, "$uri/app/download/apk")
     }
+    return i
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PeerTopBar(
+    selectedTab: TabType,
+    stacked: ContentType,
+    updater: (page: PageType, value: ContentType) -> Unit
+) {
+    var showDropDownMenu by remember { mutableStateOf(false) }
+
+    val uri = getUri()
+    val title = stringResource(R.string.share_app_apk)
+    stringResource(R.string.share_app_apk_no_public_ip)
+    getIntent(uri, title)
     CenterAlignedTopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -72,12 +79,19 @@ fun ContactTopBar(
             }
         },
         actions = {
+            IconButton(onClick = { /* do something */ }) {
+                Icon(
+                    imageVector = Icons.Filled.Search,
+                    contentDescription = stringResource(R.string.search)
+                )
+            }
+
             IconButton(onClick = {
                 showDropDownMenu = true
             }) {
                 Icon(
-                    imageVector = Icons.Filled.MoreVert,
-                    contentDescription = stringResource(R.string.menu)
+                    imageVector = Icons.Filled.AddCircle,
+                    contentDescription = stringResource(R.string.add)
                 )
             }
             DropdownMenu(
@@ -85,51 +99,40 @@ fun ContactTopBar(
                 onDismissRequest = { showDropDownMenu = false }
             ) {
                 DropdownMenuItem(
-                    text = { Text(text = stringResource(R.string.share_server)) },
+                    text = { Text(text = stringResource(R.string.add_new_session)) },
                     leadingIcon = {
                         Icon(
-                            Icons.Filled.Share,
-                            stringResource(R.string.share_server)
+                            painterResource(R.drawable.ic_chat_bubble_selected),
+                            stringResource(R.string.add_new_session)
                         )
                     },
                     onClick = {
                         showDropDownMenu = false
-                        if (uri != "") {
-                            content.startActivity(Intent.createChooser(i, title))
-                        } else {
-                            Toast.makeText(content, noIpStr, Toast.LENGTH_SHORT).show()
-                        }
-                        updater(PageType.MineServerShare, ContentType.Stacked)
+//                        updater(PageType.MineServerShare, ContentType.Stacked)
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text(text = stringResource(R.string.share_app_apk_through_public_ip)) },
+                    text = { Text(text = stringResource(R.string.add_new_peer)) },
                     leadingIcon = {
                         Icon(
-                            Icons.Filled.Share,
-                            stringResource(R.string.share_app_apk_through_public_ip)
+                            painterResource(R.drawable.ic_server_selected),
+                            stringResource(R.string.add_new_peer)
                         )
                     },
                     onClick = {
                         showDropDownMenu = false
-                        if (uri != "") {
-                            content.startActivity(Intent.createChooser(i, title))
-                        } else {
-                            Toast.makeText(content, noIpStr, Toast.LENGTH_SHORT).show()
-                        }
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text(text = stringResource(R.string.share_app_apk)) },
+                    text = { Text(text = stringResource(R.string.scan)) },
                     leadingIcon = {
                         Icon(
-                            Icons.Filled.Share,
-                            stringResource(R.string.share_app_apk)
+                            painterResource(R.drawable.ic_scan_qrcode),
+                            stringResource(R.string.scan)
                         )
                     },
                     onClick = {
                         showDropDownMenu = false
-                        app.share.apk(app.share.myApk())
                     }
                 )
             }
@@ -140,6 +143,6 @@ fun ContactTopBar(
 @Preview
 @Composable
 private fun Preview() {
-    ContactTopBar(TabType.Peers, ContentType.NonStacked) { _, _ ->
+    PeerTopBar(TabType.Peers, ContentType.NonStacked) { _, _ ->
     }
 }
