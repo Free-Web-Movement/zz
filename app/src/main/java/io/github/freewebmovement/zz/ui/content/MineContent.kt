@@ -20,9 +20,7 @@ fun MinContent(page: PageType, updater: (page: PageType, value: ContentType) -> 
         PageType.MineProfile -> ProfileEditor {
             updater(it, ContentType.NonStacked)
         }
-        PageType.MineServerPort -> LocalServerPort {
-            updater(it, ContentType.NonStacked)
-        }
+        PageType.MineServerPort -> LocalServerPort()
         PageType.MineServerIP -> LocalServerIPInfo {
             updater(it, ContentType.NonStacked)
         }

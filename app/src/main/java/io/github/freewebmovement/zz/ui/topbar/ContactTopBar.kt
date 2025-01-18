@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.R
 import io.github.freewebmovement.zz.ui.common.ContentType
@@ -35,7 +36,6 @@ import io.github.freewebmovement.zz.ui.getTitle
 fun ContactTopBar(
     selectedTab: TabType,
     stacked: ContentType,
-    page: PageType,
     updater: (page: PageType, value: ContentType) -> Unit
 ) {
     var showDropDownMenu by remember { mutableStateOf(false) }
@@ -135,4 +135,11 @@ fun ContactTopBar(
             }
         }
     )
+}
+
+@Preview
+@Composable
+private fun Preview() {
+    ContactTopBar(TabType.Peers, ContentType.NonStacked) { _, _ ->
+    }
 }

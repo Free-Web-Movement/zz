@@ -19,8 +19,8 @@ fun Tabs(
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         when (selectedTab) {
-            TabType.Chats -> MessageContent(TabType.Chats, ArrayList())
-            TabType.Contacts -> ContactContent(TabType.Contacts, updater)
+            TabType.Sessions -> MessageContent(TabType.Sessions, ArrayList())
+            TabType.Peers -> ContactContent(TabType.Peers, updater)
             TabType.Apps -> AppContent(TabType.Apps, updater)
             TabType.Mine -> MinContent(page, updater)
         }

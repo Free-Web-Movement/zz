@@ -3,8 +3,8 @@ package io.github.freewebmovement.zz.ui.common
 import androidx.compose.ui.graphics.Color
 
 enum class TabType {
-    Chats,
-    Contacts,
+    Sessions,
+    Peers,
     Apps,
     Mine,
 }
@@ -17,7 +17,7 @@ enum class ContentType {
 
 enum class PageType(i: Int) {
     ChatMain(0x10),
-    ContactMain(0x20),
+    PeerMain(0x20),
     AppMain(0x30),
     MineMain(0x40),
     MineProfile(0x41),

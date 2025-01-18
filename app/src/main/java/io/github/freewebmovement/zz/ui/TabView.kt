@@ -17,7 +17,7 @@ import io.github.freewebmovement.zz.ui.content.Tabs
 
 @Composable
 fun TabView() {
-    var selectedTab by remember { mutableStateOf(TabType.Chats) }
+    var selectedTab by remember { mutableStateOf(TabType.Sessions) }
     var stacked by remember { mutableStateOf(ContentType.NonStacked) }
     var page by remember { mutableStateOf(PageType.MineMain) }
 
@@ -47,8 +47,8 @@ fun TabView() {
                 stacked = ContentType.NonStacked
                 page = when(selectedTab) {
                     TabType.Mine -> PageType.MineMain
-                    TabType.Chats -> PageType.ChatMain
-                    TabType.Contacts -> PageType.ContactMain
+                    TabType.Sessions -> PageType.ChatMain
+                    TabType.Peers -> PageType.PeerMain
                     TabType.Apps -> PageType.AppMain
                 }
             },

@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">zz</string>
-    <string name="title_chat">聊天</string>
-    <string name="title_contact">通讯录</string>
+    <string name="title_session">会话</string>
+    <string name="title_peer">节点</string>
     <string name="title_app">应用市场</string>
     <string name="title_mine">我的</string>
     <string name="tab_mine_avatar">头像</string>

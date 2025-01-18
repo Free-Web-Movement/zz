@@ -8,7 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -18,18 +18,17 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.R
-import io.github.freewebmovement.zz.ui.common.PageType
 import io.github.freewebmovement.zz.ui.common.rainbowColors
 
 @Composable
-fun LocalServerPort(updatePage: (value: PageType) -> Unit) {
+fun LocalServerPort() {
     val brush = remember {
         Brush.linearGradient(
             colors = rainbowColors
         )
     }
     val app = MainApplication.instance!!
-    var port by remember { mutableStateOf(app.settings.localServerPort) }
+    var port by remember { mutableIntStateOf(app.settings.localServerPort) }
     Column {
         when (port) {
             0 -> {
@@ -42,10 +41,10 @@ fun LocalServerPort(updatePage: (value: PageType) -> Unit) {
                     TextField(
                         value = port.toString(),
                         onValueChange = { v ->
-                            if(v.isNotEmpty()) {
-                                port = v.toInt()
+                            port = if(v.isNotEmpty()) {
+                                v.toInt()
                             } else {
-                                port = 0
+                                0
                             }
                         },
                         label = { Text(stringResource(R.string.tab_mine_port)) },

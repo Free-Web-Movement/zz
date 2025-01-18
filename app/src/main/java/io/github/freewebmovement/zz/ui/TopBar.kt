@@ -25,12 +25,13 @@ import io.github.freewebmovement.zz.R
 import io.github.freewebmovement.zz.ui.common.ContentType
 import io.github.freewebmovement.zz.ui.common.PageType
 import io.github.freewebmovement.zz.ui.common.TabType
+import io.github.freewebmovement.zz.ui.topbar.ContactTopBar
 import io.github.freewebmovement.zz.ui.topbar.MineTopBar
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatTopBar(
+fun SessionTopBar(
     selectedTab: TabType,
     stacked: ContentType,
 ) {
@@ -71,43 +72,6 @@ fun ChatTopBar(
                     text = { Text(text = "Drop down item") },
                     leadingIcon = { Icon(Icons.Filled.Home, null) },
                     onClick = { showDropDownMenu = false }
-                )
-            }
-        }
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ContactTopBar(
-    selectedTab: TabType,
-    stacked: ContentType
-
-) {
-
-    CenterAlignedTopAppBar(
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            titleContentColor = MaterialTheme.colorScheme.primary,
-        ),
-        title = {
-            Text(getTitle(selectedTab))
-        },
-        navigationIcon = {
-            if (stacked == ContentType.Stacked) {
-                IconButton(onClick = { /* do something */ }) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Localized description"
-                    )
-                }
-            }
-        },
-        actions = {
-            IconButton(onClick = { /* do something */ }) {
-                Icon(
-                    imageVector = Icons.Filled.Menu,
-                    contentDescription = "Localized description"
                 )
             }
         }
@@ -158,8 +122,8 @@ fun TopBar(
     updater: (page: PageType, value: ContentType) -> Unit
 ) {
     when (selectedTab) {
-        TabType.Chats -> ChatTopBar(selectedTab, stacked)
-        TabType.Contacts -> ContactTopBar(selectedTab, stacked)
+        TabType.Sessions -> SessionTopBar(selectedTab, stacked)
+        TabType.Peers -> ContactTopBar(selectedTab, stacked, updater)
         TabType.Apps -> AppTopBar(selectedTab, stacked)
         TabType.Mine -> MineTopBar(selectedTab, stacked, page, updater)
     }
@@ -168,13 +132,13 @@ fun TopBar(
 @Preview
 @Composable
 private fun Preview() {
-    TopBar(TabType.Chats, ContentType.NonStacked, PageType.MineMain) { _, _ ->
+    TopBar(TabType.Sessions, ContentType.NonStacked, PageType.MineMain) { _, _ ->
     }
 }
 
 @Preview
 @Composable
 private fun Preview_Stacked() {
-    TopBar(TabType.Chats, ContentType.Stacked, PageType.MineMain) { _, _ ->
+    TopBar(TabType.Sessions, ContentType.Stacked, PageType.MineMain) { _, _ ->
     }
 }

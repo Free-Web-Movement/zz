@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">zz</string>
-    <string name="title_chat">Chats</string>
-    <string name="title_contact">Contacts</string>
+    <string name="title_session">Sessions</string>
+    <string name="title_peer">Peers</string>
     <string name="title_app">Apps</string>
     <string name="title_mine">Mine</string>
     <string name="tab_mine_avatar">Avatar</string>
