@@ -121,6 +121,7 @@ fun PeerTopBar(
                     },
                     onClick = {
                         showDropDownMenu = false
+                        updater(PageType.PeerAdd, ContentType.Stacked)
                     }
                 )
                 DropdownMenuItem(

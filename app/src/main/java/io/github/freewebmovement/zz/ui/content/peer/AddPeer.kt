@@ -2,6 +2,7 @@ package io.github.freewebmovement.zz.ui.content.peer
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -29,12 +30,14 @@ fun AddPeer(updatePage: (value: PageType) -> Unit) {
     var ip by remember { mutableStateOf(TextFieldValue("")) }
     var port by remember { mutableStateOf(TextFieldValue("")) }
     Column(
-        modifier = Modifier.padding(horizontal = 2.dp)
+        modifier = Modifier
+            .fillMaxWidth()
             .verticalScroll(scrollState),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         OutlinedTextField(
+//            modifier = Modifier.fillMaxWidth(),
             value = ip,
             onValueChange = { newText ->
                 ip = newText
@@ -43,6 +46,7 @@ fun AddPeer(updatePage: (value: PageType) -> Unit) {
             placeholder = { Text(text = stringResource(R.string.please_input_your_ip_here)) },
         )
         OutlinedTextField(
+//            modifier = Modifier.fillMaxWidth(),
             value = port,
             onValueChange = { newText ->
                 port = newText
@@ -52,6 +56,7 @@ fun AddPeer(updatePage: (value: PageType) -> Unit) {
         )
 
         Button(
+            modifier = Modifier.padding(top = 16.dp),
             onClick = {
             }
         ) {
