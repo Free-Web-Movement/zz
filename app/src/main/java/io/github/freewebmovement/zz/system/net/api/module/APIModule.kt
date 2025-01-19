@@ -17,7 +17,6 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
-import io.ktor.server.sessions.generateSessionId
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -27,8 +26,8 @@ fun Application.api(execute: IInstrumentedHandler) {
         route("/api") {
             get("/key/public") {
                 val publicKey = execute.getPublicKeyJSON(true)
-                var json = Json.encodeToString(publicKey);
-                var signature = execute.sign(json).toHexString()
+                val json = Json.encodeToString(publicKey)
+                val signature = execute.sign(json).toHexString()
                 call.respondText(Json.encodeToString(SignJSON(json, signature)))
             }
 
@@ -54,8 +53,8 @@ fun Application.api(execute: IInstrumentedHandler) {
                     updatedAt = timeStamp
                 )
                 execute.addPeer(peer)
-                var publicKeyJSON = Json.encodeToString(PublicKeyJSON())
-                var sign = execute.sign(publicKeyJSON).toHexString()
+                val publicKeyJSON = Json.encodeToString(PublicKeyJSON())
+                val sign = execute.sign(publicKeyJSON).toHexString()
                 call.respondText(Json.encodeToString(SignJSON(publicKeyJSON, sign)))
             }
 
@@ -63,31 +62,27 @@ fun Application.api(execute: IInstrumentedHandler) {
                 val receiveStr = call.receive<String>()
                 val signJSON = Json.decodeFromString<SignJSON>(receiveStr)
                 val json = Json.decodeFromString<MessageSenderJSON>(signJSON.json)
-                val account: Account = execute.getAccountByAddress(json.sender!!)!!
+                val account: Account = execute.getAccountByAddress(json.sender)!!
                 val address = Crypto.toAddress(execute.getCrypto().publicKey)
                 val sender = execute.getAccountByAddress(address)
                 assert(sender != null)
                 assert(execute.verify(signJSON.json, signJSON.signature.hexToByteArray(),
                     Crypto.toPublicKey(account.publicKey)))
 
-                var code = 0
-                if (account != null) {
-                    val message = Message(
-                        isSending = false,
-                        isSucceeded = true,
-                        from = account.address,
-                        to = address,
-                        message = execute.decrypt(json.message),
-                        createdAt = json.createdAt
-                    )
-                    message.receivedAt = Time.now()
-                    execute.addMessage(message)
-                } else {
-                    code = 1
-                }
+                val code = 0
+                val message = Message(
+                    isSending = false,
+                    isSucceeded = true,
+                    from = account.address,
+                    to = address,
+                    message = execute.decrypt(json.message),
+                    createdAt = json.createdAt
+                )
+                message.receivedAt = Time.now()
+                execute.addMessage(message)
                 val messageReceiverJSON = MessageReceiverJSON(Time.now(), code)
-                var toJson = Json.encodeToString(messageReceiverJSON)
-                var sign = execute.sign(toJson).toHexString()
+                val toJson = Json.encodeToString(messageReceiverJSON)
+                val sign = execute.sign(toJson).toHexString()
                 call.respondText(Json.encodeToString(SignJSON(toJson, sign)))
             }
         }

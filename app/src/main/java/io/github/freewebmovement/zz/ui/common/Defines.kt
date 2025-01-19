@@ -18,7 +18,10 @@ enum class ContentType {
 enum class PageType(i: Int) {
     SessionMain(0x10),
     PeerMain(0x20),
+    PeerAdd(0x21),
     AppMain(0x30),
+
+
     MineMain(0x40),
     MineProfile(0x41),
     MineKey(0x42),
@@ -26,14 +29,6 @@ enum class PageType(i: Int) {
     MineServerPort (0x44),
     MineServerShare (0x45),
     MineAbout (0x46)
-}
-
-
-enum class MinePages {
-    Main,
-    Profile,
-    Server,
-    Key
 }
 
 val rainbowColors: List<Color> = listOf(
