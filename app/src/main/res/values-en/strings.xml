@@ -31,9 +31,14 @@
     <string name="menu">Menu</string>
     <string name="update">Update</string>
     <string name="share">Share</string>
+    <string name="ok">OK</string>
     <string name="open">Open</string>
     <string name="copy">Copy</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="please_input_your_ip_here">Please Input Your IP Here</string>
     <string name="please_input_your_port_here">Please Input Your Port Here</string>
+    <string name="invalid_ip">Invalid IP</string>
+    <string name="please_input_valid_ip">Please Input Valid IP</string>
+    <string name="invalid_port">Invalid port</string>
+    <string name="please_input_valid_port">Please Input Valid Port(Range：1025~65535)</string>
 </resources>

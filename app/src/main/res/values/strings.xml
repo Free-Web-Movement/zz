@@ -30,9 +30,14 @@
     <string name="share_app_apk">分享当前应用软件包(.apk)</string>
     <string name="share_app_apk_through_public_ip">通过公网IP分享当前应用软件包(.apk)</string>
     <string name="share_app_apk_no_public_ip">你没有公网IP</string>
+    <string name="ok">确定</string>
     <string name="open">打开</string>
     <string name="copy">复制</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="please_input_your_ip_here">请输入你的IP</string>
     <string name="please_input_your_port_here">请输入你的端口</string>
+    <string name="invalid_ip">无效IP</string>
+    <string name="please_input_valid_ip">请输入有效的IP</string>
+    <string name="invalid_port">无效端口</string>
+    <string name="please_input_valid_port">请输入有效的端口(范围：1025~65535)</string>
 </resources>
