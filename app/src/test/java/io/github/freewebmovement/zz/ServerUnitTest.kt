@@ -94,6 +94,10 @@ class APIHandler(private var crypto: Crypto) : IInstrumentedHandler {
         }
     }
 
+    override suspend fun getPeerByCode(code: String): Peer {
+        return peerList[1]
+    }
+
     override suspend fun getAccountByAddress(address: String): Account? {
         var found: Account? = null
         accountList.forEachIndexed { i, it ->
@@ -176,27 +180,30 @@ class APIHandler(private var crypto: Crypto) : IInstrumentedHandler {
 }
 
 class ServerUnitTest {
+    val serverCrypto = Crypto.createCrypto()
+    val clientCrypto = Crypto.createCrypto()
+    val serverHandler = APIHandler(serverCrypto)
+    val clientHandler = APIHandler(clientCrypto)
+    val serverAddress = Crypto.toAddress(serverCrypto.publicKey)
+    val serverAccount = Account(serverAddress)
+    val clientAddress = Crypto.toAddress(clientCrypto.publicKey)
+    val clientAccount = Account(clientAddress)
+
     @Test
     fun testRoot() = testApplication {
 
-        val serverCrypto = Crypto.createCrypto()
-        val clientCrypto = Crypto.createCrypto()
-        val serverHandler = APIHandler(serverCrypto)
-        val clientHandler = APIHandler(clientCrypto)
+
         application {
             mainModule(serverHandler)
             download(TestDownload())
             api(serverHandler)
         }
-
-        val serverAddress = Crypto.toAddress(serverCrypto.publicKey)
-        val serverAccount = Account(serverAddress)
         serverAccount.publicKey = hex(serverCrypto.publicKey.encoded)
         serverHandler.addAccount(serverAccount)
+
         assert(serverAccount.id != 0)
 
-        val clientAddress = Crypto.toAddress(clientCrypto.publicKey)
-        val clientAccount = Account(clientAddress)
+
         clientAccount.publicKey = hex(clientCrypto.publicKey.encoded)
 
         clientHandler.addAccount(clientAccount)
@@ -232,10 +239,21 @@ class ServerUnitTest {
         }
 
         runBlocking {
-            val response04 = peerClient.setPublicKey(peerServer, serverAccount)
+            val response04 = peerClient.setPublicKey(peerServer, serverCrypto.publicKey)
             assertEquals(HttpStatusCode.OK, response04.status)
-            assert(APIHandler.peerList.size == 1)
+            assert(APIHandler.peerList.size == 2)
             assert(APIHandler.messageList.size == 0)
+        }
+
+        runBlocking {
+
+            val peer = APIHandler.peerList[1]
+            assert(peer.account != 0)
+            assert(peer.accessibilityVerified)
+            peer.accessibilityVerificationCode = peer.getCode
+            peer.accessibilityVerified = false
+            val response04 = peerClient.verifyAccessibility(peer.accessibilityVerificationCode, peerServer, serverCrypto.publicKey)
+            assertEquals(HttpStatusCode.OK, response04.status)
         }
 
         runBlocking {

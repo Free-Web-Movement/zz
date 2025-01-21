@@ -31,6 +31,7 @@ interface IInstrumentedHandler {
     suspend fun initPeer(ip:String, port:Int, ipType: IPType)
     suspend fun addPeer(peer: Peer)
     suspend fun updatePeer(peer: Peer)
+    suspend fun getPeerByCode(code: String): Peer
     suspend fun getAccountByAddress(address: String): Account?
     suspend fun addMessage(message: Message)
     suspend fun updateMessage(message: Message)
@@ -53,10 +54,10 @@ inline fun <reified T> IInstrumentedHandler.signType(json: T): String {
 }
 
 @OptIn(ExperimentalStdlibApi::class)
-inline fun <reified T> IInstrumentedHandler.verifyType(json: String, publicKey: String): T {
+inline fun <reified T> IInstrumentedHandler.verifyType(json: String, publicKey: PublicKey): T {
     val signJSON = Json.decodeFromString<SignJSON>(json)
     assert(verify(signJSON.json, signJSON.signature.hexToByteArray(),
-        Crypto.toPublicKey(publicKey)))
+        publicKey))
     val resJson = Json.decodeFromString<T>(signJSON.json)
     return resJson
 }
@@ -80,15 +81,8 @@ class RoomHandler(var app: MainApplication) : IInstrumentedHandler {
         // 1. Get Public Key From the Peer
         val peer = Peer(ip = ip, port= port, ipType = ipType)
         val publicKey = app.peerClient.getPublicKey(peer)
-        // Save Peer and Account address
-        val address = Crypto.toAddress(publicKey)
-        val account = Account(address = address)
-        account.publicKey = hex(publicKey.encoded)
-        addAccount(account)
-        addPeer(peer)
         // 2. Tell My Info to Peer
-        app.peerClient.setPublicKey(peer, account)
-
+        app.peerClient.setPublicKey(peer, publicKey)
 
         // 3. Receive New Request From Peer to Verify My Accessibility
 
@@ -100,6 +94,10 @@ class RoomHandler(var app: MainApplication) : IInstrumentedHandler {
 
     override suspend fun updatePeer(peer: Peer) {
         app.db.peer().update(peer)
+    }
+
+    override suspend fun getPeerByCode(code: String): Peer {
+        return app.db.peer().getByCode(code)
     }
 
     override suspend fun getAccountByAddress(address: String): Account? {
@@ -171,7 +169,7 @@ class RoomHandler(var app: MainApplication) : IInstrumentedHandler {
         val httpScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
         val request = httpScope.launch {
             // suspend calls are allowed here cause this is a coroutine
-            app.peerClient.verifyAccessibility(code, peer, to)
+            app.peerClient.verifyAccessibility(code, peer, Crypto.toPublicKey(to.publicKey))
         }
     }
 }

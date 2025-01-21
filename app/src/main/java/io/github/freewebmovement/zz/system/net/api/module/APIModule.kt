@@ -10,7 +10,9 @@ import io.github.freewebmovement.zz.system.net.api.json.MessageReceiverJSON
 import io.github.freewebmovement.zz.system.net.api.json.MessageSenderJSON
 import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
 import io.github.freewebmovement.zz.system.net.api.json.SignJSON
+import io.github.freewebmovement.zz.system.net.api.signType
 import io.github.freewebmovement.zz.system.net.api.verifyType
+import io.ktor.client.call.body
 import io.ktor.server.application.Application
 import io.ktor.server.request.receive
 import io.ktor.server.response.respondText
@@ -53,11 +55,29 @@ fun Application.api(execute: IInstrumentedHandler) {
                 peer.accessibilityVerified = true
                 execute.addPeer(peer)
 
-                val publicKeyJSON = Json.encodeToString(PublicKeyJSON())
-                val sign = execute.sign(publicKeyJSON).toHexString()
-                call.respondText(Json.encodeToString(SignJSON(publicKeyJSON, sign)))
+//                val publicKeyJSON = Json.encodeToString(PublicKeyJSON())
+//                val sign = execute.sign(publicKeyJSON).toHexString()
+//                call.respondText(Json.encodeToString(SignJSON(publicKeyJSON, sign)))
+                call.respondText(execute.signType(PublicKeyJSON()))
                 execute.accessVerify(json.accessibilityVerificationCode!!, peer, account)
             }
+
+
+            post("/code") {
+                val jsonStr = call.receive<String>()
+                val signJSON = Json.decodeFromString<SignJSON>(jsonStr)
+                val json = Json.decodeFromString<PublicKeyJSON>(signJSON.json)
+                val publicKey = Crypto.toPublicKey(json.key!!)
+                assert(execute.verify(signJSON.json, signJSON.signature.hexToByteArray(),
+                    publicKey))
+                val address = Crypto.toAddress(publicKey)
+                val peer = execute.getPeerByCode(json.accessibilityVerificationCode!!)
+                peer.accessibilityVerified = true
+                peer.latestSeen = Time.now()
+                execute.updatePeer(peer)
+                call.respondText(execute.signType(PublicKeyJSON()))
+            }
+
 
             post("/message") {
                 val receiveStr = call.receive<String>()

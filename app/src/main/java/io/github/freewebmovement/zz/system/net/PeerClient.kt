@@ -24,6 +24,7 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.bodyAsText
 import io.ktor.util.cio.writeChannel
+import io.ktor.util.hex
 import io.ktor.utils.io.copyAndClose
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -41,11 +42,17 @@ class PeerClient(private var client: HttpClient, private var execute: IInstrumen
         val publicKeyJSON = Json.decodeFromString<PublicKeyJSON>(json.json)
         val publicKey = Crypto.toPublicKey(publicKeyJSON.key!!)
         assert(execute.verify(json.json, json.signature.hexToByteArray(), publicKey))
+        val address = Crypto.toAddress(publicKey)
+        val account = Account(address = address)
+        account.publicKey = hex(publicKey.encoded)
+        execute.addAccount(account)
+        peer.account = account.id
+        execute.addPeer(peer)
         return publicKey
     }
 
     // Step 2. send your public key to the server
-    suspend fun setPublicKey(peer: Peer, to: Account): HttpResponse {
+    suspend fun setPublicKey(peer: Peer, publicKey: PublicKey): HttpResponse {
         val json = execute.getPublicKeyJSON()
         peer.accessibilityVerificationCode = peer.getCode
         json.accessibilityVerificationCode = peer.accessibilityVerificationCode
@@ -63,7 +70,7 @@ class PeerClient(private var client: HttpClient, private var execute: IInstrumen
 //        val signJSON = execute.verifyType<SignJSON>(resStr, to)
 
 //        val resJson = Json.decodeFromString<PublicKeyJSON>(signJSON.json)
-        val resJson = execute.verifyType<PublicKeyJSON>(resStr, to.publicKey)
+        val resJson = execute.verifyType<PublicKeyJSON>(resStr, publicKey)
         assert(resJson.code == 0)
         peer.latestSeen = Time.now()
         execute.updatePeer(peer)
@@ -72,14 +79,14 @@ class PeerClient(private var client: HttpClient, private var execute: IInstrumen
 
     // Step 3. Verify if the client peer can be a server or not. This step switch to the Server peer
     //         Must not be executed in the same ip with step 1, 2
-    suspend fun verifyAccessibility(code: String , peer: Peer, to: Account): HttpResponse {
+    suspend fun verifyAccessibility(code: String , peer: Peer, publicKey: PublicKey): HttpResponse {
         val json = execute.getPublicKeyJSON(true)
         json.accessibilityVerificationCode = code
         val response = client.post(peer.baseUrl + "/api/code") {
             setBody(execute.signType(json))
         }
         val resStr = response.body<String>()
-        val resJson = execute.verifyType<PublicKeyJSON>(resStr, to.publicKey)
+        val resJson = execute.verifyType<PublicKeyJSON>(resStr, publicKey)
         assert(resJson.code == 0)
         peer.latestSeen = Time.now()
         execute.updatePeer(peer)
