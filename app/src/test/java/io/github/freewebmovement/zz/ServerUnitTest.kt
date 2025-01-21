@@ -158,7 +158,6 @@ class APIHandler(private var crypto: Crypto) : IInstrumentedHandler {
         if (account == null) {
             return Crypto.encrypt(dec, crypto.publicKey)
         }
-//        val rsaPublicKey = peer.rsaPublicKeyByteArray.let { Crypto.revokePublicKey(it.toByteArray()) }
         return Crypto.encrypt(dec, Crypto.toPublicKey(account.publicKey))
     }
 
@@ -180,14 +179,14 @@ class APIHandler(private var crypto: Crypto) : IInstrumentedHandler {
 }
 
 class ServerUnitTest {
-    val serverCrypto = Crypto.createCrypto()
-    val clientCrypto = Crypto.createCrypto()
-    val serverHandler = APIHandler(serverCrypto)
-    val clientHandler = APIHandler(clientCrypto)
-    val serverAddress = Crypto.toAddress(serverCrypto.publicKey)
-    val serverAccount = Account(serverAddress)
-    val clientAddress = Crypto.toAddress(clientCrypto.publicKey)
-    val clientAccount = Account(clientAddress)
+    private val serverCrypto = Crypto.createCrypto()
+    private val clientCrypto = Crypto.createCrypto()
+    private val serverHandler = APIHandler(serverCrypto)
+    private val clientHandler = APIHandler(clientCrypto)
+    private val serverAddress = Crypto.toAddress(serverCrypto.publicKey)
+    private val serverAccount = Account(serverAddress)
+    private val clientAddress = Crypto.toAddress(clientCrypto.publicKey)
+    private val clientAccount = Account(clientAddress)
 
     @Test
     fun testRoot() = testApplication {
@@ -228,14 +227,14 @@ class ServerUnitTest {
 //            serverAccount.id,
             "127.0.0.1", 0, IPType.IPV4)
         peerServer.id = 1
-//        account.publicKey = hex(serverHandler.getCrypto().publicKey.encoded)
         peerServer.isTesting = true
         val peerClient = PeerClient(client, clientHandler)
         runBlocking {
             val publicKey = peerClient.getPublicKey(peerServer)
             assert(publicKey == serverCrypto.publicKey)
-//            val address = Crypto.toAddress(serverCrypto.publicKey)
-//            val account = clientHandler.getAccountByAddress(address)
+            val address = Crypto.toAddress(serverCrypto.publicKey)
+            val account = clientHandler.getAccountByAddress(address)
+            assert(account!!.address == address)
         }
 
         runBlocking {

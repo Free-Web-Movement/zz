@@ -9,9 +9,7 @@ import io.github.freewebmovement.zz.ui.content.peer.PeerMain
 @Composable
 fun PeerContent(page: PageType, updater: (page: PageType, value: ContentType) -> Unit) {
     when (page) {
-        PageType.PeerAdd -> AddPeer {
-            updater(it, ContentType.NonStacked)
-        }
+        PageType.PeerAdd -> AddPeer()
         else -> {
             PeerMain {
                 updater(it, ContentType.Stacked)

@@ -57,19 +57,10 @@ class PeerClient(private var client: HttpClient, private var execute: IInstrumen
         peer.accessibilityVerificationCode = peer.getCode
         json.accessibilityVerificationCode = peer.accessibilityVerificationCode
         execute.updatePeer(peer)
-//        val jsonStr = Json.encodeToString(json)
-//        val sign = execute.sign(jsonStr).toHexString()
         val response = client.post(peer.baseUrl + "/api/key/public") {
             setBody(execute.signType(json))
         }
         val resStr = response.body<String>()
-//        val signJSON = Json.decodeFromString<SignJSON>(resStr)
-//        assert(execute.verify(signJSON.json, signJSON.signature.hexToByteArray(),
-//            Crypto.toPublicKey(to.publicKey)))
-
-//        val signJSON = execute.verifyType<SignJSON>(resStr, to)
-
-//        val resJson = Json.decodeFromString<PublicKeyJSON>(signJSON.json)
         val resJson = execute.verifyType<PublicKeyJSON>(resStr, publicKey)
         assert(resJson.code == 0)
         peer.latestSeen = Time.now()

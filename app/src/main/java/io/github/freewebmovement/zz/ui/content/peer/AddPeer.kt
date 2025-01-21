@@ -26,11 +26,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.freewebmovement.zz.R
 import io.github.freewebmovement.zz.system.IsValid
-import io.github.freewebmovement.zz.ui.common.PageType
 
 
 @Composable
-fun AddPeer(updatePage: (value: PageType) -> Unit) {
+fun AddPeer() {
     val scrollState = rememberScrollState()
     var ip by remember { mutableStateOf(TextFieldValue("")) }
     var port by remember { mutableStateOf(TextFieldValue("")) }
@@ -78,7 +77,6 @@ fun AddPeer(updatePage: (value: PageType) -> Unit) {
                     openPortDialog.value = true
                     return@Button
                 }
-
             }
         ) {
             Text(
@@ -127,6 +125,5 @@ fun AddPeer(updatePage: (value: PageType) -> Unit) {
 @Preview
 @Composable
 private fun Preview() {
-    AddPeer {
-    }
+    AddPeer()
 }
