@@ -14,9 +14,9 @@ class IsValid {
             }
         }
 
-        fun port(port: UShort): Boolean {
-            val min:UShort = ((1u shl 10) + 1u).toUShort()
-            val max:UShort = ((1u shl 15) + 1u).toUShort()
+        fun port(port: Int): Boolean {
+            val min:Int = (1 shl 10) + 1
+            val max:Int = (1 shl 15) + 1
             return port in min..max
         }
     }

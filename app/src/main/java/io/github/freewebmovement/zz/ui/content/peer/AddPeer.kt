@@ -2,14 +2,17 @@ package io.github.freewebmovement.zz.ui.content.peer
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -20,12 +23,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.R
 import io.github.freewebmovement.zz.system.IsValid
+import io.github.freewebmovement.zz.system.database.entity.IPType
 
 
 @Composable
@@ -33,6 +40,7 @@ fun AddPeer() {
     val scrollState = rememberScrollState()
     var ip by remember { mutableStateOf(TextFieldValue("")) }
     var port by remember { mutableStateOf(TextFieldValue("")) }
+    var isIPV4 by remember { mutableStateOf(true) }
     val openIPDialog = remember { mutableStateOf(false) }
     val openPortDialog = remember { mutableStateOf(false) }
     Column(
@@ -60,15 +68,40 @@ fun AddPeer() {
             placeholder = { Text(text = stringResource(R.string.please_input_your_port_here)) },
         )
 
+        Row(Modifier.selectableGroup()) {
+            RadioButton(
+                selected = isIPV4,
+                onClick = { isIPV4 = true },
+                modifier = Modifier.semantics { contentDescription = "Localized Description" }
+            )
+
+            Text(
+                text = "IPV4",
+                modifier = Modifier.align(Alignment.CenterVertically)
+            )
+            RadioButton(
+                selected = !isIPV4,
+                onClick = { isIPV4 = false },
+                modifier = Modifier.semantics { contentDescription = "Localized Description" }
+            )
+
+            Text(
+                text = "IPV6",
+                modifier = Modifier.align(Alignment.CenterVertically)
+            )
+        }
+
         Button(
             modifier = Modifier.padding(top = 16.dp),
             onClick = {
+                val portNumber: Int
+
                 if (!IsValid.IP(ip.text)) {
                     openIPDialog.value = true
                     return@Button
                 }
                 try {
-                    val portNumber = port.text.toUShort()
+                    portNumber = port.text.toInt()
                     if (!IsValid.port(portNumber)) {
                         openPortDialog.value = true
                         return@Button
@@ -77,6 +110,15 @@ fun AddPeer() {
                     openPortDialog.value = true
                     return@Button
                 }
+
+                val type = if(isIPV4) {
+                    IPType.IPV4
+                } else {
+                    IPType.IPV6
+                }
+
+                val app = MainApplication.instance!!
+                app.handler.initPeer(ip.text, portNumber, type)
             }
         ) {
             Text(
@@ -120,7 +162,6 @@ fun AddPeer() {
         )
     }
 }
-
 
 @Preview
 @Composable

@@ -28,7 +28,7 @@ interface IInstrumentedHandler {
     suspend fun addAccount(account: Account)
     suspend fun updateAccount(account: Account)
     // peer related operations
-    suspend fun initPeer(ip:String, port:Int, ipType: IPType)
+    fun initPeer(ip:String, port:Int, ipType: IPType)
     suspend fun addPeer(peer: Peer)
     suspend fun updatePeer(peer: Peer)
     suspend fun getPeerByCode(code: String): Peer
@@ -76,15 +76,18 @@ class RoomHandler(var app: MainApplication) : IInstrumentedHandler {
         app.db.account().update(account)
     }
 
-    override suspend fun initPeer(ip: String, port: Int, ipType: IPType) {
+    override fun initPeer(ip: String, port: Int, ipType: IPType) {
+        val scope = app.coroutineScope
 
-        // 1. Get Public Key From the Peer
-        val peer = Peer(ip = ip, port= port, ipType = ipType)
-        val publicKey = app.peerClient.getPublicKey(peer)
-        // 2. Tell My Info to Peer
-        app.peerClient.setPublicKey(peer, publicKey)
+        scope.launch {
+            // 1. Get Public Key From the Peer
+            val peer = Peer(ip = ip, port = port, ipType = ipType)
+            val publicKey = app.peerClient.getPublicKey(peer)
+            // 2. Tell My Info to Peer
+            app.peerClient.setPublicKey(peer, publicKey)
 
-        // 3. Receive New Request From Peer to Verify My Accessibility
+            // 3. Receive New Request From Peer to Verify My Accessibility
+        }
 
     }
 

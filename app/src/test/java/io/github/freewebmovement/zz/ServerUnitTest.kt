@@ -70,7 +70,7 @@ class APIHandler(private var crypto: Crypto) : IInstrumentedHandler {
         }
     }
 
-    override suspend fun initPeer(ip: String, port: Int, ipType: IPType) {
+    override fun initPeer(ip: String, port: Int, ipType: IPType) {
         TODO("Not yet implemented")
     }
 

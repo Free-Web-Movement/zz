@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 const val PREFERENCES_NAME = "ZZ"
 
 class MainApplication : Application() {
-    private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    val coroutineScope = CoroutineScope(Dispatchers.IO)
     lateinit var preference: Preference
     lateinit var crypto: Crypto
     lateinit var db : ZzDatabase
@@ -45,7 +45,6 @@ class MainApplication : Application() {
             handler = RoomHandler(instance!!)
             peerClient = PeerClient(client, handler)
             peerServer = PeerServer.start(instance!!, "0.0.0.0", settings.localServerPort)
-
         }
     }
 
