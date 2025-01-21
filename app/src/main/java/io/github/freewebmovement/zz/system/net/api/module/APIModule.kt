@@ -10,6 +10,7 @@ import io.github.freewebmovement.zz.system.net.api.json.MessageReceiverJSON
 import io.github.freewebmovement.zz.system.net.api.json.MessageSenderJSON
 import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
 import io.github.freewebmovement.zz.system.net.api.json.SignJSON
+import io.github.freewebmovement.zz.system.net.api.verifyType
 import io.ktor.server.application.Application
 import io.ktor.server.request.receive
 import io.ktor.server.response.respondText
@@ -38,24 +39,24 @@ fun Application.api(execute: IInstrumentedHandler) {
                 val publicKey = Crypto.toPublicKey(json.key!!)
                 assert(execute.verify(signJSON.json, signJSON.signature.hexToByteArray(),
                     publicKey))
-                val timeStamp = Time.now()
                 val address = Crypto.toAddress(publicKey)
                 var account = Account(address)
                 account.publicKey = json.key!!
                 execute.addAccount(account)
                 account = execute.getAccountByAddress(address)!!
                 val peer = Peer(
-                    account.id,
                     ip = json.ip!!,
                     port = json.port!!,
                     ipType = json.type!!,
-                    createdAt = timeStamp,
-                    updatedAt = timeStamp
                 )
+                peer.account = account.id
+                peer.accessibilityVerified = true
                 execute.addPeer(peer)
+
                 val publicKeyJSON = Json.encodeToString(PublicKeyJSON())
                 val sign = execute.sign(publicKeyJSON).toHexString()
                 call.respondText(Json.encodeToString(SignJSON(publicKeyJSON, sign)))
+                execute.accessVerify(json.accessibilityVerificationCode!!, peer, account)
             }
 
             post("/message") {

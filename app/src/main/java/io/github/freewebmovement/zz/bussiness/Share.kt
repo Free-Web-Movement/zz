@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Environment
 import androidx.core.content.FileProvider
+import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.system.net.PeerServer
 import java.io.File
 
@@ -29,9 +30,10 @@ class Share(private var context: Context) : IDownload {
 
     override fun myApk(): File {
         // get the base.apk
+        val app = MainApplication.instance!!
         val baseApkLocation =
-            PeerServer.app.applicationContext.packageManager.getApplicationInfo(
-                PeerServer.app.applicationContext.packageName,
+            app.applicationContext.packageManager.getApplicationInfo(
+                app.applicationContext.packageName,
                 PackageManager.GET_META_DATA
             ).sourceDir
         // get the file

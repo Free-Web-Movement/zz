@@ -1,14 +1,13 @@
 package io.github.freewebmovement.zz
 
 import io.github.freewebmovement.zz.bussiness.IDownload
-import io.github.freewebmovement.zz.system.Time
+import io.github.freewebmovement.zz.system.crypto.Crypto
+import io.github.freewebmovement.zz.system.database.entity.Account
 import io.github.freewebmovement.zz.system.database.entity.IPType
 import io.github.freewebmovement.zz.system.database.entity.Message
 import io.github.freewebmovement.zz.system.database.entity.Peer
 import io.github.freewebmovement.zz.system.net.PeerClient
 import io.github.freewebmovement.zz.system.net.api.IInstrumentedHandler
-import io.github.freewebmovement.zz.system.crypto.Crypto
-import io.github.freewebmovement.zz.system.database.entity.Account
 import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
 import io.github.freewebmovement.zz.system.net.api.json.UserJSON
 import io.github.freewebmovement.zz.system.net.api.module.api
@@ -69,6 +68,10 @@ class APIHandler(private var crypto: Crypto) : IInstrumentedHandler {
                 return@forEachIndexed
             }
         }
+    }
+
+    override suspend fun initPeer(ip: String, port: Int, ipType: IPType) {
+        TODO("Not yet implemented")
     }
 
     override suspend fun addPeer(peer: Peer) {
@@ -162,6 +165,14 @@ class APIHandler(private var crypto: Crypto) : IInstrumentedHandler {
     override fun verify(message: String, signature: ByteArray, publicKey: PublicKey): Boolean {
         return Crypto.verify(message.toByteArray(), signature, publicKey)
     }
+
+    override fun accessVerify(code: String, peer: Peer, to: Account) {
+//        val httpScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
+//        val request = httpScope.launch {
+//            // suspend calls are allowed here cause this is a coroutine
+//            app.peerClient.verifyAccessibility(code, peer, to)
+//        }
+    }
 }
 
 class ServerUnitTest {
@@ -207,24 +218,23 @@ class ServerUnitTest {
 //        val response02 = client.get("/download/statics")
 //        assertEquals(HttpStatusCode.OK, response02.status)
         val peerServer = Peer(
-            serverAccount.id,
-            "127.0.0.1", 0, IPType.IPV4, Time.now(), Time.now())
+//            serverAccount.id,
+            "127.0.0.1", 0, IPType.IPV4)
         peerServer.id = 1
 //        account.publicKey = hex(serverHandler.getCrypto().publicKey.encoded)
         peerServer.isTesting = true
         val peerClient = PeerClient(client, clientHandler)
         runBlocking {
-            val response003 = peerClient.getPublicKey(peerServer)
-            val address = Crypto.toAddress(serverCrypto.publicKey)
-            val account = clientHandler.getAccountByAddress(address)
-            assert(account!=null)
-            assertEquals(HttpStatusCode.OK, response003.status)
+            val publicKey = peerClient.getPublicKey(peerServer)
+            assert(publicKey == serverCrypto.publicKey)
+//            val address = Crypto.toAddress(serverCrypto.publicKey)
+//            val account = clientHandler.getAccountByAddress(address)
         }
 
         runBlocking {
-            val response04 = peerClient.setPublicKey(peerServer, clientAccount, serverAccount)
+            val response04 = peerClient.setPublicKey(peerServer, serverAccount)
             assertEquals(HttpStatusCode.OK, response04.status)
-            assert(APIHandler.peerList.size == 2)
+            assert(APIHandler.peerList.size == 1)
             assert(APIHandler.messageList.size == 0)
         }
 

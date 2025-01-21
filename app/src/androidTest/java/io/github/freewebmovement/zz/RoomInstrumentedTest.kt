@@ -35,12 +35,11 @@ class RoomInstrumentedTest {
         dao.clearSequence()
         val epochTime = Time.now()
         val peer = Peer(
-            account.id,
             "0.0.0.0",
             setting.localServerPort,
-            IPType.IPV4,
-            createdAt = epochTime, updatedAt = epochTime
+            IPType.IPV4
         )
+        peer.account = account.id;
         dao.add(peer)
         val all = app.db.peer().getAll()
         assertEquals(all.size, 1)

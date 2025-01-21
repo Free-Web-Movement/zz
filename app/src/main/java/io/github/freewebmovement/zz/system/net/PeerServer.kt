@@ -17,21 +17,17 @@ fun Application.module(app: MainApplication) {
     api(RoomHandler(app))
 }
 
-class PeerServer {
+class PeerServer(var app: MainApplication, var server: EmbeddedServer<NettyApplicationEngine, NettyApplicationEngine.Configuration>) {
     companion object {
-        lateinit var app: MainApplication
-        private var server: EmbeddedServer<NettyApplicationEngine, NettyApplicationEngine.Configuration>? =
-            null
-
-        fun start(app: MainApplication, host: String, port: Int) {
-            PeerServer.app = app
-            server = embeddedServer(
+        fun start(app: MainApplication, host: String, port: Int): PeerServer {
+            val server = embeddedServer(
                 factory = Netty,
                 port = port,
                 host = host
             ) {
                 module(app)
             }.start(wait = false)
+            return PeerServer(app, server)
         }
     }
 }

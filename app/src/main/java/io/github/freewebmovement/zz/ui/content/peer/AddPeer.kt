@@ -69,7 +69,7 @@ fun AddPeer(updatePage: (value: PageType) -> Unit) {
                     return@Button
                 }
                 try {
-                    val portNumber = port.text.toInt()
+                    val portNumber = port.text.toUShort()
                     if (!IsValid.port(portNumber)) {
                         openPortDialog.value = true
                         return@Button

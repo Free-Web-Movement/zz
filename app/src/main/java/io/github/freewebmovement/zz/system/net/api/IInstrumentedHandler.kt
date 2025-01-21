@@ -6,17 +6,29 @@ import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.system.Image
 import io.github.freewebmovement.zz.system.crypto.Crypto
 import io.github.freewebmovement.zz.system.database.entity.Account
+import io.github.freewebmovement.zz.system.database.entity.IPType
 import io.github.freewebmovement.zz.system.database.entity.Message
 import io.github.freewebmovement.zz.system.database.entity.Peer
+import io.github.freewebmovement.zz.system.net.PeerClient
 import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
+import io.github.freewebmovement.zz.system.net.api.json.SignJSON
 import io.github.freewebmovement.zz.system.net.api.json.UserJSON
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
 import io.ktor.util.hex
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.io.File
 import java.security.PublicKey
 
 interface IInstrumentedHandler {
     suspend fun addAccount(account: Account)
     suspend fun updateAccount(account: Account)
+    // peer related operations
+    suspend fun initPeer(ip:String, port:Int, ipType: IPType)
     suspend fun addPeer(peer: Peer)
     suspend fun updatePeer(peer: Peer)
     suspend fun getAccountByAddress(address: String): Account?
@@ -30,6 +42,23 @@ interface IInstrumentedHandler {
     fun encrypt(dec:String, account: Account? = null): String
     fun sign(message: String): ByteArray
     fun verify(message: String, signature: ByteArray, publicKey: PublicKey): Boolean
+    fun accessVerify(code: String, peer: Peer, to: Account)
+}
+
+@OptIn(ExperimentalStdlibApi::class)
+inline fun <reified T> IInstrumentedHandler.signType(json: T): String {
+    val jsonStr = Json.encodeToString(json)
+    val sign = sign(jsonStr).toHexString()
+    return Json.encodeToString(SignJSON(jsonStr, sign))
+}
+
+@OptIn(ExperimentalStdlibApi::class)
+inline fun <reified T> IInstrumentedHandler.verifyType(json: String, publicKey: String): T {
+    val signJSON = Json.decodeFromString<SignJSON>(json)
+    assert(verify(signJSON.json, signJSON.signature.hexToByteArray(),
+        Crypto.toPublicKey(publicKey)))
+    val resJson = Json.decodeFromString<T>(signJSON.json)
+    return resJson
 }
 
 class RoomHandler(var app: MainApplication) : IInstrumentedHandler {
@@ -44,6 +73,25 @@ class RoomHandler(var app: MainApplication) : IInstrumentedHandler {
 
     override suspend fun updateAccount(account: Account) {
         app.db.account().update(account)
+    }
+
+    override suspend fun initPeer(ip: String, port: Int, ipType: IPType) {
+
+        // 1. Get Public Key From the Peer
+        val peer = Peer(ip = ip, port= port, ipType = ipType)
+        val publicKey = app.peerClient.getPublicKey(peer)
+        // Save Peer and Account address
+        val address = Crypto.toAddress(publicKey)
+        val account = Account(address = address)
+        account.publicKey = hex(publicKey.encoded)
+        addAccount(account)
+        addPeer(peer)
+        // 2. Tell My Info to Peer
+        app.peerClient.setPublicKey(peer, account)
+
+
+        // 3. Receive New Request From Peer to Verify My Accessibility
+
     }
 
     override suspend fun addPeer(peer: Peer) {
@@ -117,5 +165,13 @@ class RoomHandler(var app: MainApplication) : IInstrumentedHandler {
     override fun verify(message: String, signature: ByteArray, publicKey: PublicKey): Boolean {
 
         return Crypto.verify(message.toByteArray(), signature, publicKey)
+    }
+
+    override fun accessVerify(code: String, peer: Peer, to: Account) {
+        val httpScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
+        val request = httpScope.launch {
+            // suspend calls are allowed here cause this is a coroutine
+            app.peerClient.verifyAccessibility(code, peer, to)
+        }
     }
 }
