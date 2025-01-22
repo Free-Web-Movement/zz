@@ -9,6 +9,7 @@ import androidx.room.Transaction
 import androidx.room.Update
 import io.github.freewebmovement.zz.system.database.entity.Account
 import io.github.freewebmovement.zz.system.database.entity.Peer
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface Account {
@@ -20,6 +21,9 @@ interface Account {
 
     @Query("SELECT * FROM account ORDER BY created_at DESC")
     fun getAll(): List<Account>
+
+    @Query("SELECT * FROM account ORDER BY created_at DESC")
+    fun getAllFlow(): Flow<List<Account>>
 
     @Query("SELECT * FROM account where address = :address")
     fun getAccountByAddress(address: String): Account?

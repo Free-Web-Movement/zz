@@ -13,9 +13,7 @@ fun PeerContent(page: PageType, updater: (page: PageType, value: ContentType) ->
             updater(it, ContentType.NonStacked)
         }
         else -> {
-            PeerMain {
-                updater(it, ContentType.Stacked)
-            }
+            PeerMain()
         }
     }
 }
