@@ -16,7 +16,7 @@ class IsValid {
 
         fun port(port: Int): Boolean {
             val min:Int = (1 shl 10) + 1
-            val max:Int = (1 shl 15) + 1
+            val max:Int = (1 shl 16) - 1
             return port in min..max
         }
     }

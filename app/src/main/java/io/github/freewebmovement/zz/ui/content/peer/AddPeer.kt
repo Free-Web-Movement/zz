@@ -33,10 +33,11 @@ import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.R
 import io.github.freewebmovement.zz.system.IsValid
 import io.github.freewebmovement.zz.system.database.entity.IPType
+import io.github.freewebmovement.zz.ui.common.PageType
 
 
 @Composable
-fun AddPeer() {
+fun AddPeer(updatePage: ((value: PageType) -> Unit)) {
     val scrollState = rememberScrollState()
     var ip by remember { mutableStateOf(TextFieldValue("")) }
     var port by remember { mutableStateOf(TextFieldValue("")) }
@@ -119,6 +120,7 @@ fun AddPeer() {
 
                 val app = MainApplication.instance!!
                 app.handler.initPeer(ip.text, portNumber, type)
+                updatePage(PageType.PeerMain)
             }
         ) {
             Text(
@@ -166,5 +168,7 @@ fun AddPeer() {
 @Preview
 @Composable
 private fun Preview() {
-    AddPeer()
+    AddPeer() {
+
+    }
 }

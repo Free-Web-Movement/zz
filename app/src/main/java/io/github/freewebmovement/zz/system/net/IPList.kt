@@ -61,7 +61,7 @@ class IPList private constructor(var settings: Settings) {
         var uri = ""
         val port = settings.localServerPort
         if (ipv4IPLocal.isNotEmpty()) {
-            uri = "http://${ipv4IPPublic[0]}:$port"
+            uri = "http://${ipv4IPLocal[0]}:$port"
         }
         if (ipv4IPPublic.isNotEmpty()) {
             uri = "http://${ipv4IPPublic[0]}:$port"
