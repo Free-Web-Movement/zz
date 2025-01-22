@@ -28,9 +28,7 @@ fun MinContent(page: PageType, updater: (page: PageType, value: ContentType) -> 
             updater(it, ContentType.NonStacked)
         }
 
-        PageType.MineServerShare -> LocalServerShare {
-            updater(it, ContentType.NonStacked)
-        }
+        PageType.MineServerShare -> LocalServerShare()
         else -> {
 
         }

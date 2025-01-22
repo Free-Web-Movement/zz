@@ -84,6 +84,15 @@ class IPList private constructor(var settings: Settings) {
         return uri
     }
 
+    fun getLocalUri(): String {
+        var uri = ""
+        val port = settings.localServerPort
+        if (ipv4IPLocal.isNotEmpty()) {
+            uri = "http://${ipv4IPLocal[0]}:$port"
+        }
+        return uri
+    }
+
     fun getPublicType(): IPType {
         if (ipv6IPPublic.isNotEmpty()) {
             return IPType.IPV6

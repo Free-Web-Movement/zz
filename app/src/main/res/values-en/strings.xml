@@ -20,6 +20,7 @@
     <string name="share_server">Share Servers</string>
     <string name="share_app_apk">Share this app package(.apk)</string>
     <string name="share_app_apk_through_public_ip">Share this app package through public IP(.apk)</string>
+    <string name="share_app_apk_through_local_ip">Share this app package through local IP(.apk)</string>
     <string name="share_app_apk_no_public_ip">You have no public ip</string>
     <string name="signature">Signature</string>
     <string name="intro">Introduction</string>
@@ -34,6 +35,7 @@
     <string name="ok">OK</string>
     <string name="open">Open</string>
     <string name="copy">Copy</string>
+    <string name="clip_data_copied">Clipboard Data Copied！</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="please_input_your_ip_here">Please Input Your IP Here</string>
     <string name="please_input_your_port_here">Please Input Your Port Here</string>

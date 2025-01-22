@@ -1,5 +1,6 @@
 package io.github.freewebmovement.zz.ui.topbar
 
+import android.content.Context
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.material.icons.Icons
@@ -31,6 +32,14 @@ import io.github.freewebmovement.zz.ui.common.TabType
 import io.github.freewebmovement.zz.ui.getTitle
 
 
+fun share(title: String, uri: String, context: Context) {
+    val serverIntent = Intent(Intent.ACTION_SEND)
+    serverIntent.setType("text/plain")
+    serverIntent.putExtra(Intent.EXTRA_SUBJECT, title)
+    serverIntent.putExtra(Intent.EXTRA_TEXT, uri)
+    context.startActivity(Intent.createChooser(serverIntent, title))
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MineTopBar(
@@ -39,17 +48,22 @@ fun MineTopBar(
     updater: (page: PageType, value: ContentType) -> Unit
 ) {
     var showDropDownMenu by remember { mutableStateOf(false) }
-    val content = LocalContext.current
+    val context = LocalContext.current
     val app = MainApplication.instance!!
     val uri = app.ipList.getPublicUri()
-    val title = stringResource(R.string.share_app_apk)
+    val localUri = app.ipList.getLocalUri()
+    val shareServerString = stringResource(R.string.share_server)
+    val shareApkString = stringResource(R.string.share_app_apk)
+    val sharePublicIPString = stringResource(R.string.share_app_apk_through_public_ip)
+    val shareLocalIPString = stringResource(R.string.share_app_apk_through_local_ip)
+//    val shareNoPublicIPString = stringResource(R.string.share_app_apk_no_public_ip)
     val noIpStr = stringResource(R.string.share_app_apk_no_public_ip)
-    val i = Intent(Intent.ACTION_SEND)
-    if (uri != "") {
-        i.setType("text/plain")
-        i.putExtra(Intent.EXTRA_SUBJECT, title)
-        i.putExtra(Intent.EXTRA_TEXT, "$uri/app/download/apk")
-    }
+//    val i = Intent(Intent.ACTION_SEND)
+//    if (uri != "") {
+//        i.setType("text/plain")
+//        i.putExtra(Intent.EXTRA_SUBJECT, title)
+//        i.putExtra(Intent.EXTRA_TEXT, "$uri/app/download/apk")
+//    }
     CenterAlignedTopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -85,7 +99,7 @@ fun MineTopBar(
                 onDismissRequest = { showDropDownMenu = false }
             ) {
                 DropdownMenuItem(
-                    text = { Text(text = stringResource(R.string.share_server)) },
+                    text = { Text(text = shareServerString) },
                     leadingIcon = {
                         Icon(
                             Icons.Filled.Share,
@@ -95,36 +109,53 @@ fun MineTopBar(
                     onClick = {
                         showDropDownMenu = false
                         if (uri != "") {
-                            content.startActivity(Intent.createChooser(i, title))
+                            share(shareServerString, uri, context)
+//                            content.startActivity(Intent.createChooser(i, title))
                         } else {
-                            Toast.makeText(content, noIpStr, Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, noIpStr, Toast.LENGTH_SHORT).show()
                         }
                         updater(PageType.MineServerShare, ContentType.Stacked)
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text(text = stringResource(R.string.share_app_apk_through_public_ip)) },
+                    text = { Text(text = sharePublicIPString) },
                     leadingIcon = {
                         Icon(
                             Icons.Filled.Share,
-                            stringResource(R.string.share_app_apk_through_public_ip)
+                            sharePublicIPString
                         )
                     },
                     onClick = {
                         showDropDownMenu = false
                         if (uri != "") {
-                            content.startActivity(Intent.createChooser(i, title))
+                            share(sharePublicIPString, "$uri/app/download/apk", context)
+//                            content.startActivity(Intent.createChooser(i, title))
                         } else {
-                            Toast.makeText(content, noIpStr, Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, noIpStr, Toast.LENGTH_SHORT).show()
                         }
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text(text = stringResource(R.string.share_app_apk)) },
+                    text = { Text(text = shareLocalIPString) },
                     leadingIcon = {
                         Icon(
                             Icons.Filled.Share,
-                            stringResource(R.string.share_app_apk)
+                            shareLocalIPString
+                        )
+                    },
+                    onClick = {
+                        showDropDownMenu = false
+                        if (localUri != "") {
+                            share(shareLocalIPString, "$localUri/app/download/apk", context)
+                        }
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text(text = shareApkString) },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Filled.Share,
+                            shareApkString
                         )
                     },
                     onClick = {
