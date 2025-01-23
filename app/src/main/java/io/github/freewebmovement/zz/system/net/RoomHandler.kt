@@ -8,9 +8,9 @@ import io.github.freewebmovement.peer.json.UserJSON
 import io.github.freewebmovement.system.crypto.Crypto
 import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.system.Image
-import io.github.freewebmovement.zz.system.database.entity.Account
-import io.github.freewebmovement.zz.system.database.entity.Message
-import io.github.freewebmovement.zz.system.database.entity.Peer
+import io.github.freewebmovement.peer.database.entity.Account
+import io.github.freewebmovement.peer.database.entity.Message
+import io.github.freewebmovement.peer.database.entity.Peer
 import io.ktor.util.hex
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

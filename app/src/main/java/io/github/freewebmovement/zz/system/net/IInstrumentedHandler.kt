@@ -6,9 +6,9 @@ import io.github.freewebmovement.system.crypto.Crypto
 import io.github.freewebmovement.peer.json.PublicKeyJSON
 import io.github.freewebmovement.peer.json.SignJSON
 import io.github.freewebmovement.peer.json.UserJSON
-import io.github.freewebmovement.zz.system.database.entity.Account
-import io.github.freewebmovement.zz.system.database.entity.Message
-import io.github.freewebmovement.zz.system.database.entity.Peer
+import io.github.freewebmovement.peer.database.entity.Account
+import io.github.freewebmovement.peer.database.entity.Message
+import io.github.freewebmovement.peer.database.entity.Peer
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json

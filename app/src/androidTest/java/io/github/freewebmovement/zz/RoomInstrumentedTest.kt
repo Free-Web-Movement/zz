@@ -7,8 +7,8 @@ import io.github.freewebmovement.zz.bussiness.Settings
 import io.github.freewebmovement.system.Time
 import io.github.freewebmovement.system.crypto.Crypto
 import io.github.freewebmovement.zz.system.database.ZzDatabase
-import io.github.freewebmovement.zz.system.database.entity.Account
-import io.github.freewebmovement.zz.system.database.entity.Peer
+import io.github.freewebmovement.peer.database.entity.Account
+import io.github.freewebmovement.peer.database.entity.Peer
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.test.runTest
 import org.junit.Test

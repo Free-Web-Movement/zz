@@ -3,9 +3,9 @@ package io.github.freewebmovement.zz
 import io.github.freewebmovement.peer.IDownload
 import io.github.freewebmovement.peer.IPType
 import io.github.freewebmovement.system.crypto.Crypto
-import io.github.freewebmovement.zz.system.database.entity.Account
-import io.github.freewebmovement.zz.system.database.entity.Message
-import io.github.freewebmovement.zz.system.database.entity.Peer
+import io.github.freewebmovement.peer.database.entity.Account
+import io.github.freewebmovement.peer.database.entity.Message
+import io.github.freewebmovement.peer.database.entity.Peer
 import io.github.freewebmovement.zz.system.net.PeerClient
 import io.github.freewebmovement.peer.json.PublicKeyJSON
 import io.github.freewebmovement.peer.json.UserJSON

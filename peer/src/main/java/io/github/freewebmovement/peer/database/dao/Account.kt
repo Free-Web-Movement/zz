@@ -1,4 +1,4 @@
-package io.github.freewebmovement.zz.system.database.dao
+package io.github.freewebmovement.peer.database.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -7,8 +7,8 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import io.github.freewebmovement.zz.system.database.entity.Account
-import io.github.freewebmovement.zz.system.database.entity.AccountPeer
+import io.github.freewebmovement.peer.database.entity.Account
+import io.github.freewebmovement.peer.database.entity.AccountPeer
 import kotlinx.coroutines.flow.Flow
 
 @Dao

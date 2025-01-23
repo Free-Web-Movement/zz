@@ -4,9 +4,9 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import io.github.freewebmovement.zz.system.database.entity.Account
-import io.github.freewebmovement.zz.system.database.entity.Message
-import io.github.freewebmovement.zz.system.database.entity.Peer
+import io.github.freewebmovement.peer.database.entity.Account
+import io.github.freewebmovement.peer.database.entity.Message
+import io.github.freewebmovement.peer.database.entity.Peer
 
 @Database(
     entities = [Peer::class, Message::class, Account::class],
@@ -15,9 +15,9 @@ import io.github.freewebmovement.zz.system.database.entity.Peer
 )
 abstract class ZzDatabase : RoomDatabase() {
 
-    abstract fun peer(): io.github.freewebmovement.zz.system.database.dao.Peer
-    abstract fun message(): io.github.freewebmovement.zz.system.database.dao.Message
-    abstract fun account(): io.github.freewebmovement.zz.system.database.dao.Account
+    abstract fun peer(): io.github.freewebmovement.peer.database.dao.Peer
+    abstract fun message(): io.github.freewebmovement.peer.database.dao.Message
+    abstract fun account(): io.github.freewebmovement.peer.database.dao.Account
 
     companion object {
 

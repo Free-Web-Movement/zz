@@ -1,4 +1,4 @@
-package io.github.freewebmovement.zz.system.database.entity
+package io.github.freewebmovement.peer.database.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

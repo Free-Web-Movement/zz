@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.freewebmovement.zz.MainApplication
-import io.github.freewebmovement.zz.system.database.entity.AccountPeer
+import io.github.freewebmovement.peer.database.entity.AccountPeer
 import kotlinx.coroutines.launch
 
 

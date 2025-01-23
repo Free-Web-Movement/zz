@@ -7,9 +7,9 @@ import io.github.freewebmovement.peer.json.MessageSenderJSON
 import io.github.freewebmovement.peer.json.PublicKeyJSON
 import io.github.freewebmovement.peer.json.SignJSON
 import io.github.freewebmovement.peer.json.UserJSON
-import io.github.freewebmovement.zz.system.database.entity.Account
-import io.github.freewebmovement.zz.system.database.entity.Message
-import io.github.freewebmovement.zz.system.database.entity.Peer
+import io.github.freewebmovement.peer.database.entity.Account
+import io.github.freewebmovement.peer.database.entity.Message
+import io.github.freewebmovement.peer.database.entity.Peer
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -67,7 +67,7 @@ class PeerClient(private var client: HttpClient, private var execute: IInstrumen
 
     // Step 3. Verify if the client peer can be a server or not. This step switch to the Server peer
     //         Must not be executed in the same ip with step 1, 2
-    suspend fun verifyAccessibility(code: String , peer: Peer, publicKey: PublicKey): HttpResponse {
+    suspend fun verifyAccessibility(code: String, peer: Peer, publicKey: PublicKey): HttpResponse {
         val json = execute.getPublicKeyJSON(true)
         json.accessibilityVerificationCode = code
         val response = client.post(peer.baseUrl + "/api/code") {

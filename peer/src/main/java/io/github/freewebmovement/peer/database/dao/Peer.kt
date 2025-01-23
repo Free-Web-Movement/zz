@@ -1,4 +1,4 @@
-package io.github.freewebmovement.zz.system.database.dao
+package io.github.freewebmovement.peer.database.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -7,7 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import io.github.freewebmovement.zz.system.database.entity.Peer
+import io.github.freewebmovement.peer.database.entity.Peer
 
 @Dao
 interface Peer {

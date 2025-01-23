@@ -1,6 +1,7 @@
 plugins {
     id("java-library")
     kotlin("plugin.serialization")
+    id("com.google.devtools.ksp")
     alias(libs.plugins.jetbrains.kotlin.jvm)
 }
 java {
@@ -17,5 +18,19 @@ dependencies {
     implementation(libs.bcpkix.jdk15on)
     implementation(libs.ktor.ktor.utils)
     implementation(libs.kotlinx.serialization.json)
+    val room_version = "2.7.0-alpha12"
+//
+    implementation("androidx.room:room-runtime:$room_version")
+//
+//    // If this project uses any Kotlin source, use Kotlin Symbol Processing (KSP)
+//    // See Add the KSP plugin to your project
+    ksp("androidx.room:room-compiler:$room_version")
+//
+//    // If this project only uses Java source, use the Java annotationProcessor
+//    // No additional plugins are necessary
+//    annotationProcessor("androidx.room:room-compiler:$room_version")
+//
+//    // optional - Kotlin Extensions and Coroutines support for Room
+//    implementation("androidx.room:room-ktx:$room_version")
 
 }
