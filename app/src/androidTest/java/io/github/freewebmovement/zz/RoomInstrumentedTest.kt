@@ -2,12 +2,12 @@ package io.github.freewebmovement.zz
 
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import io.github.freewebmovement.peer.IPType
 import io.github.freewebmovement.zz.bussiness.Settings
 import io.github.freewebmovement.zz.system.Time
 import io.github.freewebmovement.zz.system.crypto.Crypto
 import io.github.freewebmovement.zz.system.database.ZzDatabase
 import io.github.freewebmovement.zz.system.database.entity.Account
-import io.github.freewebmovement.zz.system.database.entity.IPType
 import io.github.freewebmovement.zz.system.database.entity.Peer
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.test.runTest

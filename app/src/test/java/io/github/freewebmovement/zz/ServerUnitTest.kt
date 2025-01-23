@@ -1,9 +1,9 @@
 package io.github.freewebmovement.zz
 
+import io.github.freewebmovement.peer.IPType
 import io.github.freewebmovement.zz.bussiness.IDownload
 import io.github.freewebmovement.zz.system.crypto.Crypto
 import io.github.freewebmovement.zz.system.database.entity.Account
-import io.github.freewebmovement.zz.system.database.entity.IPType
 import io.github.freewebmovement.zz.system.database.entity.Message
 import io.github.freewebmovement.zz.system.database.entity.Peer
 import io.github.freewebmovement.zz.system.net.PeerClient

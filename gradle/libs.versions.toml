@@ -44,6 +44,7 @@ roomCompiler = "2.6.1"
 roomTesting = "2.6.1"
 navigationCompose = "2.8.5"
 volley = "1.2.1"
+jetbrainsKotlinJvm = "2.1.0"
 
 [libraries]
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
@@ -104,4 +105,5 @@ volley = { group = "com.android.volley", name = "volley", version.ref = "volley"
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
 

@@ -1,6 +1,6 @@
 package io.github.freewebmovement.zz.system.net.api.json
 
-import io.github.freewebmovement.zz.system.database.entity.IPType
+import io.github.freewebmovement.peer.IPType
 import kotlinx.serialization.Serializable
 
 @Serializable

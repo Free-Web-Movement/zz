@@ -2,19 +2,16 @@ package io.github.freewebmovement.zz.system.net.api
 
 import android.net.Uri
 import android.os.Environment
+import io.github.freewebmovement.peer.IPType
 import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.system.Image
 import io.github.freewebmovement.zz.system.crypto.Crypto
 import io.github.freewebmovement.zz.system.database.entity.Account
-import io.github.freewebmovement.zz.system.database.entity.IPType
 import io.github.freewebmovement.zz.system.database.entity.Message
 import io.github.freewebmovement.zz.system.database.entity.Peer
-import io.github.freewebmovement.zz.system.net.PeerClient
 import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
 import io.github.freewebmovement.zz.system.net.api.json.SignJSON
 import io.github.freewebmovement.zz.system.net.api.json.UserJSON
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
 import io.ktor.util.hex
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

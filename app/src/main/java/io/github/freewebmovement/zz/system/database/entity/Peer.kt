@@ -3,15 +3,10 @@ package io.github.freewebmovement.zz.system.database.entity
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import io.github.freewebmovement.peer.IPType
 import io.github.freewebmovement.zz.system.Time
 import java.util.UUID.randomUUID
 
-
-// Only IP is Allowed
-enum class IPType {
-    IPV4,
-    IPV6
-}
 
 @Entity(tableName = "peer")
 data class Peer(

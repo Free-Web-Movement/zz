@@ -1,8 +1,8 @@
 package io.github.freewebmovement.zz.system.net
 
 import android.util.Log
+import io.github.freewebmovement.peer.IPType
 import io.github.freewebmovement.zz.bussiness.Settings
-import io.github.freewebmovement.zz.system.database.entity.IPType
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress

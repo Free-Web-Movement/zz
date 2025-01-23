@@ -29,10 +29,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import io.github.freewebmovement.peer.IPType
 import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.R
 import io.github.freewebmovement.zz.system.IsValid
-import io.github.freewebmovement.zz.system.database.entity.IPType
 import io.github.freewebmovement.zz.ui.common.PageType
 
 
