@@ -118,7 +118,7 @@ fun AddPeer(updatePage: ((value: PageType) -> Unit)) {
                     IPType.IPV6
                 }
 
-                val app = MainApplication.instance!!
+                val app = MainApplication.getApp()
                 app.handler.initPeer(ip.text, portNumber, type)
                 updatePage(PageType.PeerMain)
             }

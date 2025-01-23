@@ -33,7 +33,7 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.R
-import io.github.freewebmovement.system.crypto.Crypto
+import io.github.freewebmovement.peer.system.crypto.Crypto
 import io.github.freewebmovement.zz.ui.common.PageType
 import io.github.freewebmovement.zz.ui.common.RowItem
 import io.github.freewebmovement.zz.ui.theme.backColor
@@ -42,7 +42,7 @@ import io.github.freewebmovement.zz.ui.theme.backColor
 @Composable
 fun MineMain(updatePage: (value: PageType) -> Unit) {
     Column {
-        val app = MainApplication.instance!!
+        val app = MainApplication.getApp()
         val settings = app.settings
         with(settings) {
             var nickname by remember { mutableStateOf(mineProfileNickname) }
@@ -53,7 +53,7 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
             }
             intro = stringResource(R.string.intro) + ":\n" + intro
             val address =
-                stringResource(R.string.address) + ":\n" + Crypto.toAddress(app.crypto.publicKey)
+                stringResource(R.string.address) + ":\n" + io.github.freewebmovement.peer.system.crypto.Crypto.toAddress(app.crypto.publicKey)
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,

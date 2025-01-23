@@ -27,7 +27,7 @@ fun LocalServerPort() {
             colors = rainbowColors
         )
     }
-    val app = MainApplication.instance!!
+    val app = MainApplication.getApp()
     var port by remember { mutableIntStateOf(app.settings.localServerPort) }
     Column {
         when (port) {

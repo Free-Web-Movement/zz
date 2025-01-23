@@ -1,7 +1,7 @@
-package io.github.freewebmovement.system.crypto
+package io.github.freewebmovement.peer.system.crypto
 
 import io.github.freewebmovement.peer.AddressScriptType
-import io.github.freewebmovement.peer.IPreference
+import io.github.freewebmovement.peer.interfaces.IPreference
 import io.ktor.util.hex
 import org.bouncycastle.crypto.digests.RIPEMD160Digest
 import org.bouncycastle.jce.provider.BouncyCastleProvider
@@ -81,7 +81,7 @@ class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
 
             val d = RIPEMD160Digest()
             d.update(sha256, 0, sha256.size)
-            var o = ByteArray(d.digestSize)
+            val o = ByteArray(d.digestSize)
             d.doFinal(o, 0)
             return o.toHexString()
         }

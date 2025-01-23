@@ -1,7 +1,7 @@
-package io.github.freewebmovement.zz.system.net.module
+package io.github.freewebmovement.peer.module
 
-import io.github.freewebmovement.system.Time
-import io.github.freewebmovement.system.crypto.Crypto
+import io.github.freewebmovement.peer.system.Time
+import io.github.freewebmovement.peer.system.crypto.Crypto
 import io.github.freewebmovement.peer.json.MessageReceiverJSON
 import io.github.freewebmovement.peer.json.MessageSenderJSON
 import io.github.freewebmovement.peer.json.PublicKeyJSON
@@ -64,7 +64,7 @@ fun Application.api(execute: IInstrumentedHandler) {
                 val publicKey = Crypto.toPublicKey(json.key!!)
                 assert(execute.verify(signJSON.json, signJSON.signature.hexToByteArray(),
                     publicKey))
-                val address = Crypto.toAddress(publicKey)
+//                val address = Crypto.toAddress(publicKey)
                 val peer = execute.getPeerByCode(json.accessibilityVerificationCode!!)
                 peer.accessibilityVerified = true
                 peer.latestSeen = Time.now()

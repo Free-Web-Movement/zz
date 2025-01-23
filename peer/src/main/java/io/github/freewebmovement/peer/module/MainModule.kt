@@ -1,4 +1,4 @@
-package io.github.freewebmovement.zz.system.net.module
+package io.github.freewebmovement.peer.module
 
 import io.github.freewebmovement.peer.IInstrumentedHandler
 import io.ktor.server.application.Application

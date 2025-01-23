@@ -1,7 +1,7 @@
 package io.github.freewebmovement.zz.system.persistence
 
 import android.content.SharedPreferences
-import io.github.freewebmovement.peer.IPreference
+import io.github.freewebmovement.peer.interfaces.IPreference
 
 class Preference(private val sharedPreference: SharedPreferences) : IPreference {
     override fun <T> save(key: String, value: T) {

@@ -1,8 +1,7 @@
 package io.github.freewebmovement.zz
 
-import io.github.freewebmovement.peer.IDownload
 import io.github.freewebmovement.peer.IPType
-import io.github.freewebmovement.system.crypto.Crypto
+import io.github.freewebmovement.peer.system.crypto.Crypto
 import io.github.freewebmovement.peer.database.entity.Account
 import io.github.freewebmovement.peer.database.entity.Message
 import io.github.freewebmovement.peer.database.entity.Peer
@@ -10,9 +9,10 @@ import io.github.freewebmovement.peer.PeerClient
 import io.github.freewebmovement.peer.json.PublicKeyJSON
 import io.github.freewebmovement.peer.json.UserJSON
 import io.github.freewebmovement.peer.IInstrumentedHandler
-import io.github.freewebmovement.zz.system.net.module.api
-import io.github.freewebmovement.zz.system.net.module.download
-import io.github.freewebmovement.zz.system.net.module.mainModule
+import io.github.freewebmovement.peer.interfaces.IShare
+import io.github.freewebmovement.peer.module.api
+import io.github.freewebmovement.peer.module.download
+import io.github.freewebmovement.peer.module.mainModule
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.bodyAsText
@@ -29,7 +29,11 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 
-class TestDownload : IDownload {
+class TestDownload : IShare {
+    override fun apk(file: File) {
+        TODO("Not yet implemented")
+    }
+
     override fun myApk(): File {
         Paths.get("./test.txt").toAbsolutePath().toString()
         return File("test.txt")

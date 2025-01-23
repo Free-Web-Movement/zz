@@ -3,7 +3,7 @@ package io.github.freewebmovement.zz
 import android.app.Application.MODE_PRIVATE
 import android.content.SharedPreferences
 import androidx.test.core.app.ApplicationProvider
-import io.github.freewebmovement.system.Settings
+import io.github.freewebmovement.peer.system.Settings
 import io.github.freewebmovement.zz.system.net.IPList
 import io.github.freewebmovement.zz.system.persistence.Preference
 import junit.framework.TestCase.assertTrue

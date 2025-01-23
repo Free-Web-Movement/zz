@@ -53,7 +53,7 @@ fun ProfileEditor(updatePage: (value: PageType) -> Unit) {
         )
     }
 
-    with(MainApplication.instance!!.settings) {
+    with(MainApplication.getApp().settings) {
         var nickname by remember { mutableStateOf(mineProfileNickname) }
         var intro by remember { mutableStateOf(mineProfileIntro) }
         var imageUri by remember { mutableStateOf<Uri?>(Uri.parse(mineProfileImageUri)) }
@@ -138,7 +138,7 @@ fun ProfileEditor(updatePage: (value: PageType) -> Unit) {
                 Button(onClick = {
                     updatePage(PageType.MineMain)
                 }) {
-                    with(MainApplication.instance!!.settings) {
+                    with(MainApplication.getApp().settings) {
                             mineProfileImageUri = imageUri.toString()
                         mineProfileNickname = nickname
                         mineProfileIntro = intro

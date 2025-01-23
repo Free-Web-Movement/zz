@@ -2,7 +2,7 @@ package io.github.freewebmovement.zz
 
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import io.github.freewebmovement.system.Settings
+import io.github.freewebmovement.peer.system.Settings
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -16,8 +16,9 @@ import org.junit.runner.RunWith
 class SettingInstrumentedTest {
     @Test
     fun should_test_settings() {
-        val app = ApplicationProvider.getApplicationContext<MainApplication>()
-        val preference = app.preference
+        val context = ApplicationProvider.getApplicationContext<MainApplication>()
+        val preference = MainApplication.getPreference(context)
+
         val setting = Settings(preference)
         assert(setting.localServerPort != 0 && setting.localServerPort > 1024 && setting.localServerPort < 65535)
         var caught = false

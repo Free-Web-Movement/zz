@@ -1,7 +1,7 @@
 package io.github.freewebmovement.peer
 
-import io.github.freewebmovement.system.Time
-import io.github.freewebmovement.system.crypto.Crypto
+import io.github.freewebmovement.peer.system.Time
+import io.github.freewebmovement.peer.system.crypto.Crypto
 import io.github.freewebmovement.peer.json.MessageReceiverJSON
 import io.github.freewebmovement.peer.json.MessageSenderJSON
 import io.github.freewebmovement.peer.json.PublicKeyJSON

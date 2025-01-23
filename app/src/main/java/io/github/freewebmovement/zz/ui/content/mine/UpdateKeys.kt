@@ -15,12 +15,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.R
-import io.github.freewebmovement.system.crypto.Crypto
+import io.github.freewebmovement.peer.system.crypto.Crypto
 import io.github.freewebmovement.zz.ui.common.PageType
 
 @Composable
 fun UpdateKeys(updatePage: (value: PageType) -> Unit) {
-    val app = MainApplication.instance!!
+    val app = MainApplication.getApp()
     val scrollState = rememberScrollState()
     var privateKey by remember { mutableStateOf(app.crypto.privateKey.toString()) }
     var publicKey by remember { mutableStateOf(app.crypto.publicKey.toString()) }

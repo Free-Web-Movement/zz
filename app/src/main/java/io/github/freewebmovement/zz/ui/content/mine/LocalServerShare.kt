@@ -24,7 +24,7 @@ fun toClipboard(label: String, text: String, context: Context) {
 
 @Composable
 fun LocalServerShare() {
-    val app = MainApplication.instance!!
+    val app = MainApplication.getApp()
     Column(
         modifier = Modifier
         .verticalScroll(rememberScrollState())

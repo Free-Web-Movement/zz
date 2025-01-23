@@ -1,4 +1,4 @@
-package io.github.freewebmovement.system
+package io.github.freewebmovement.peer.system
 
 class Time {
     companion object {

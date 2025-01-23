@@ -31,7 +31,7 @@ import io.github.freewebmovement.zz.ui.getTitle
 
 
 fun getUri(): String {
-    return MainApplication.instance?.ipList?.getPublicUri() ?: ""
+    return MainApplication.getApp().ipList.getPublicUri()
 }
 
 fun getIntent(uri: String, title: String): Intent {

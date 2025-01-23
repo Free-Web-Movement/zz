@@ -1,6 +1,6 @@
-package io.github.freewebmovement.system
+package io.github.freewebmovement.peer.system
 
-import io.github.freewebmovement.peer.IPreference
+import io.github.freewebmovement.peer.interfaces.IPreference
 import kotlin.reflect.KProperty
 
 //enum class MessageType(i: Int) {

@@ -3,9 +3,9 @@ package io.github.freewebmovement.zz
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.freewebmovement.peer.IPType
-import io.github.freewebmovement.system.Settings
-import io.github.freewebmovement.system.Time
-import io.github.freewebmovement.system.crypto.Crypto
+import io.github.freewebmovement.peer.system.Settings
+import io.github.freewebmovement.peer.system.Time
+import io.github.freewebmovement.peer.system.crypto.Crypto
 import io.github.freewebmovement.peer.database.entity.Account
 import io.github.freewebmovement.peer.database.entity.Peer
 import io.github.freewebmovement.zz.system.getDatabase
@@ -18,10 +18,11 @@ import org.junit.runner.RunWith
 class RoomInstrumentedTest {
     @Test
     fun should_test_peer() = runTest {
-        val app = ApplicationProvider.getApplicationContext<MainApplication>()
-        val preference = app.preference
-        val setting = Settings(preference)
-        val db = getDatabase(app.applicationContext)
+        val context = ApplicationProvider.getApplicationContext<MainApplication>()
+        var app = MyApp(context)
+        app.preference = MainApplication.getPreference(context)
+        val setting = Settings(app.preference)
+        val db = getDatabase(context)
         app.db = db
         val crypto = Crypto.createCrypto()
         val address = Crypto.toAddress(crypto.publicKey)

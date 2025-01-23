@@ -6,12 +6,13 @@ import io.github.freewebmovement.peer.IInstrumentedHandler
 import io.github.freewebmovement.peer.IPType
 import io.github.freewebmovement.peer.json.PublicKeyJSON
 import io.github.freewebmovement.peer.json.UserJSON
-import io.github.freewebmovement.system.crypto.Crypto
+import io.github.freewebmovement.peer.system.crypto.Crypto
 import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.system.Image
 import io.github.freewebmovement.peer.database.entity.Account
 import io.github.freewebmovement.peer.database.entity.Message
 import io.github.freewebmovement.peer.database.entity.Peer
+import io.github.freewebmovement.peer.interfaces.IApp
 import io.ktor.util.hex
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,7 +21,7 @@ import java.io.File
 import java.security.PublicKey
 
 
-class RoomHandler(var app: MainApplication) : IInstrumentedHandler {
+class RoomHandler(var app: IApp) : IInstrumentedHandler {
     override suspend fun addAccount(account: Account) {
         val find = app.db.account().getAccountByAddress(account.address)
         if(find != null ) {
@@ -35,14 +36,14 @@ class RoomHandler(var app: MainApplication) : IInstrumentedHandler {
     }
 
     override fun initPeer(ip: String, port: Int, ipType: IPType) {
-        val scope = app.coroutineScope
+        val scope = app.scope
 
         scope.launch {
             // 1. Get Public Key From the Peer
             val peer = Peer(ip = ip, port = port, ipType = ipType)
-            val publicKey = app.peerClient.getPublicKey(peer)
+            val publicKey = app.client.getPublicKey(peer)
             // 2. Tell My Info to Peer
-            app.peerClient.setPublicKey(peer, publicKey)
+            app.client.setPublicKey(peer, publicKey)
 
             // 3. Receive New Request From Peer to Verify My Accessibility
         }
@@ -76,29 +77,16 @@ class RoomHandler(var app: MainApplication) : IInstrumentedHandler {
     override suspend fun getPublicKeyJSON(keyOnly: Boolean): PublicKeyJSON {
         val json = PublicKeyJSON(hex(app.crypto.publicKey.encoded))
         if(keyOnly) return json
-        json.ip = app.ipList.getPublicIP()
-        json.port = app.settings.localServerPort
-        json.type = app.ipList.getPublicType()
+        app.setIpInfo(json)
         return json
     }
 
     override fun getDownloadDir(): File {
-        return File(
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-            app.applicationContext.packageName
-        )
+        return app.getDownloadDir()
     }
 
     override fun getProfile(): UserJSON {
-        val nickname = app.settings.mineProfileNickname
-        val intro = app.settings.mineProfileIntro
-        val imageUri = app.settings.mineProfileImageUri
-        var avatar = ""
-        if (imageUri != "") {
-            val uri: Uri = Uri.parse(imageUri)
-            avatar = Image.toBase64(app.applicationContext, uri)
-        }
-        return UserJSON(nickname = nickname, intro = intro, avatar = avatar)
+        return app.getProfile()
     }
 
     override fun getCrypto(): Crypto {
@@ -130,7 +118,7 @@ class RoomHandler(var app: MainApplication) : IInstrumentedHandler {
         val httpScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
         val request = httpScope.launch {
             // suspend calls are allowed here cause this is a coroutine
-            app.peerClient.verifyAccessibility(code, peer, Crypto.toPublicKey(to.publicKey))
+            app.client.verifyAccessibility(code, peer, Crypto.toPublicKey(to.publicKey))
         }
     }
 }

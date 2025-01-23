@@ -5,14 +5,14 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Environment
 import androidx.core.content.FileProvider
-import io.github.freewebmovement.peer.IDownload
+import io.github.freewebmovement.peer.interfaces.IShare
 import io.github.freewebmovement.zz.MainApplication
 import java.io.File
 
 
 
-class Share(private var context: Context) : IDownload {
-    fun apk(file: File) {
+class Share(private var context: Context) : IShare {
+    override fun apk(file: File) {
         val uri =
             FileProvider.getUriForFile(context, context.packageName+".provider", file)
         val intent = Intent(Intent.ACTION_SEND)

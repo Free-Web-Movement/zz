@@ -1,6 +1,6 @@
 package io.github.freewebmovement.peer
 
-import io.github.freewebmovement.system.crypto.Crypto
+import io.github.freewebmovement.peer.system.crypto.Crypto
 
 import io.github.freewebmovement.peer.json.PublicKeyJSON
 import io.github.freewebmovement.peer.json.SignJSON

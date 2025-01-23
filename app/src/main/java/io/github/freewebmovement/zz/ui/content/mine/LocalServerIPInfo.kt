@@ -11,7 +11,7 @@ import io.github.freewebmovement.zz.ui.common.PageType
 
 @Composable
 fun LocalServerIPInfo(updatePage: (value: PageType) -> Unit) {
-    val app = MainApplication.instance!!
+    val app = MainApplication.getApp()
     Column(
         modifier = Modifier
         .verticalScroll(rememberScrollState())

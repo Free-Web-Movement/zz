@@ -49,7 +49,7 @@ fun MineTopBar(
 ) {
     var showDropDownMenu by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val app = MainApplication.instance!!
+    val app = MainApplication.getApp()
     val uri = app.ipList.getPublicUri()
     val localUri = app.ipList.getLocalUri()
     val shareServerString = stringResource(R.string.share_server)
