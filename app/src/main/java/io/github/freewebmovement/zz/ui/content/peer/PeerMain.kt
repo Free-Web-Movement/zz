@@ -2,7 +2,10 @@ package io.github.freewebmovement.zz.ui.content.peer
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -13,17 +16,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.freewebmovement.zz.MainApplication
-import io.github.freewebmovement.zz.system.database.entity.Account
+import io.github.freewebmovement.zz.system.database.entity.AccountPeer
 import kotlinx.coroutines.launch
 
 
 @Composable
 fun AccountListText() {
-    val accountList = remember { mutableStateOf<List<Account>>(ArrayList()) }
+    val accountList = remember { mutableStateOf<List<AccountPeer>>(ArrayList()) }
     LaunchedEffect(Unit) {
         val scope = MainApplication.instance!!.coroutineScope
         scope.launch {
-            accountList.value = MainApplication.instance!!.db.account().getAll()
+            accountList.value = MainApplication.instance!!.db.account().getPeers()
         }
     }
 
@@ -34,7 +37,18 @@ fun AccountListText() {
         return
     } else {
         accountList.value.forEach {
-            Text(it.address)
+            Text(it.account.address)
+            Text(it.account.intro)
+            Text(it.account.nickname)
+            Text(it.account.publicKey)
+            it.peers.forEach { i ->
+                Text(i.accessibilityVerificationCode)
+                Text(i.getCode)
+                Text(i.baseUrl)
+                Text(i.ip)
+                Text(i.ipType.toString())
+                Text(i.port.toString())
+            }
         }
     }
 }
@@ -42,8 +56,9 @@ fun AccountListText() {
 
 @Composable
 fun PeerMain() {
+    val scrollState = rememberScrollState()
     Column(
-        modifier = Modifier.padding(horizontal = 2.dp),
+        modifier = Modifier.padding(horizontal = 2.dp).fillMaxWidth().verticalScroll(scrollState),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

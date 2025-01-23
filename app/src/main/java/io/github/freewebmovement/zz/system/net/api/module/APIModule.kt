@@ -54,10 +54,6 @@ fun Application.api(execute: IInstrumentedHandler) {
                 peer.account = account.id
                 peer.accessibilityVerified = true
                 execute.addPeer(peer)
-
-//                val publicKeyJSON = Json.encodeToString(PublicKeyJSON())
-//                val sign = execute.sign(publicKeyJSON).toHexString()
-//                call.respondText(Json.encodeToString(SignJSON(publicKeyJSON, sign)))
                 call.respondText(execute.signType(PublicKeyJSON()))
                 execute.accessVerify(json.accessibilityVerificationCode!!, peer, account)
             }

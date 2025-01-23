@@ -168,7 +168,6 @@ fun AddPeer(updatePage: ((value: PageType) -> Unit)) {
 @Preview
 @Composable
 private fun Preview() {
-    AddPeer() {
-
+    AddPeer {
     }
 }

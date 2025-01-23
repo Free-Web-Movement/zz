@@ -101,11 +101,14 @@ class IPList private constructor(var settings: Settings) {
     }
 
     fun getPublicIP(): String {
+        if (ipv6IPPublic.isNotEmpty()) {
+            return ipv6IPPublic[0]
+        }
         if (ipv4IPPublic.isNotEmpty()) {
             return ipv4IPPublic[0]
         }
-        if (ipv6IPPublic.isNotEmpty()) {
-            return ipv6IPPublic[0]
+        if (ipv4IPLocal.isNotEmpty()) {
+            return ipv4IPLocal[0]
         }
         return ""
     }

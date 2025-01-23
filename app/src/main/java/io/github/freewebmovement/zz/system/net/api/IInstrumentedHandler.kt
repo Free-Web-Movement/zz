@@ -118,7 +118,7 @@ class RoomHandler(var app: MainApplication) : IInstrumentedHandler {
     override suspend fun getPublicKeyJSON(keyOnly: Boolean): PublicKeyJSON {
         val json = PublicKeyJSON(hex(app.crypto.publicKey.encoded))
         if(keyOnly) return json
-        json.ip = app.ipList.getUri()
+        json.ip = app.ipList.getPublicIP()
         json.port = app.settings.localServerPort
         json.type = app.ipList.getPublicType()
         return json
