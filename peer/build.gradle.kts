@@ -18,6 +18,9 @@ dependencies {
     implementation(libs.bcpkix.jdk15on)
     implementation(libs.ktor.ktor.utils)
     implementation(libs.kotlinx.serialization.json)
+
+    implementation(libs.ktor.client.core)
+
     val room_version = "2.7.0-alpha12"
 //
     implementation("androidx.room:room-runtime:$room_version")

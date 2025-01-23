@@ -1,6 +1,5 @@
-package io.github.freewebmovement.zz.system.net
+package io.github.freewebmovement.peer
 
-import io.github.freewebmovement.peer.IPType
 import io.github.freewebmovement.system.crypto.Crypto
 
 import io.github.freewebmovement.peer.json.PublicKeyJSON

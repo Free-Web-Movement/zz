@@ -1,6 +1,6 @@
 package io.github.freewebmovement.zz.system.net.module
 
-import io.github.freewebmovement.zz.system.net.IInstrumentedHandler
+import io.github.freewebmovement.peer.IInstrumentedHandler
 import io.ktor.server.application.Application
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get

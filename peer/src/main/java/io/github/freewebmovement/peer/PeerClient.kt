@@ -1,4 +1,4 @@
-package io.github.freewebmovement.zz.system.net
+package io.github.freewebmovement.peer
 
 import io.github.freewebmovement.system.Time
 import io.github.freewebmovement.system.crypto.Crypto
@@ -14,9 +14,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.post
-import io.ktor.client.request.prepareRequest
 import io.ktor.client.request.setBody
-import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.bodyAsText
@@ -25,7 +23,6 @@ import io.ktor.util.hex
 import io.ktor.utils.io.copyAndClose
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import okhttp3.internal.wait
 import java.security.PublicKey
 
 class PeerClient(private var client: HttpClient, private var execute: IInstrumentedHandler) {
@@ -129,16 +126,10 @@ class PeerClient(private var client: HttpClient, private var execute: IInstrumen
      * get apk file from server, for test only
      */
     suspend fun getApkFile(peer: Peer): HttpResponse {
-        var response: HttpResponse? = null
-        val temp = client.prepareRequest {
-            url(peer.baseUrl + "/download/apk")
-        }
-        temp.execute { r ->
-            r.bodyAsChannel().copyAndClose(
-                execute.getDownloadDir().writeChannel()
-            )
-            response = r
-        }.wait()
-        return response!!
+        val response = client.get(peer.baseUrl + "/download/apk")
+        response.bodyAsChannel().copyAndClose(
+            execute.getDownloadDir().writeChannel()
+        )
+        return response
     }
 }

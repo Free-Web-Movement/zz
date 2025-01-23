@@ -9,8 +9,8 @@ import io.github.freewebmovement.peer.json.SignJSON
 import io.github.freewebmovement.peer.database.entity.Account
 import io.github.freewebmovement.peer.database.entity.Message
 import io.github.freewebmovement.peer.database.entity.Peer
-import io.github.freewebmovement.zz.system.net.IInstrumentedHandler
-import io.github.freewebmovement.zz.system.net.signType
+import io.github.freewebmovement.peer.IInstrumentedHandler
+import io.github.freewebmovement.peer.signType
 import io.ktor.server.application.Application
 import io.ktor.server.request.receive
 import io.ktor.server.response.respondText

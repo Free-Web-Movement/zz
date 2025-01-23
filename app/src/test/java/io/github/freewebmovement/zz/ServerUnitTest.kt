@@ -6,10 +6,10 @@ import io.github.freewebmovement.system.crypto.Crypto
 import io.github.freewebmovement.peer.database.entity.Account
 import io.github.freewebmovement.peer.database.entity.Message
 import io.github.freewebmovement.peer.database.entity.Peer
-import io.github.freewebmovement.zz.system.net.PeerClient
+import io.github.freewebmovement.peer.PeerClient
 import io.github.freewebmovement.peer.json.PublicKeyJSON
 import io.github.freewebmovement.peer.json.UserJSON
-import io.github.freewebmovement.zz.system.net.IInstrumentedHandler
+import io.github.freewebmovement.peer.IInstrumentedHandler
 import io.github.freewebmovement.zz.system.net.module.api
 import io.github.freewebmovement.zz.system.net.module.download
 import io.github.freewebmovement.zz.system.net.module.mainModule

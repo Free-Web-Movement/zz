@@ -6,9 +6,9 @@ import io.github.freewebmovement.system.Settings
 import io.github.freewebmovement.zz.bussiness.Share
 import io.github.freewebmovement.system.crypto.Crypto
 import io.github.freewebmovement.zz.system.getDatabase
-import io.github.freewebmovement.zz.system.net.IInstrumentedHandler
+import io.github.freewebmovement.peer.IInstrumentedHandler
 import io.github.freewebmovement.zz.system.net.IPList
-import io.github.freewebmovement.zz.system.net.PeerClient
+import io.github.freewebmovement.peer.PeerClient
 import io.github.freewebmovement.zz.system.net.PeerServer
 import io.github.freewebmovement.zz.system.net.RoomHandler
 import io.github.freewebmovement.zz.system.persistence.Preference

@@ -6,9 +6,9 @@ import io.github.freewebmovement.peer.IPType
 import io.github.freewebmovement.system.Settings
 import io.github.freewebmovement.system.Time
 import io.github.freewebmovement.system.crypto.Crypto
-import io.github.freewebmovement.peer.database.ZzDatabase
 import io.github.freewebmovement.peer.database.entity.Account
 import io.github.freewebmovement.peer.database.entity.Peer
+import io.github.freewebmovement.zz.system.getDatabase
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -21,7 +21,7 @@ class RoomInstrumentedTest {
         val app = ApplicationProvider.getApplicationContext<MainApplication>()
         val preference = app.preference
         val setting = Settings(preference)
-        val db = ZzDatabase.getDatabase(app.applicationContext)
+        val db = getDatabase(app.applicationContext)
         app.db = db
         val crypto = Crypto.createCrypto()
         val address = Crypto.toAddress(crypto.publicKey)
