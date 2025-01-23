@@ -33,7 +33,7 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.R
-import io.github.freewebmovement.zz.system.crypto.Crypto
+import io.github.freewebmovement.system.crypto.Crypto
 import io.github.freewebmovement.zz.ui.common.PageType
 import io.github.freewebmovement.zz.ui.common.RowItem
 import io.github.freewebmovement.zz.ui.theme.backColor

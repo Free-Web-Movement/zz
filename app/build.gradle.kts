@@ -104,7 +104,6 @@ dependencies {
     // Feature module support for Fragments
     implementation(libs.androidx.navigation.dynamic.features.fragment)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.bcpkix.jdk15on)
     implementation(project(":peer"))
 
     // If this project uses any Kotlin source, use Kotlin Symbol Processing (KSP)

@@ -1,6 +1,6 @@
-package io.github.freewebmovement.zz.system.net.api.module
+package io.github.freewebmovement.zz.system.net.module
 
-import io.github.freewebmovement.zz.bussiness.IDownload
+import io.github.freewebmovement.peer.IDownload
 import io.ktor.server.application.Application
 import io.ktor.server.http.content.staticFiles
 import io.ktor.server.response.respondFile

@@ -26,6 +26,7 @@ ktorServerAuth = "3.0.2"
 ktorServerContentNegotiationVersion = "3.0.2"
 ktorServerSessionsVersion = "3.0.2"
 ktorServerTestHostVersion = "3.0.2"
+ktorUtilsVersion = "3.0.3"
 ktorVersion = "3.0.2"
 lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.9.3"
@@ -90,6 +91,7 @@ ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktorCli
 ktor-ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktorServerContentNegotiationVersion" }
 ktor-ktor-server-sessions = { module = "io.ktor:ktor-server-sessions", version.ref = "ktorServerSessionsVersion" }
 ktor-ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktorServerTestHostVersion" }
+ktor-ktor-utils = { module = "io.ktor:ktor-utils", version.ref = "ktorUtilsVersion" }
 ktor-serialization-gson = { module = "io.ktor:ktor-serialization-gson", version.ref = "ktorSerializationGson" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktorSerializationKotlinxJson" }
 ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktorServerAuth" }

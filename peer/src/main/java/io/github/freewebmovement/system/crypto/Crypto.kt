@@ -1,6 +1,7 @@
-package io.github.freewebmovement.zz.system.crypto
+package io.github.freewebmovement.system.crypto
 
-import io.github.freewebmovement.zz.system.persistence.Preference
+import io.github.freewebmovement.peer.AddressScriptType
+import io.github.freewebmovement.peer.IPreference
 import io.ktor.util.hex
 import org.bouncycastle.crypto.digests.RIPEMD160Digest
 import org.bouncycastle.jce.provider.BouncyCastleProvider
@@ -29,10 +30,6 @@ private const val CRYPTO_ALGORITHM_SHA256_WITH_RSA = "SHA256withRSA"
 
 private const val KEY_SIZE = 2048
 
-enum class AddressScriptType {
-    M2PK // Message to Public Key Script Type
-}
-
 const val M2PK_PREFIX_VERSION = "VIG0"
 
 class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
@@ -45,8 +42,8 @@ class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
         private val keyFactory: KeyFactory = KeyFactory.getInstance(CRYPTO_ALGORITHM_RSA)
 
         private lateinit var instance: Crypto
-        private lateinit var preference: Preference
-        fun refresh(preference: Preference): Crypto {
+        private lateinit var preference: IPreference
+        fun refresh(preference: IPreference): Crypto {
             preference.save(IS_INIT_KEY, false)
             return getInstance(preference)
         }
@@ -107,12 +104,12 @@ class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
             return strBytes.toString(StandardCharsets.UTF_8)
         }
 
-        fun saveKey(preference: Preference, key: String, value: ByteArray) {
+        fun saveKey(preference: IPreference, key: String, value: ByteArray) {
             preference.save(key, hex(value))
         }
 
         @OptIn(ExperimentalStdlibApi::class)
-        fun readKey(preference: Preference, key: String): ByteArray {
+        fun readKey(preference: IPreference, key: String): ByteArray {
             return preference.read(key, "").hexToByteArray()
         }
 
@@ -136,7 +133,7 @@ class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
             return Crypto(keyPair.private, keyPair.public)
         }
 
-        fun getInstance(prefer: Preference): Crypto {
+        fun getInstance(prefer: IPreference): Crypto {
             preference = prefer
             val isInit: Boolean = prefer.read(IS_INIT_KEY, false)
             if (!isInit) {

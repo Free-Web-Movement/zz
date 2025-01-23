@@ -4,7 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import io.github.freewebmovement.zz.system.Time
+import io.github.freewebmovement.system.Time
 
 @Entity(indices = [Index(value = ["address"], unique = true)], tableName = "account")
 class Account(

@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.R
-import io.github.freewebmovement.zz.system.crypto.Crypto
+import io.github.freewebmovement.system.crypto.Crypto
 import io.github.freewebmovement.zz.ui.common.PageType
 
 @Composable

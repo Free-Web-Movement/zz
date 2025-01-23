@@ -1,10 +1,9 @@
 package io.github.freewebmovement.zz.system.net
 
 import io.github.freewebmovement.zz.MainApplication
-import io.github.freewebmovement.zz.system.net.api.RoomHandler
-import io.github.freewebmovement.zz.system.net.api.module.api
-import io.github.freewebmovement.zz.system.net.api.module.download
-import io.github.freewebmovement.zz.system.net.api.module.mainModule
+import io.github.freewebmovement.zz.system.net.module.api
+import io.github.freewebmovement.zz.system.net.module.download
+import io.github.freewebmovement.zz.system.net.module.mainModule
 import io.ktor.server.application.Application
 import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.engine.embeddedServer

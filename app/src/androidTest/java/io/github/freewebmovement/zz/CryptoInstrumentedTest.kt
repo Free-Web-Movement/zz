@@ -2,9 +2,8 @@ package io.github.freewebmovement.zz
 
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import io.github.freewebmovement.zz.system.crypto.AddressScriptType
-import io.github.freewebmovement.zz.system.crypto.Crypto
-import io.github.freewebmovement.zz.system.crypto.M2PK_PREFIX_VERSION
+import io.github.freewebmovement.system.crypto.Crypto
+import io.github.freewebmovement.system.crypto.M2PK_PREFIX_VERSION
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test

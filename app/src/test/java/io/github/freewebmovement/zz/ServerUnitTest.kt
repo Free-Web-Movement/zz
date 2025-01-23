@@ -1,18 +1,18 @@
 package io.github.freewebmovement.zz
 
+import io.github.freewebmovement.peer.IDownload
 import io.github.freewebmovement.peer.IPType
-import io.github.freewebmovement.zz.bussiness.IDownload
-import io.github.freewebmovement.zz.system.crypto.Crypto
+import io.github.freewebmovement.system.crypto.Crypto
 import io.github.freewebmovement.zz.system.database.entity.Account
 import io.github.freewebmovement.zz.system.database.entity.Message
 import io.github.freewebmovement.zz.system.database.entity.Peer
 import io.github.freewebmovement.zz.system.net.PeerClient
-import io.github.freewebmovement.zz.system.net.api.IInstrumentedHandler
-import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
-import io.github.freewebmovement.zz.system.net.api.json.UserJSON
-import io.github.freewebmovement.zz.system.net.api.module.api
-import io.github.freewebmovement.zz.system.net.api.module.download
-import io.github.freewebmovement.zz.system.net.api.module.mainModule
+import io.github.freewebmovement.peer.json.PublicKeyJSON
+import io.github.freewebmovement.peer.json.UserJSON
+import io.github.freewebmovement.zz.system.net.IInstrumentedHandler
+import io.github.freewebmovement.zz.system.net.module.api
+import io.github.freewebmovement.zz.system.net.module.download
+import io.github.freewebmovement.zz.system.net.module.mainModule
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.bodyAsText

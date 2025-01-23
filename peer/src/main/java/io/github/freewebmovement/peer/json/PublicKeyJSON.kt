@@ -1,4 +1,4 @@
-package io.github.freewebmovement.zz.system.net.api.json
+package io.github.freewebmovement.peer.json
 
 import io.github.freewebmovement.peer.IPType
 import kotlinx.serialization.Serializable

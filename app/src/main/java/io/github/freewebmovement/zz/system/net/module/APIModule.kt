@@ -1,18 +1,16 @@
-package io.github.freewebmovement.zz.system.net.api.module
+package io.github.freewebmovement.zz.system.net.module
 
-import io.github.freewebmovement.zz.system.Time
-import io.github.freewebmovement.zz.system.crypto.Crypto
+import io.github.freewebmovement.system.Time
+import io.github.freewebmovement.system.crypto.Crypto
+import io.github.freewebmovement.peer.json.MessageReceiverJSON
+import io.github.freewebmovement.peer.json.MessageSenderJSON
+import io.github.freewebmovement.peer.json.PublicKeyJSON
+import io.github.freewebmovement.peer.json.SignJSON
 import io.github.freewebmovement.zz.system.database.entity.Account
 import io.github.freewebmovement.zz.system.database.entity.Message
 import io.github.freewebmovement.zz.system.database.entity.Peer
-import io.github.freewebmovement.zz.system.net.api.IInstrumentedHandler
-import io.github.freewebmovement.zz.system.net.api.json.MessageReceiverJSON
-import io.github.freewebmovement.zz.system.net.api.json.MessageSenderJSON
-import io.github.freewebmovement.zz.system.net.api.json.PublicKeyJSON
-import io.github.freewebmovement.zz.system.net.api.json.SignJSON
-import io.github.freewebmovement.zz.system.net.api.signType
-import io.github.freewebmovement.zz.system.net.api.verifyType
-import io.ktor.client.call.body
+import io.github.freewebmovement.zz.system.net.IInstrumentedHandler
+import io.github.freewebmovement.zz.system.net.signType
 import io.ktor.server.application.Application
 import io.ktor.server.request.receive
 import io.ktor.server.response.respondText
