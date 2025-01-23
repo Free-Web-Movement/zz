@@ -105,6 +105,7 @@ dependencies {
     implementation(libs.androidx.navigation.dynamic.features.fragment)
     implementation(libs.kotlinx.serialization.json)
     implementation(project(":peer"))
+    implementation(libs.androidx.sqlite.bundled.android)
 
     // If this project uses any Kotlin source, use Kotlin Symbol Processing (KSP)
     // See Add the KSP plugin to your project

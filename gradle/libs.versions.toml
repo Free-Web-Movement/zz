@@ -46,6 +46,7 @@ roomTesting = "2.6.1"
 navigationCompose = "2.8.5"
 volley = "1.2.1"
 jetbrainsKotlinJvm = "2.1.0"
+sqliteBundledAndroid = "2.5.0-alpha12"
 
 [libraries]
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
@@ -102,6 +103,7 @@ robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectr
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 volley = { group = "com.android.volley", name = "volley", version.ref = "volley" }
+androidx-sqlite-bundled-android = { group = "androidx.sqlite", name = "sqlite-bundled-android", version.ref = "sqliteBundledAndroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

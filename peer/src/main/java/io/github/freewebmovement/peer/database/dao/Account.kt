@@ -17,25 +17,25 @@ interface Account {
     suspend fun add(account: Account)
 
     @Query("SELECT * FROM account where id = :id")
-    fun get(id: Int): Account?
+    suspend fun get(id: Int): Account?
 
     @Query("SELECT * FROM account ORDER BY created_at DESC")
-    fun getAll(): List<Account>
+    suspend fun getAll(): List<Account>
 
     @Query("SELECT * FROM account ORDER BY created_at DESC")
     fun getAllFlow(): Flow<List<Account>>
 
     @Transaction
     @Query("SELECT * FROM account ORDER BY created_at DESC")
-    fun getPeers(): List<AccountPeer>
+    suspend fun getPeers(): List<AccountPeer>
 
     @Query("SELECT * FROM account where address = :address")
-    fun getAccountByAddress(address: String): Account?
+    suspend fun getAccountByAddress(address: String): Account?
     
     @Query("DELETE FROM account")
-    fun clearData()
+    suspend fun clearData()
     @Query("UPDATE sqlite_sequence SET seq = 0 WHERE name = 'account'")
-    fun clearSequence()
+    suspend fun clearSequence()
 
     @Update
     suspend fun update(account: Account)

@@ -1,10 +1,11 @@
 package io.github.freewebmovement.zz
 
 import android.app.Application
-import io.github.freewebmovement.zz.bussiness.Settings
+import io.github.freewebmovement.peer.database.AppDatabase
+import io.github.freewebmovement.system.Settings
 import io.github.freewebmovement.zz.bussiness.Share
 import io.github.freewebmovement.system.crypto.Crypto
-import io.github.freewebmovement.zz.system.database.ZzDatabase
+import io.github.freewebmovement.zz.system.getDatabase
 import io.github.freewebmovement.zz.system.net.IInstrumentedHandler
 import io.github.freewebmovement.zz.system.net.IPList
 import io.github.freewebmovement.zz.system.net.PeerClient
@@ -24,7 +25,7 @@ class MainApplication : Application() {
     val coroutineScope = CoroutineScope(Dispatchers.IO)
     lateinit var preference: Preference
     lateinit var crypto: Crypto
-    lateinit var db : ZzDatabase
+    lateinit var db : AppDatabase
     lateinit var settings: Settings
     lateinit var ipList: IPList
     lateinit var share: Share
@@ -40,7 +41,7 @@ class MainApplication : Application() {
             settings = Settings(preference)
             ipList = IPList.getInstance(settings)
             share = Share(applicationContext)
-            db = ZzDatabase.getDatabase(applicationContext)
+            db = getDatabase(applicationContext)
             val client = HttpClient(CIO)
             handler = RoomHandler(instance!!)
             peerClient = PeerClient(client, handler)

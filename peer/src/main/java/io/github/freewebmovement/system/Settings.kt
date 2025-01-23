@@ -1,6 +1,6 @@
-package io.github.freewebmovement.zz.bussiness
+package io.github.freewebmovement.system
 
-import io.github.freewebmovement.zz.system.persistence.Preference
+import io.github.freewebmovement.peer.IPreference
 import kotlin.reflect.KProperty
 
 //enum class MessageType(i: Int) {
@@ -25,7 +25,7 @@ private const val MINE_PROFILE_INTRO = "MINE_PROFILE_INTRO"
 
 
 class PreferenceAccessor<T>(
-    private val preference: Preference,
+    private val preference: IPreference,
     private val key: String,
     private var field: T
 ) {
@@ -40,7 +40,7 @@ class PreferenceAccessor<T>(
     }
 }
 
-class Settings(private val preference: Preference) {
+class Settings(private val preference: IPreference) {
     // Message Persistence Period
     var messagePeriod: Int by PreferenceAccessor(
         preference, MESSAGE_PERSISTENCE_PERIOD,

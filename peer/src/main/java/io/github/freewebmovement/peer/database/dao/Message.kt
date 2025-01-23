@@ -14,12 +14,12 @@ interface Message {
     suspend fun add(message: Message)
 
     @Query("SELECT * FROM message ORDER BY created_at DESC")
-    fun getAll(): List<Message>
+    suspend fun getAll(): List<Message>
 
     @Query("DELETE FROM message")
-    fun clearData()
+    suspend fun clearData()
     @Query("UPDATE sqlite_sequence SET seq = 0 WHERE name = 'message'")
-    fun clearSequence()
+    suspend fun clearSequence()
 
     @Update
     suspend fun update(message: Message)

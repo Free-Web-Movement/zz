@@ -15,15 +15,15 @@ interface Peer {
     suspend fun add(peer: Peer)
 
     @Query("SELECT * FROM peer ORDER BY created_at DESC")
-    fun getAll(): List<Peer>
+    suspend fun getAll(): List<Peer>
 
     @Query("SELECT * FROM peer where access_verification_code = :code")
-    fun getByCode(code: String): Peer
+    suspend fun getByCode(code: String): Peer
 
     @Query("DELETE FROM peer")
-    fun clearData()
+    suspend fun clearData()
     @Query("UPDATE sqlite_sequence SET seq = 0 WHERE name = 'peer'")
-    fun clearSequence()
+    suspend fun clearSequence()
 
     @Update
     suspend fun update(peer: Peer)

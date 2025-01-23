@@ -3,10 +3,10 @@ package io.github.freewebmovement.zz
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.freewebmovement.peer.IPType
-import io.github.freewebmovement.zz.bussiness.Settings
+import io.github.freewebmovement.system.Settings
 import io.github.freewebmovement.system.Time
 import io.github.freewebmovement.system.crypto.Crypto
-import io.github.freewebmovement.zz.system.database.ZzDatabase
+import io.github.freewebmovement.peer.database.ZzDatabase
 import io.github.freewebmovement.peer.database.entity.Account
 import io.github.freewebmovement.peer.database.entity.Peer
 import junit.framework.TestCase.assertEquals
