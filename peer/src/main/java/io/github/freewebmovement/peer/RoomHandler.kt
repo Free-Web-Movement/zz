@@ -1,21 +1,13 @@
-package io.github.freewebmovement.zz.system.net
+package io.github.freewebmovement.peer
 
-import android.net.Uri
-import android.os.Environment
-import io.github.freewebmovement.peer.IInstrumentedHandler
-import io.github.freewebmovement.peer.IPType
-import io.github.freewebmovement.peer.json.PublicKeyJSON
-import io.github.freewebmovement.peer.json.UserJSON
-import io.github.freewebmovement.peer.system.crypto.Crypto
-import io.github.freewebmovement.zz.MainApplication
-import io.github.freewebmovement.zz.system.Image
 import io.github.freewebmovement.peer.database.entity.Account
 import io.github.freewebmovement.peer.database.entity.Message
 import io.github.freewebmovement.peer.database.entity.Peer
 import io.github.freewebmovement.peer.interfaces.IApp
+import io.github.freewebmovement.peer.json.PublicKeyJSON
+import io.github.freewebmovement.peer.json.UserJSON
+import io.github.freewebmovement.peer.system.crypto.Crypto
 import io.ktor.util.hex
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 import java.security.PublicKey
@@ -115,8 +107,7 @@ class RoomHandler(var app: IApp) : IInstrumentedHandler {
     }
 
     override fun accessVerify(code: String, peer: Peer, to: Account) {
-        val httpScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
-        val request = httpScope.launch {
+        app.scope.launch {
             // suspend calls are allowed here cause this is a coroutine
             app.client.verifyAccessibility(code, peer, Crypto.toPublicKey(to.publicKey))
         }

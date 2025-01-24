@@ -2,7 +2,6 @@ package io.github.freewebmovement.peer.database.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "message")

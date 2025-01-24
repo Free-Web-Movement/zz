@@ -4,6 +4,8 @@ import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import io.github.freewebmovement.peer.IInstrumentedHandler
+import io.github.freewebmovement.peer.IPScopeType
+import io.github.freewebmovement.peer.IPType
 import io.github.freewebmovement.peer.PeerClient
 import io.github.freewebmovement.peer.PeerServer
 import io.github.freewebmovement.peer.database.AppDatabase
@@ -81,7 +83,7 @@ class MyApp(private var context: Context): IApp {
         }
 
     override fun setIpInfo(json: PublicKeyJSON) {
-        json.ip = ipList.getPublicIP()
+        json.ip = ipList.getIP(IPType.IPV4, IPScopeType.LOCAL)
         json.port = settings.localServerPort
         json.type = ipList.getPublicType()
     }

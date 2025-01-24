@@ -1,5 +1,7 @@
 package io.github.freewebmovement.peer.system
 
+import io.github.freewebmovement.peer.IPScopeType
+import io.github.freewebmovement.peer.IPType
 import io.github.freewebmovement.peer.interfaces.IPreference
 import kotlin.reflect.KProperty
 
@@ -16,8 +18,12 @@ import kotlin.reflect.KProperty
 //}
 
 private const val MESSAGE_PERSISTENCE_PERIOD = "MESSAGE_PERSISTENCE_PERIOD"
-private const val LOCAL_SERVER_PORT = "LOCAL_SERVER_PORT"
 private const val MESSAGE_TYPE = "MESSAGE_TYPE"
+
+private const val PEER_IP_TYPE = "PEER_IP_TYPE"
+private const val PEER_IP_SCOPE_TYPE = "PEER_IP_SCOPE_TYPE"
+private const val LOCAL_SERVER_PORT = "LOCAL_SERVER_PORT"
+
 private const val REALTIME_COMMUNICATION_TYPE = "REALTIME_COMMUNICATION_TYPE"
 private const val MINE_PROFILE_IMAGE_URI = "MINE_PROFILE_IMAGE_URI"
 private const val MINE_PROFILE_NICKNAME = "MINE_PROFILE_NICKNAME"
@@ -67,6 +73,17 @@ class Settings(private val preference: IPreference) {
         preference, MINE_PROFILE_INTRO,
         field = ""
     )
+
+    var ipType: IPType by PreferenceAccessor(
+        preference, PEER_IP_TYPE,
+        field = IPType.IPV4
+    )
+
+    var ipScopeType: IPScopeType by PreferenceAccessor(
+    preference, PEER_IP_SCOPE_TYPE,
+    field = IPScopeType.LOCAL
+    )
+
     var localServerPort: Int = 0
         get() {
             field = preference.read(LOCAL_SERVER_PORT, 0)

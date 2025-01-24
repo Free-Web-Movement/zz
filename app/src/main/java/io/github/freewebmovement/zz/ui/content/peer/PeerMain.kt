@@ -24,7 +24,7 @@ import kotlinx.coroutines.launch
 fun AccountListText() {
     val accountList = remember { mutableStateOf<List<AccountPeer>>(ArrayList()) }
     LaunchedEffect(Unit) {
-        val scope = MainApplication.instance!!.coroutineScope
+        val scope = MainApplication.getApp().scope
         scope.launch {
             accountList.value = MainApplication.getApp().db.account().getPeers()
         }

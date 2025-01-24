@@ -1,15 +1,32 @@
 package io.github.freewebmovement.zz.system.persistence
 
 import android.content.SharedPreferences
+import io.github.freewebmovement.peer.IPScopeType
+import io.github.freewebmovement.peer.IPType
 import io.github.freewebmovement.peer.interfaces.IPreference
 
+@Suppress("UNCHECKED_CAST")
 class Preference(private val sharedPreference: SharedPreferences) : IPreference {
     override fun <T> save(key: String, value: T) {
-        var editor = sharedPreference.edit()
+        val editor = sharedPreference.edit()
         when (value) {
-            is Int -> editor.putInt(key, value as Int) as T
-            is String -> editor.putString(key, value as String) as T
-            is Boolean -> editor.putBoolean(key, value as Boolean) as T
+            is IPType -> {
+                val temp = when(value) {
+                    IPType.IPV6 -> 1
+                    else -> 0
+                }
+                editor.putInt(key, temp)
+            }
+            is IPScopeType -> {
+                val temp = when(value) {
+                    IPScopeType.PUBLIC -> 1
+                    else -> 0
+                }
+                editor.putInt(key, temp)
+            }
+            is Int -> editor.putInt(key, value as Int)
+            is String -> editor.putString(key, value as String)
+            is Boolean -> editor.putBoolean(key, value as Boolean)
             else -> {
                 throw IllegalArgumentException("Unsupported Type!")
             }
@@ -18,6 +35,20 @@ class Preference(private val sharedPreference: SharedPreferences) : IPreference 
     }
     override fun <T> read(key: String, value: T) : T {
         return when (value) {
+            is IPType -> {
+                val temp = sharedPreference.getInt(key, 0)
+                return when(temp) {
+                    1 -> IPType.IPV6 as T
+                    else -> IPType.IPV4 as T
+                }
+            }
+            is IPScopeType -> {
+                val temp = sharedPreference.getInt(key, 0)
+                return when(temp) {
+                    1 -> IPScopeType.PUBLIC as T
+                    else -> IPScopeType.LOCAL as T
+                }
+            }
             is Int -> sharedPreference.getInt(key, value as Int) as T
             is String -> sharedPreference.getString(key, value as String) as T
             is Boolean -> sharedPreference.getBoolean(key, value as Boolean) as T

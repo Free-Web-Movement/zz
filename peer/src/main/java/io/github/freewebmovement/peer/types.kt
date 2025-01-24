@@ -6,6 +6,11 @@ enum class IPType {
     IPV6
 }
 
+enum class IPScopeType {
+    LOCAL,
+    PUBLIC
+}
+
 enum class AddressScriptType {
     M2PK // Message to Public Key Script Type
 }

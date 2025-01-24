@@ -1,6 +1,7 @@
 package io.github.freewebmovement.zz.system.net
 
 import android.util.Log
+import io.github.freewebmovement.peer.IPScopeType
 import io.github.freewebmovement.peer.IPType
 import io.github.freewebmovement.peer.system.Settings
 import java.net.Inet4Address
@@ -100,16 +101,49 @@ class IPList private constructor(var settings: Settings) {
         return IPType.IPV4
     }
 
-    fun getPublicIP(): String {
-        if (ipv6IPPublic.isNotEmpty()) {
-            return ipv6IPPublic[0]
+    fun getIP(type: IPType, scope: IPScopeType): String {
+        when (type) {
+            IPType.IPV4 -> {
+                when (scope) {
+                    IPScopeType.LOCAL -> {
+                        if (ipv4IPLocal.isNotEmpty()) {
+                            return ipv4IPLocal[0]
+                        }
+                    }
+
+                    IPScopeType.PUBLIC -> {
+                        if (ipv4IPPublic.isNotEmpty()) {
+                            return ipv4IPPublic[0]
+                        }
+                    }
+                }
+            }
+
+            IPType.IPV6 -> {
+                when (scope) {
+                    IPScopeType.LOCAL -> {
+                        if (ipv6IPLocal.isNotEmpty()) {
+                            return ipv6IPLocal[0]
+                        }
+                    }
+
+                    IPScopeType.PUBLIC -> {
+                        if (ipv6IPPublic.isNotEmpty()) {
+                            return ipv6IPPublic[0]
+                        }
+                    }
+                }
+            }
         }
-        if (ipv4IPPublic.isNotEmpty()) {
-            return ipv4IPPublic[0]
-        }
-        if (ipv4IPLocal.isNotEmpty()) {
-            return ipv4IPLocal[0]
-        }
+//        if (ipv6IPPublic.isNotEmpty()) {
+//            return ipv6IPPublic[0]
+//        }
+//        if (ipv4IPPublic.isNotEmpty()) {
+//            return ipv4IPPublic[0]
+//        }
+//        if (ipv4IPLocal.isNotEmpty()) {
+//            return ipv4IPLocal[0]
+//        }
         return ""
     }
 

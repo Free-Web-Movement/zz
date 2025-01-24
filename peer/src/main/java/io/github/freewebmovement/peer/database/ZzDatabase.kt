@@ -1,10 +1,7 @@
 package io.github.freewebmovement.peer.database
 
-import androidx.room.ConstructedBy
 import androidx.room.Database
-import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.room.RoomDatabaseConstructor
 import io.github.freewebmovement.peer.database.entity.Account
 import io.github.freewebmovement.peer.database.entity.Message
 import io.github.freewebmovement.peer.database.entity.Peer
