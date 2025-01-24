@@ -42,7 +42,7 @@ fun AccountListText() {
             Text(it.account.nickname)
             Text(it.account.publicKey)
             it.peers.forEach { i ->
-                Text(i.accessibilityVerificationCode)
+                Text(i.authCode)
                 Text(i.getCode)
                 Text(i.baseUrl)
                 Text(i.ip)

@@ -50,10 +50,10 @@ fun Application.api(execute: IInstrumentedHandler) {
                     ipType = json.type!!,
                 )
                 peer.account = account.id
-                peer.accessibilityVerified = true
+                peer.authVerified = true
                 execute.addPeer(peer)
                 call.respondText(execute.signType(PublicKeyJSON()))
-                execute.accessVerify(json.accessibilityVerificationCode!!, peer, account)
+                execute.accessVerify(json.authCode!!, peer, account)
             }
 
 
@@ -65,8 +65,8 @@ fun Application.api(execute: IInstrumentedHandler) {
                 assert(execute.verify(signJSON.json, signJSON.signature.hexToByteArray(),
                     publicKey))
 //                val address = Crypto.toAddress(publicKey)
-                val peer = execute.getPeerByCode(json.accessibilityVerificationCode!!)
-                peer.accessibilityVerified = true
+                val peer = execute.getPeerByCode(json.authCode!!)
+                peer.authVerified = true
                 peer.latestSeen = Time.now()
                 execute.updatePeer(peer)
                 call.respondText(execute.signType(PublicKeyJSON()))

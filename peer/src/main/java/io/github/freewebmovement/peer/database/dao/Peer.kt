@@ -17,7 +17,7 @@ interface Peer {
     @Query("SELECT * FROM peer ORDER BY created_at DESC")
     suspend fun getAll(): List<Peer>
 
-    @Query("SELECT * FROM peer where access_verification_code = :code")
+    @Query("SELECT * FROM peer where auth_code = :code")
     suspend fun getByCode(code: String): Peer
 
     @Query("DELETE FROM peer")

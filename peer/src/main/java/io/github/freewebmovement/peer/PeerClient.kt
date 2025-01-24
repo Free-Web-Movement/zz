@@ -48,8 +48,8 @@ class PeerClient(private var client: HttpClient, private var execute: IInstrumen
     // Step 2. send your public key to the server
     suspend fun setPublicKey(peer: Peer, publicKey: PublicKey): HttpResponse {
         val json = execute.getPublicKeyJSON()
-        peer.accessibilityVerificationCode = peer.getCode
-        json.accessibilityVerificationCode = peer.accessibilityVerificationCode
+        peer.authCode = peer.getCode
+        json.authCode = peer.authCode
         execute.updatePeer(peer)
         val response = client.post(peer.baseUrl + "/api/key/public") {
             setBody(execute.signType(json))
@@ -66,7 +66,7 @@ class PeerClient(private var client: HttpClient, private var execute: IInstrumen
     //         Must not be executed in the same ip with step 1, 2
     suspend fun verifyAccessibility(code: String, peer: Peer, publicKey: PublicKey): HttpResponse {
         val json = execute.getPublicKeyJSON(true)
-        json.accessibilityVerificationCode = code
+        json.authCode = code
         val response = client.post(peer.baseUrl + "/api/code") {
             setBody(execute.signType(json))
         }

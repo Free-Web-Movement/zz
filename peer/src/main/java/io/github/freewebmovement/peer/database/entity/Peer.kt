@@ -23,11 +23,11 @@ data class Peer(
     @ColumnInfo(name = "account")
     var account: Int = 0
 
-    @ColumnInfo(name = "access_verification_code")
-    var accessibilityVerificationCode: String = ""
+    @ColumnInfo(name = "auth_code")
+    var authCode: String = ""
 
-    @ColumnInfo(name = "access_verified")
-    var accessibilityVerified: Boolean = false
+    @ColumnInfo(name = "auth_verified")
+    var authVerified: Boolean = false
 
     @ColumnInfo(name = "note")
     var note: String = ""

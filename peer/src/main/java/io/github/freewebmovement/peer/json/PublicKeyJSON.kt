@@ -9,6 +9,6 @@ data class PublicKeyJSON(
     var ip: String? = null,
     var port: Int? = null,
     var type: IPType? = null,
-    var accessibilityVerificationCode: String? = null,
+    var authCode: String? = null,
     var code : Int? = 0
     )
