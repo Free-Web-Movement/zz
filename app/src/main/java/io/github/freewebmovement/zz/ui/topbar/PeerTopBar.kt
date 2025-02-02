@@ -22,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import io.github.freewebmovement.peer.system.IPList
 import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.R
 import io.github.freewebmovement.zz.ui.common.ContentType
@@ -31,7 +32,8 @@ import io.github.freewebmovement.zz.ui.getTitle
 
 
 fun getUri(): String {
-    return MainApplication.getApp().ipList.getPublicUri()
+    val port = MainApplication.getApp().settings.network.localServerPort
+    return IPList.getPublicUri(port)
 }
 
 fun getIntent(uri: String, title: String): Intent {

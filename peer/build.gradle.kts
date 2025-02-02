@@ -20,8 +20,10 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.cio)
     implementation(libs.ktor.server.netty)
     implementation(libs.ktor.server.core)
+    implementation(libs.kmp.setting)
 
     val room_version = "2.7.0-alpha12"
     
@@ -39,4 +41,5 @@ dependencies {
 //    // optional - Kotlin Extensions and Coroutines support for Room
 //    implementation("androidx.room:room-ktx:$room_version")
 
+    testImplementation(libs.kotlin.test)
 }

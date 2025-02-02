@@ -28,7 +28,7 @@ fun LocalServerPort() {
         )
     }
     val app = MainApplication.getApp()
-    var port by remember { mutableIntStateOf(app.settings.localServerPort) }
+    var port by remember { mutableIntStateOf(app.settings.network.localServerPort) }
     Column {
         when (port) {
             0 -> {

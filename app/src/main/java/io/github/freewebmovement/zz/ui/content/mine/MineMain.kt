@@ -45,9 +45,9 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
         val app = MainApplication.getApp()
         val settings = app.settings
         with(settings) {
-            var nickname by remember { mutableStateOf(mineProfileNickname) }
-            var intro by remember { mutableStateOf(mineProfileIntro) }
-            val imageUri by remember { mutableStateOf<Uri?>(Uri.parse(mineProfileImageUri)) }
+            var nickname by remember { mutableStateOf(settings.profile.nickname) }
+            var intro by remember { mutableStateOf(settings.profile.intro) }
+            val imageUri by remember { mutableStateOf<Uri?>(Uri.parse(settings.profile.imageUri)) }
             if (nickname == "") {
                 nickname = stringResource(R.string.tab_mine_nickname)
             }

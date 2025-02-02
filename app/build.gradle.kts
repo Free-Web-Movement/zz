@@ -66,10 +66,13 @@ android {
 }
 
 dependencies {
-    implementation(libs.ktor.server.netty)
-    implementation(libs.ktor.server.core)
-    implementation(libs.ktor.ktor.server.content.negotiation)
-    implementation(libs.ktor.serialization.gson)
+    implementation(libs.kmp.setting)
+
+//    implementation(libs.ktor.server.netty)
+//    implementation(libs.ktor.server.core)
+//    implementation(libs.ktor.ktor.server.content.negotiation)
+//    implementation(libs.ktor.serialization.gson)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
@@ -82,17 +85,18 @@ dependencies {
     implementation(libs.androidx.junit.ktx)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.datastore.preferences.core)
+
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.jetbrains.kotlinx.coroutines.core)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    implementation(libs.androidx.room.paging)
-    implementation(libs.ktor.ktor.server.sessions)
-    implementation(libs.ktor.server.auth)
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.cio)
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.serialization.kotlinx.json)
+//    implementation(libs.androidx.room.paging)
+//    implementation(libs.ktor.ktor.server.sessions)
+//    implementation(libs.ktor.server.auth)
+//    implementation(libs.ktor.client.core)
+//    implementation(libs.ktor.client.cio)
+//    implementation(libs.ktor.client.content.negotiation)
+//    implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.activity.compose)
@@ -103,23 +107,23 @@ dependencies {
     implementation(libs.coil.network.okhttp)
     // Feature module support for Fragments
     implementation(libs.androidx.navigation.dynamic.features.fragment)
-    implementation(libs.kotlinx.serialization.json)
+//    implementation(libs.kotlinx.serialization.json)
     implementation(project(":peer"))
     implementation(libs.androidx.sqlite.bundled.android)
 
     // If this project uses any Kotlin source, use Kotlin Symbol Processing (KSP)
     // See Add the KSP plugin to your project
-    ksp(libs.androidx.room.compiler)
+//    ksp(libs.androidx.room.compiler)
 
     testImplementation(libs.junit)
     testImplementation(libs.mockito.kotlin)
-    testImplementation(libs.ktor.ktor.server.test.host)
+//    testImplementation(libs.ktor.ktor.server.test.host)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.core)
     testImplementation(libs.androidx.room.testing)
-    testImplementation(libs.ktor.client.mock)
+//    testImplementation(libs.ktor.client.mock)
 
 
     androidTestImplementation(libs.androidx.junit)

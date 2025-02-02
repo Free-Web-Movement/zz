@@ -54,9 +54,9 @@ fun ProfileEditor(updatePage: (value: PageType) -> Unit) {
     }
 
     with(MainApplication.getApp().settings) {
-        var nickname by remember { mutableStateOf(mineProfileNickname) }
-        var intro by remember { mutableStateOf(mineProfileIntro) }
-        var imageUri by remember { mutableStateOf<Uri?>(Uri.parse(mineProfileImageUri)) }
+        var nickname by remember { mutableStateOf(profile.nickname) }
+        var intro by remember { mutableStateOf(profile.intro) }
+        var imageUri by remember { mutableStateOf<Uri?>(Uri.parse(profile.imageUri)) }
         val pickMedia =
             rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
                 // Callback is invoked after the user selects a media item or closes the
@@ -139,9 +139,9 @@ fun ProfileEditor(updatePage: (value: PageType) -> Unit) {
                     updatePage(PageType.MineMain)
                 }) {
                     with(MainApplication.getApp().settings) {
-                            mineProfileImageUri = imageUri.toString()
-                        mineProfileNickname = nickname
-                        mineProfileIntro = intro
+                        profile.imageUri = imageUri.toString()
+                        profile.nickname = nickname
+                        profile.intro = intro
                     }
                     Text(stringResource(R.string.action_save))
                 }

@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import io.github.freewebmovement.peer.system.IPList
 import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.R
 
@@ -33,8 +34,12 @@ fun LocalServerShare() {
         val context = LocalContext.current
         val label = stringResource(R.string.clip_data_copied)
         val uriHandler = LocalUriHandler.current
+        val port = app.settings.network.localServerPort
         // Enable local IP interaction
-        app.ipList.toHTTPV4Uris(app.ipList.ipv4IPLocal).forEach {
+        IPList.toHTTPV4Uris(
+            IPList.ipv4IPLocal,
+            port
+        ).forEach {
             Text(it)
             Button(onClick = {
                 uriHandler.openUri(it)
@@ -43,7 +48,10 @@ fun LocalServerShare() {
                 toClipboard(label, it, context)
             }) { Text(stringResource(R.string.copy)) }
         }
-        app.ipList.toHTTPV4Uris(app.ipList.ipv4IPPublic).forEach {
+        IPList.toHTTPV4Uris(
+            IPList.ipv4IPPublic,
+            port
+        ).forEach {
             Text(it)
             Button(onClick = {
                 uriHandler.openUri(it)
@@ -54,7 +62,10 @@ fun LocalServerShare() {
         }
 
         Text(text = "IPV6")
-        app.ipList.toHTTPV6Uris(app.ipList.ipv6IPPublic).forEach {
+        IPList.toHTTPV6Uris(
+            IPList.ipv6IPPublic,
+            port
+        ).forEach {
             Text(it)
             Button(onClick = {
                 uriHandler.openUri(it)

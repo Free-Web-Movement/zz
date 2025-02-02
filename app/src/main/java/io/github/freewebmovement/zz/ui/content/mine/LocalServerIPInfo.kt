@@ -6,6 +6,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import io.github.freewebmovement.peer.system.IPList
 import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.ui.common.PageType
 
@@ -18,21 +19,34 @@ fun LocalServerIPInfo(updatePage: (value: PageType) -> Unit) {
     ) {
         Text(text = "IPV4")
         Text(text = "Local")
-        app.ipList.toHTTPV4Uris(app.ipList.ipv4IPLocal).forEach {
+        val port = app.settings.network.localServerPort
+        IPList.toHTTPV4Uris(
+            IPList.ipv4IPLocal,
+            port
+        ).forEach {
             Text(it)
         }
         Text(text = "Public")
-        app.ipList.toHTTPV4Uris(app.ipList.ipv4IPPublic).forEach {
+        IPList.toHTTPV4Uris(
+            IPList.ipv4IPPublic,
+            port
+        ).forEach {
             Text(it)
         }
 
         Text(text = "IPV6")
         Text(text = "Local")
-        app.ipList.toHTTPV6Uris(app.ipList.ipv6IPLocal).forEach {
+        IPList.toHTTPV6Uris(
+            IPList.ipv6IPLocal,
+            port
+        ).forEach {
             Text(it)
         }
         Text(text = "Public")
-        app.ipList.toHTTPV6Uris(app.ipList.ipv6IPPublic).forEach {
+        IPList.toHTTPV6Uris(
+            IPList.ipv6IPPublic,
+            port
+        ).forEach {
             Text(it)
         }
     }

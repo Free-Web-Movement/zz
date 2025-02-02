@@ -24,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import io.github.freewebmovement.peer.system.IPList
 import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.R
 import io.github.freewebmovement.zz.ui.common.ContentType
@@ -50,8 +51,9 @@ fun MineTopBar(
     var showDropDownMenu by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val app = MainApplication.getApp()
-    val uri = app.ipList.getPublicUri()
-    val localUri = app.ipList.getLocalUri()
+    val port = app.settings.network.localServerPort
+    val uri = IPList.getPublicUri(port)
+    val localUri = IPList.getLocalUri(port)
     val shareServerString = stringResource(R.string.share_server)
     val shareApkString = stringResource(R.string.share_app_apk)
     val sharePublicIPString = stringResource(R.string.share_app_apk_through_public_ip)

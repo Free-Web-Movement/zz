@@ -3,27 +3,25 @@ package io.github.freewebmovement.zz
 import android.content.Context
 import android.net.Uri
 import android.os.Environment
-import io.github.freewebmovement.peer.IInstrumentedHandler
-import io.github.freewebmovement.peer.IPScopeType
-import io.github.freewebmovement.peer.IPType
 import io.github.freewebmovement.peer.PeerClient
 import io.github.freewebmovement.peer.PeerServer
 import io.github.freewebmovement.peer.database.AppDatabase
 import io.github.freewebmovement.peer.interfaces.IApp
+import io.github.freewebmovement.peer.interfaces.IInstrumentedHandler
 import io.github.freewebmovement.peer.interfaces.IPreference
 import io.github.freewebmovement.peer.interfaces.IShare
 import io.github.freewebmovement.peer.json.PublicKeyJSON
 import io.github.freewebmovement.peer.json.UserJSON
-import io.github.freewebmovement.peer.system.Settings
+import io.github.freewebmovement.peer.system.IPList
+import io.github.freewebmovement.peer.system.KVSettings
 import io.github.freewebmovement.peer.system.crypto.Crypto
+import io.github.freewebmovement.peer.types.IPScopeType
+import io.github.freewebmovement.peer.types.IPType
 import io.github.freewebmovement.zz.system.Image
-import io.github.freewebmovement.zz.system.net.IPList
 import kotlinx.coroutines.CoroutineScope
 import java.io.File
 
 class MyApp(private var context: Context): IApp {
-
-    lateinit var ipList: IPList
 
     private lateinit var _preference: IPreference
     override var preference: IPreference
@@ -75,17 +73,17 @@ class MyApp(private var context: Context): IApp {
         set(value) {
             _db = value
         }
-    private lateinit var _settings: Settings
-    override var settings: Settings
+    private lateinit var _settings: KVSettings
+    override var settings: KVSettings
         get() = _settings
         set(value) {
             _settings = value
         }
 
     override fun setIpInfo(json: PublicKeyJSON) {
-        json.ip = ipList.getIP(IPType.IPV4, IPScopeType.LOCAL)
-        json.port = settings.localServerPort
-        json.type = ipList.getPublicType()
+        json.ip = IPList.getIP(IPType.IPV4, IPScopeType.LOCAL)
+        json.port = settings.network.localServerPort
+        json.type = IPList.getPublicType()
     }
 
     override fun getDownloadDir(): File {
@@ -96,9 +94,9 @@ class MyApp(private var context: Context): IApp {
     }
 
     override fun getProfile(): UserJSON {
-        val nickname = settings.mineProfileNickname
-        val intro = settings.mineProfileIntro
-        val imageUri = settings.mineProfileImageUri
+        val nickname = settings.profile.nickname
+        val intro = settings.profile.intro
+        val imageUri = settings.profile.imageUri
         var avatar = ""
         if (imageUri != "") {
             val uri: Uri = Uri.parse(imageUri)
