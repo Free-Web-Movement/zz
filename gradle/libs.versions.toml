@@ -6,26 +6,16 @@ bcpkixJdk15on = "1.56"
 coilCompose = "3.0.4"
 coilNetworkOkhttp = "3.0.4"
 core = "1.6.1"
-datastorePreferences = "1.1.1"
 kotlin = "2.1.0"
 coreKtx = "1.13.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
-espressoCore = "3.6.1"
 kotlinTest = "2.0.21"
 kotlinxCoroutinesAndroid = "1.10.1"
 kotlinxCoroutinesCoreVersion = "1.10.1"
 kotlinxSerializationJson = "1.7.3"
-ktorClientContentNegotiation = "3.0.2"
 ktorClientCore = "3.0.3"
 ktorClientCio = "3.0.2"
-ktorClientMock = "3.0.3"
-ktorSerializationGson = "3.0.2"
-ktorSerializationKotlinxJson = "3.0.2"
-ktorServerAuth = "3.0.2"
-ktorServerContentNegotiationVersion = "3.0.2"
-ktorServerSessionsVersion = "3.0.2"
-ktorServerTestHostVersion = "3.0.2"
 ktorUtilsVersion = "3.0.3"
 ktorVersion = "3.0.2"
 lifecycleRuntimeKtx = "2.8.7"
@@ -33,21 +23,11 @@ activityCompose = "1.9.3"
 composeBom = "2024.04.01"
 junitKtx = "1.2.1"
 lifecycleViewmodelCompose = "2.8.7"
-mockitoKotlin = "5.4.0"
-navigationFragment = "2.8.5"
-navigationUi = "2.8.5"
-navigationDynamicFeaturesFragment = "2.8.5"
-robolectric = "4.14"
 roomRuntime = "2.7.0-alpha12"
 roomKtx = "2.7.0-alpha12"
-roomPaging = "2.7.0-alpha12"
-roomCompiler = "2.7.0-alpha12"
-roomTesting = "2.7.0-alpha12"
-navigationCompose = "2.8.5"
 jetbrainsKotlinJvm = "2.1.0"
 sqliteBundledAndroid = "2.5.0-alpha13"
 kmpSettingVersion="1.2.0"
-sqliteBundledAndroidVersion = "2.5.0-alpha13"
 
 [libraries]
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
@@ -55,26 +35,20 @@ androidx-activity = { module = "androidx.activity:activity", version.ref = "acti
 androidx-core = { module = "androidx.test:core", version.ref = "core" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
-androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomCompiler" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomKtx" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
-androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "roomTesting" }
 bcpkix-jdk15on = { module = "org.bouncycastle:bcpkix-jdk15on", version.ref = "bcpkixJdk15on" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coilNetworkOkhttp" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
 jetbrains-kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCoreVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
-androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
-androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
-androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlinTest" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
@@ -82,11 +56,9 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktorClientCio" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktorClientCore" }
 ktor-ktor-utils = { module = "io.ktor:ktor-utils", version.ref = "ktorUtilsVersion" }
-ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktorSerializationKotlinxJson" }
 ktor-server-core = { module = "io.ktor:ktor-server-core" }
 ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktorVersion" }
 androidx-junit-ktx = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "junitKtx" }
-androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 androidx-sqlite-bundled-android = { group = "androidx.sqlite", name = "sqlite-bundled-android", version.ref = "sqliteBundledAndroid" }
 kmp-setting = {module="com.russhwolf:multiplatform-settings-no-arg", version.ref="kmpSettingVersion"}
 
