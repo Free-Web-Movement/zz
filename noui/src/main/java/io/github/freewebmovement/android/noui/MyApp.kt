@@ -3,6 +3,7 @@ package io.github.freewebmovement.android.noui
 import android.content.Context
 import android.net.Uri
 import android.os.Environment
+import com.russhwolf.settings.Settings
 import io.github.freewebmovement.peer.PeerClient
 import io.github.freewebmovement.peer.PeerManager
 import io.github.freewebmovement.peer.PeerServer
@@ -26,7 +27,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
-import com.russhwolf.settings.Settings
 
 class MyApp(private var context: Context) : IApp {
 
