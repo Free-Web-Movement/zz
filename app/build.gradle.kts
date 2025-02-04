@@ -81,15 +81,13 @@ dependencies {
 
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.jetbrains.kotlinx.coroutines.core)
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.activity.ktx)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
     // Feature module support for Fragments
     implementation(project(":peer"))
-    implementation(libs.androidx.sqlite.bundled.android)
+    implementation(project(":noui"))
 
     // If this project uses any Kotlin source, use Kotlin Symbol Processing (KSP)
     // See Add the KSP plugin to your project

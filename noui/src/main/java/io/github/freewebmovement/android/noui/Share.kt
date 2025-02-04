@@ -1,4 +1,4 @@
-package io.github.freewebmovement.zz.bussiness
+package io.github.freewebmovement.android.noui
 
 import android.content.Context
 import android.content.Intent
@@ -6,7 +6,6 @@ import android.content.pm.PackageManager
 import android.os.Environment
 import androidx.core.content.FileProvider
 import io.github.freewebmovement.peer.interfaces.IShare
-import io.github.freewebmovement.zz.MainApplication
 import java.io.File
 
 
@@ -25,10 +24,10 @@ class Share(private var context: Context) : IShare {
 
     override fun myApk(): File {
         // get the base.apk
-        val app = MainApplication.instance!!
+//        val app = MainApplication.instance!!
         val baseApkLocation =
-            app.applicationContext.packageManager.getApplicationInfo(
-                app.applicationContext.packageName,
+            context.packageManager.getApplicationInfo(
+                context.packageName,
                 PackageManager.GET_META_DATA
             ).sourceDir
         // get the file

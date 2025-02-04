@@ -26,7 +26,7 @@ fun AccountListText() {
     LaunchedEffect(Unit) {
         val scope = MainApplication.getApp().scope
         scope.launch {
-            accountList.value = MainApplication.getApp().db.account().getPeers()
+            accountList.value = MainApplication.getApp().getPeers()
         }
     }
 

@@ -17,7 +17,7 @@ import java.io.File
 class RoomHandler(private var app: IApp) : IInstrumentedHandler {
     override suspend fun addAccount(account: Account) {
         var find = app.db.account().getAccountByAddress(account.address)
-        if(find != null ) {
+        if (find != null) {
             account.id = find.id
             return
         }
@@ -74,10 +74,6 @@ class RoomHandler(private var app: IApp) : IInstrumentedHandler {
         return app.db.message().getMessagesByAddress(address)
     }
 
-    override suspend fun updateMessagesByAddress(address: String) {
-        app.db.message().updateMessagesByAddress(address)
-    }
-
     override suspend fun getAccountByAddress(address: String): Account? {
         return app.db.account().getAccountByAddress(address)
     }
@@ -92,7 +88,7 @@ class RoomHandler(private var app: IApp) : IInstrumentedHandler {
 
     override suspend fun getPublicKeyJSON(keyOnly: Boolean): PublicKeyJSON {
         val json = PublicKeyJSON(hex(app.crypto.publicKey.encoded))
-        if(keyOnly) return json
+        if (keyOnly) return json
         app.setIpInfo(json)
         return json
     }

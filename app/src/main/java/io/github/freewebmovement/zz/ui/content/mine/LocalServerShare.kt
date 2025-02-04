@@ -34,7 +34,7 @@ fun LocalServerShare() {
         val context = LocalContext.current
         val label = stringResource(R.string.clip_data_copied)
         val uriHandler = LocalUriHandler.current
-        val port = app.settings.network.localServerPort
+        val port = app.settings.network.port
         // Enable local IP interaction
         IPList.toHTTPV4Uris(
             IPList.ipv4IPLocal,

@@ -19,7 +19,7 @@ fun LocalServerIPInfo(updatePage: (value: PageType) -> Unit) {
     ) {
         Text(text = "IPV4")
         Text(text = "Local")
-        val port = app.settings.network.localServerPort
+        val port = app.settings.network.port
         IPList.toHTTPV4Uris(
             IPList.ipv4IPLocal,
             port

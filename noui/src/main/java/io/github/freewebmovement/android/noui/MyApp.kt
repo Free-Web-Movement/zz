@@ -1,4 +1,4 @@
-package io.github.freewebmovement.zz
+package io.github.freewebmovement.android.noui
 
 import android.content.Context
 import android.net.Uri
@@ -6,6 +6,7 @@ import android.os.Environment
 import io.github.freewebmovement.peer.PeerClient
 import io.github.freewebmovement.peer.PeerServer
 import io.github.freewebmovement.peer.database.AppDatabase
+import io.github.freewebmovement.peer.database.entity.AccountPeer
 import io.github.freewebmovement.peer.interfaces.IApp
 import io.github.freewebmovement.peer.interfaces.IInstrumentedHandler
 import io.github.freewebmovement.peer.interfaces.IPreference
@@ -17,7 +18,6 @@ import io.github.freewebmovement.peer.system.KVSettings
 import io.github.freewebmovement.peer.system.crypto.Crypto
 import io.github.freewebmovement.peer.types.IPScopeType
 import io.github.freewebmovement.peer.types.IPType
-import io.github.freewebmovement.zz.system.Image
 import kotlinx.coroutines.CoroutineScope
 import java.io.File
 
@@ -82,7 +82,7 @@ class MyApp(private var context: Context): IApp {
 
     override fun setIpInfo(json: PublicKeyJSON) {
         json.ip = IPList.getIP(IPType.IPV4, IPScopeType.LOCAL)
-        json.port = settings.network.localServerPort
+        json.port = settings.network.port
         json.type = IPList.getPublicType()
     }
 
@@ -100,8 +100,12 @@ class MyApp(private var context: Context): IApp {
         var avatar = ""
         if (imageUri != "") {
             val uri: Uri = Uri.parse(imageUri)
-            avatar = Image.toBase64(context, uri)
+            avatar = io.github.freewebmovement.android.noui.Image.toBase64(context, uri)
         }
         return UserJSON(nickname = nickname, intro = intro, avatar = avatar)
+    }
+
+    override suspend fun getPeers(): List<AccountPeer> {
+        return db.account().getPeers()
     }
 }

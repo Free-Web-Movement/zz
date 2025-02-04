@@ -94,7 +94,7 @@ data class NetworkSetting(
         field = IPScopeType.LOCAL
     )
 
-    var localServerPort: Int = 0
+    var port: Int = 0
         get() {
             field = preference.read(LOCAL_SERVER_PORT, 0)
             if (field == 0) {

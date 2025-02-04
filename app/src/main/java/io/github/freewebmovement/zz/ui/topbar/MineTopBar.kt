@@ -51,7 +51,7 @@ fun MineTopBar(
     var showDropDownMenu by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val app = MainApplication.getApp()
-    val port = app.settings.network.localServerPort
+    val port = app.settings.network.port
     val uri = IPList.getPublicUri(port)
     val localUri = IPList.getLocalUri(port)
     val shareServerString = stringResource(R.string.share_server)

@@ -1,4 +1,4 @@
-package io.github.freewebmovement.zz.system
+package io.github.freewebmovement.android.noui
 
 import android.content.Context
 import androidx.room.Room

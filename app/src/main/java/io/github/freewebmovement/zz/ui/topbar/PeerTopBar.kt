@@ -32,7 +32,7 @@ import io.github.freewebmovement.zz.ui.getTitle
 
 
 fun getUri(): String {
-    val port = MainApplication.getApp().settings.network.localServerPort
+    val port = MainApplication.getApp().settings.network.port
     return IPList.getPublicUri(port)
 }
 

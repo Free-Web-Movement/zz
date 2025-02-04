@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import io.github.freewebmovement.peer.types.IPType
 import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.R
-import io.github.freewebmovement.zz.system.IsValid
+import io.github.freewebmovement.android.noui.IsValid
 import io.github.freewebmovement.zz.ui.common.PageType
 import kotlinx.coroutines.launch
 
@@ -98,13 +98,13 @@ fun AddPeer(updatePage: ((value: PageType) -> Unit)) {
             onClick = {
                 val portNumber: Int
 
-                if (!IsValid.IP(ip.text)) {
+                if (!io.github.freewebmovement.android.noui.IsValid.IP(ip.text)) {
                     openIPDialog.value = true
                     return@Button
                 }
                 try {
                     portNumber = port.text.toInt()
-                    if (!IsValid.port(portNumber)) {
+                    if (!io.github.freewebmovement.android.noui.IsValid.port(portNumber)) {
                         openPortDialog.value = true
                         return@Button
                     }

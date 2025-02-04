@@ -21,7 +21,6 @@ interface IInstrumentedHandler {
     suspend fun initPeer(ip: String, port: Int, ipType: IPType)
 
     suspend fun getMessagesByAddress(address: String): List<Message>
-    suspend fun updateMessagesByAddress(address: String)
     suspend fun addMessage(message: Message)
     suspend fun updateMessage(message: Message)
 
