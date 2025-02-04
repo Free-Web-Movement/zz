@@ -29,10 +29,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import io.github.freewebmovement.android.noui.IsValid
 import io.github.freewebmovement.peer.types.IPType
 import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.R
-import io.github.freewebmovement.android.noui.IsValid
 import io.github.freewebmovement.zz.ui.common.PageType
 import kotlinx.coroutines.launch
 
@@ -98,13 +98,13 @@ fun AddPeer(updatePage: ((value: PageType) -> Unit)) {
             onClick = {
                 val portNumber: Int
 
-                if (!io.github.freewebmovement.android.noui.IsValid.IP(ip.text)) {
+                if (!IsValid.ip(ip.text)) {
                     openIPDialog.value = true
                     return@Button
                 }
                 try {
                     portNumber = port.text.toInt()
-                    if (!io.github.freewebmovement.android.noui.IsValid.port(portNumber)) {
+                    if (!IsValid.port(portNumber)) {
                         openPortDialog.value = true
                         return@Button
                     }

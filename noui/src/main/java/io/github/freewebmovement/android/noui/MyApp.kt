@@ -4,24 +4,31 @@ import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import io.github.freewebmovement.peer.PeerClient
+import io.github.freewebmovement.peer.PeerManager
 import io.github.freewebmovement.peer.PeerServer
 import io.github.freewebmovement.peer.database.AppDatabase
 import io.github.freewebmovement.peer.database.entity.AccountPeer
+import io.github.freewebmovement.peer.database.entity.Peer
 import io.github.freewebmovement.peer.interfaces.IApp
 import io.github.freewebmovement.peer.interfaces.IInstrumentedHandler
 import io.github.freewebmovement.peer.interfaces.IPreference
 import io.github.freewebmovement.peer.interfaces.IShare
 import io.github.freewebmovement.peer.json.PublicKeyJSON
 import io.github.freewebmovement.peer.json.UserJSON
+import io.github.freewebmovement.peer.realize.RoomHandler
 import io.github.freewebmovement.peer.system.IPList
 import io.github.freewebmovement.peer.system.KVSettings
+import io.github.freewebmovement.peer.system.Preference
 import io.github.freewebmovement.peer.system.crypto.Crypto
 import io.github.freewebmovement.peer.types.IPScopeType
 import io.github.freewebmovement.peer.types.IPType
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.File
+import com.russhwolf.settings.Settings
 
-class MyApp(private var context: Context): IApp {
+class MyApp(private var context: Context) : IApp {
 
     private lateinit var _preference: IPreference
     override var preference: IPreference
@@ -61,13 +68,13 @@ class MyApp(private var context: Context): IApp {
         set(value) {
             _client = value
         }
-     private lateinit var _server: PeerServer
+    private lateinit var _server: PeerServer
     override var server: PeerServer
         get() = _server
         set(value) {
             _server = value
         }
-     private lateinit var _db: AppDatabase
+    private lateinit var _db: AppDatabase
     override var db: AppDatabase
         get() = _db
         set(value) {
@@ -78,6 +85,13 @@ class MyApp(private var context: Context): IApp {
         get() = _settings
         set(value) {
             _settings = value
+        }
+
+    private lateinit var _peerManager: PeerManager
+    override var peerManager: PeerManager
+        get() = _peerManager
+        set(value) {
+            _peerManager = value
         }
 
     override fun setIpInfo(json: PublicKeyJSON) {
@@ -100,12 +114,41 @@ class MyApp(private var context: Context): IApp {
         var avatar = ""
         if (imageUri != "") {
             val uri: Uri = Uri.parse(imageUri)
-            avatar = io.github.freewebmovement.android.noui.Image.toBase64(context, uri)
+            avatar = Image.toBase64(context, uri)
         }
         return UserJSON(nickname = nickname, intro = intro, avatar = avatar)
     }
 
     override suspend fun getPeers(): List<AccountPeer> {
         return db.account().getPeers()
+    }
+
+    override fun startPeerManager() {
+        peerManager.start()
+    }
+
+    override fun stopPeerManager() {
+        peerManager.stop()
+    }
+    companion object {
+        fun new(context: Context): MyApp {
+            val app = MyApp(context)
+            app.scope = CoroutineScope(Dispatchers.IO)
+            app.scope.launch {
+                val settings = Settings()
+                app.preference = Preference(settings)
+                app.crypto = Crypto.getInstance(app.preference)
+                app.settings = KVSettings(app.preference)
+                app.share = Share(context)
+                app.db = getDatabase(context)
+                app.handler = RoomHandler(app)
+                app.client = PeerClient( app.handler)
+                val peer = Peer("0.0.0.0", app.settings.network.port, IPType.IPV4)
+                app.server = PeerServer(app, peer)
+                app.peerManager = PeerManager(app)
+                app.startPeerManager()
+            }
+            return app
+        }
     }
 }

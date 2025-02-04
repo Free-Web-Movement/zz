@@ -6,7 +6,7 @@ import android.util.Patterns
 
 class IsValid {
     companion object {
-        fun IP(ip: String): Boolean {
+        fun ip(ip: String): Boolean {
             return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 InetAddresses.isNumericAddress(ip)
             } else {

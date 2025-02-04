@@ -67,7 +67,6 @@ android {
 
 dependencies {
     implementation(libs.kmp.setting)
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)

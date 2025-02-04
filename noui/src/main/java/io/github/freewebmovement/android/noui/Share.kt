@@ -24,7 +24,6 @@ class Share(private var context: Context) : IShare {
 
     override fun myApk(): File {
         // get the base.apk
-//        val app = MainApplication.instance!!
         val baseApkLocation =
             context.packageManager.getApplicationInfo(
                 context.packageName,
