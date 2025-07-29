@@ -1,4 +1,5 @@
 package io.github.freewebmovement.zz
+
 import android.app.Application
 import io.github.freewebmovement.android.noui.MyApp
 
@@ -17,5 +18,10 @@ class MainApplication : Application() {
         instance = this
         app = MyApp.new(this)
         super.onCreate()
+    }
+
+    override fun onTerminate() {
+        super.onTerminate()
+        app.destroy()
     }
 }

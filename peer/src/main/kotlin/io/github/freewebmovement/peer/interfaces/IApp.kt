@@ -12,6 +12,14 @@ import io.github.freewebmovement.peer.system.crypto.Crypto
 import kotlinx.coroutines.CoroutineScope
 import java.io.File
 
+interface IAddress {
+    fun create(): Long;
+    fun destroy(id: Long);
+    fun destroy();
+    fun prefix(ptr: Long): String;
+    fun prefix(): String;
+}
+
 interface IApp {
     var preference: IPreference
     var scope: CoroutineScope
@@ -23,10 +31,12 @@ interface IApp {
     var db: AppDatabase
     var settings: KVSettings
     var peerManager: PeerManager
+    var address: IAddress
     fun setIpInfo(json: PublicKeyJSON)
     fun getDownloadDir(): File
     fun getProfile(): UserJSON
     suspend fun getPeers(): List<AccountPeer>
     fun startPeerManager()
     fun stopPeerManager()
+    fun destroy()
 }

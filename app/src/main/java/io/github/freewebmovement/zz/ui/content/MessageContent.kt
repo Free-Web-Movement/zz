@@ -6,13 +6,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import io.github.freewebmovement.zz.MainApplication
 import io.github.freewebmovement.zz.ui.common.TabType
+import rs.zz.coin.Address
 
 
 @Composable
 fun MessageContent(tabType: TabType, messages: ArrayList<String>) {
     Column {
+        val app = MainApplication.getApp()
         if(messages.isEmpty()) {
-            Text(text = "No Message available")
+//            Text(text = "No Message available")
+            Text(text = app.address.prefix())
         } else {
             messages.forEach { it
                 Text(text = it)

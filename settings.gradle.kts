@@ -21,5 +21,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "zz"
 include(":app")
-include(":peer")
 include(":noui")
+include(":peer")

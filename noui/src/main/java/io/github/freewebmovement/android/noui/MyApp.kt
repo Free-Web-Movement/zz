@@ -26,7 +26,10 @@ import io.github.freewebmovement.peer.types.IPType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import rs.zz.coin.Address
 import java.io.File
+import androidx.core.net.toUri
+import io.github.freewebmovement.peer.interfaces.IAddress
 
 class MyApp(private var context: Context) : IApp {
 
@@ -94,6 +97,13 @@ class MyApp(private var context: Context) : IApp {
             _peerManager = value
         }
 
+    private lateinit var _address: IAddress
+    override var address: IAddress
+        get() = _address
+        set(value) {
+            _address = value
+        }
+
     override fun setIpInfo(json: PublicKeyJSON) {
         json.ip = IPList.getIP(IPType.IPV4, IPScopeType.LOCAL)
         json.port = settings.network.port
@@ -113,7 +123,7 @@ class MyApp(private var context: Context) : IApp {
         val imageUri = settings.profile.imageUri
         var avatar = ""
         if (imageUri != "") {
-            val uri: Uri = Uri.parse(imageUri)
+            val uri: Uri = imageUri.toUri()
             avatar = Image.toBase64(context, uri)
         }
         return UserJSON(nickname = nickname, intro = intro, avatar = avatar)
@@ -130,6 +140,11 @@ class MyApp(private var context: Context) : IApp {
     override fun stopPeerManager() {
         peerManager.stop()
     }
+
+    override fun destroy() {
+        this.address.destroy()
+    }
+
     companion object {
         fun new(context: Context): MyApp {
             val app = MyApp(context)
@@ -148,6 +163,7 @@ class MyApp(private var context: Context) : IApp {
                 app.peerManager = PeerManager(app)
                 app.startPeerManager()
             }
+            app.address = Address()
             return app
         }
     }
