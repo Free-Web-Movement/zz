@@ -15,7 +15,11 @@ fun MessageContent(tabType: TabType, messages: ArrayList<String>) {
         val app = MainApplication.getApp()
         if(messages.isEmpty()) {
 //            Text(text = "No Message available")
-            Text(text = app.address.prefix())
+            val text = app.address.toString() +
+                    app.address.privateKey() +
+                    app.address.publicKey() +
+                    app.address.to()
+            Text(text)
         } else {
             messages.forEach { it
                 Text(text = it)

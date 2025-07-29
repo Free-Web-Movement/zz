@@ -18,6 +18,15 @@ interface IAddress {
     fun destroy();
     fun prefix(ptr: Long): String;
     fun prefix(): String;
+    fun toString(ptr: Long): String;
+    fun privateKey(ptr: Long): String
+    fun publicKey(ptr: Long): String
+    fun toJSON(ptr: Long): String;
+    fun fromJSON(json: String) : Long
+    fun privateKey(): String
+    fun publicKey(): String
+    fun to(): String;
+    fun from(json: String)
 }
 
 interface IApp {
