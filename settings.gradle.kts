@@ -23,3 +23,4 @@ rootProject.name = "zz"
 include(":app")
 include(":noui")
 include(":peer")
+include(":shared")
