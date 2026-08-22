@@ -1,8 +1,6 @@
 package io.github.freewebmovement.peer.interfaces
 
-import io.github.freewebmovement.peer.PeerClient
 import io.github.freewebmovement.peer.PeerManager
-import io.github.freewebmovement.peer.PeerServer
 import io.github.freewebmovement.peer.database.AppDatabase
 import io.github.freewebmovement.peer.database.entity.AccountPeer
 import io.github.freewebmovement.peer.json.PublicKeyJSON
@@ -35,8 +33,6 @@ interface IApp {
     var share: IShare
     var crypto: Crypto
     var handler: IInstrumentedHandler
-    var client: PeerClient
-    var server: PeerServer
     var db: AppDatabase
     var settings: KVSettings
     var peerManager: PeerManager

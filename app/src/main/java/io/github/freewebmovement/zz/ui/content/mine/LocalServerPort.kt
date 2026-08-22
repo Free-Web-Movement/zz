@@ -1,9 +1,11 @@
 package io.github.freewebmovement.zz.ui.content.mine
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -13,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
@@ -28,6 +31,7 @@ fun LocalServerPort() {
         )
     }
     val app = MainApplication.getApp()
+    val context = LocalContext.current
     var port by remember { mutableIntStateOf(app.settings.network.port) }
     Column {
         when (port) {
@@ -40,8 +44,8 @@ fun LocalServerPort() {
                     TextField(
                         value = port.toString(),
                         onValueChange = { v ->
-                            port = if(v.isNotEmpty()) {
-                                v.toInt()
+                            port = if (v.isNotEmpty()) {
+                                v.toIntOrNull() ?: port
                             } else {
                                 0
                             }
@@ -56,5 +60,24 @@ fun LocalServerPort() {
             }
         }
 
+        Row {
+            Button(
+                onClick = {
+                    val failed = runCatching {
+                        app.settings.network.port = port
+                    }.isFailure
+                    if (failed) {
+                        Toast.makeText(context, "无效端口", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+                    // restart the fwmc node with the new port
+                    app.restartFwmcNode(port)
+                    Toast.makeText(context, "端口已保存，节点重启中", Toast.LENGTH_SHORT).show()
+                },
+                modifier = Modifier.padding(2.dp)
+            ) {
+                Text(text = stringResource(R.string.action_save))
+            }
+        }
     }
 }

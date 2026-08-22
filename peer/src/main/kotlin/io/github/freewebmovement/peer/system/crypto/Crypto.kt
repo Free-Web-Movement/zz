@@ -3,7 +3,6 @@ package io.github.freewebmovement.peer.system.crypto
 import io.github.freewebmovement.peer.types.AddressScriptType
 import io.github.freewebmovement.peer.interfaces.IPreference
 import io.github.freewebmovement.peer.json.SignJSON
-import io.ktor.util.hex
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.bouncycastle.crypto.digests.RIPEMD160Digest
@@ -105,8 +104,9 @@ class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
             return strBytes.toString(StandardCharsets.UTF_8)
         }
 
+        @OptIn(ExperimentalStdlibApi::class)
         fun saveKey(preference: IPreference, key: String, value: ByteArray) {
-            preference.save(key, hex(value))
+            preference.save(key, value.toHexString())
         }
 
         @OptIn(ExperimentalStdlibApi::class)
@@ -119,8 +119,9 @@ class Crypto(aPrivateKey: PrivateKey, aPublicKey: PublicKey) {
             return revokePublicKey(key.hexToByteArray())
         }
 
+        @OptIn(ExperimentalStdlibApi::class)
         fun toHexString(key: PublicKey): String {
-            return hex(key.encoded)
+            return key.encoded.toHexString()
         }
 
         fun revokePublicKey(publicKeyBytes: ByteArray): PublicKey {

@@ -9,7 +9,6 @@ import io.github.freewebmovement.peer.json.UserJSON
 import io.github.freewebmovement.peer.system.crypto.Crypto
 import io.github.freewebmovement.peer.interfaces.IInstrumentedHandler
 import io.github.freewebmovement.peer.types.IPType
-import io.ktor.util.hex
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -56,18 +55,8 @@ class RoomHandler(private var app: IApp) : IInstrumentedHandler {
     }
 
     override suspend fun initPeer(ip: String, port: Int, ipType: IPType) {
-        val scope = app.scope
-
-        scope.launch {
-            // 1. Get Public Key From the Peer
-            val peer = Peer(ip = ip, port = port, ipType = ipType)
-            app.client.getPublicKey(peer)
-            // 2. Tell My Info to Peer
-            app.client.setPublicKey(peer, getCrypto())
-
-            // 3. Receive New Request From Peer to Verify My Accessibility
-        }
-
+        val peer = Peer(ip = ip, port = port, ipType = ipType)
+        addPeer(peer)
     }
 
     override suspend fun getMessagesByAddress(address: String): List<Message> {
@@ -86,8 +75,9 @@ class RoomHandler(private var app: IApp) : IInstrumentedHandler {
         app.db.message().update(message)
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     override suspend fun getPublicKeyJSON(keyOnly: Boolean): PublicKeyJSON {
-        val json = PublicKeyJSON(hex(app.crypto.publicKey.encoded))
+        val json = PublicKeyJSON(app.crypto.publicKey.encoded.toHexString())
         if (keyOnly) return json
         app.setIpInfo(json)
         return json

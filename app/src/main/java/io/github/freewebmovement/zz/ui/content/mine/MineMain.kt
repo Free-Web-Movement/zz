@@ -13,16 +13,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -175,5 +178,65 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
                 println("Server Clicked")
                 updatePage(PageType.MineServerShare)
             })
+
+        NodeControl(app)
+    }
+}
+
+@Composable
+private fun NodeControl(app: io.github.freewebmovement.android.noui.MyApp) {
+    var bump by remember { mutableIntStateOf(0) }
+    // poll node state so UI reacts to background start/stop
+    val polled = io.github.freewebmovement.zz.ui.common.rememberFwmcNodeSnapshot()
+    val snapshot = remember(bump, polled) { polled }
+    val running = snapshot.running
+    val port = snapshot.port
+    val address = snapshot.address
+    Column(modifier = Modifier.padding(vertical = 8.dp)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+        ) {
+            Text(
+                text = if (running) "fwmc 节点运行中 (端口 $port)" else "fwmc 节点未运行",
+                color = if (running) Color(0xFF2E7D32) else Color.Red,
+                modifier = Modifier.weight(1f),
+            )
+            if (running) {
+                Button(onClick = {
+                    app.fwmc?.stop()
+                    bump++
+                }) { Text("停止") }
+            } else {
+                Button(onClick = {
+                    app.restartFwmcNode(app.settings.network.port)
+                    bump++
+                }) { Text("启动") }
+            }
+        }
+        if (address.isNotEmpty()) {
+            SelectionContainer {
+                Text(
+                    text = "节点地址: $address",
+                    fontSize = 12.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                )
+            }
+        }
+        if (running && port > 0) {
+            SelectionContainer {
+                Text(
+                    text = "Web 界面: http://<本机IP>:$port/",
+                    fontSize = 12.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                )
+            }
+        }
     }
 }

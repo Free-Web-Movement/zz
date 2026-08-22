@@ -1,7 +1,7 @@
 [versions]
 activity = "1.9.3"
 activityKtx = "1.9.3"
-agp = "8.11.1"
+agp = "8.13.0"
 bcpkixJdk15on = "1.56"
 coilCompose = "3.0.4"
 coilNetworkOkhttp = "3.0.4"
@@ -14,10 +14,6 @@ kotlinTest = "2.0.21"
 kotlinxCoroutinesAndroid = "1.10.1"
 kotlinxCoroutinesCoreVersion = "1.10.1"
 kotlinxSerializationJson = "1.7.3"
-ktorClientCore = "3.0.3"
-ktorClientCio = "3.0.2"
-ktorUtilsVersion = "3.0.3"
-ktorVersion = "3.0.2"
 lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.9.3"
 composeBom = "2024.04.01"
@@ -31,8 +27,6 @@ kmpSettingVersion="1.2.0"
 espressoCore = "3.5.1"
 appcompat = "1.6.1"
 material = "1.10.0"
-kotlinStdlib = "2.1.0"
-runner = "1.5.2"
 
 [libraries]
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
@@ -59,19 +53,12 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlinTest" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
-ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktorClientCio" }
-ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktorClientCore" }
-ktor-ktor-utils = { module = "io.ktor:ktor-utils", version.ref = "ktorUtilsVersion" }
-ktor-server-core = { module = "io.ktor:ktor-server-core" }
-ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktorVersion" }
 androidx-junit-ktx = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "junitKtx" }
 androidx-sqlite-bundled-android = { group = "androidx.sqlite", name = "sqlite-bundled-android", version.ref = "sqliteBundledAndroid" }
 kmp-setting = {module="com.russhwolf:multiplatform-settings-no-arg", version.ref="kmpSettingVersion"}
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
-kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlinStdlib" }
-androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -79,6 +66,4 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
 android-library = { id = "com.android.library", version.ref = "agp" }
-kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 

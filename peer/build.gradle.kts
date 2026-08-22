@@ -18,13 +18,8 @@ kotlin {
 
 dependencies {
     implementation(libs.bcpkix.jdk15on)
-    implementation(libs.ktor.ktor.utils)
     implementation(libs.kotlinx.serialization.json)
 
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.cio)
-    implementation(libs.ktor.server.netty)
-    implementation(libs.ktor.server.core)
     implementation(libs.kmp.setting)
 
     implementation(libs.androidx.room.runtime)

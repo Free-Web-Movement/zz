@@ -4,12 +4,9 @@ import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import com.russhwolf.settings.Settings
-import io.github.freewebmovement.peer.PeerClient
 import io.github.freewebmovement.peer.PeerManager
-import io.github.freewebmovement.peer.PeerServer
 import io.github.freewebmovement.peer.database.AppDatabase
 import io.github.freewebmovement.peer.database.entity.AccountPeer
-import io.github.freewebmovement.peer.database.entity.Peer
 import io.github.freewebmovement.peer.interfaces.IApp
 import io.github.freewebmovement.peer.interfaces.IInstrumentedHandler
 import io.github.freewebmovement.peer.interfaces.IPreference
@@ -32,6 +29,35 @@ import androidx.core.net.toUri
 import io.github.freewebmovement.peer.interfaces.IAddress
 
 class MyApp(private var context: Context) : IApp {
+
+    var fwmc: FwmcNodeController? = null
+        private set
+
+    /** URL of the running fwmc node's web UI for [path] (e.g. "/chat"). */
+    fun fwmcWebUrl(path: String = "/"): String {
+        val ctrl = fwmc ?: return ""
+        if (!ctrl.isRunning) return ""
+        val base = ctrl.webUrl.trimEnd('/')
+        if (base.isEmpty()) return ""
+        return if (path.startsWith("/")) base + path else base + "/" + path
+    }
+
+    /**
+     * Restart the embedded fwmc node with the given [port]
+     * (ports <= 1024 fall back to a random free port in [1025, 65535],
+     * because the node registers its port in the P2P registry and cannot
+     * use the OS-ephemeral port 0).
+     */
+    fun restartFwmcNode(port: Int) {
+        fwmc?.destroy()
+        val effective = if (port > 1024) port else (1025..65535).random()
+        val dataDir = nodeDataDir()
+        val controller = FwmcNodeController(dataDir)
+        controller.start(effective)
+        fwmc = controller
+    }
+
+    fun nodeDataDir(): String = File(context.filesDir, "fwmc").absolutePath
 
     private lateinit var _preference: IPreference
     override var preference: IPreference
@@ -64,18 +90,6 @@ class MyApp(private var context: Context) : IApp {
         get() = _handler
         set(value) {
             _handler = value
-        }
-    private lateinit var _client: PeerClient
-    override var client: PeerClient
-        get() = _client
-        set(value) {
-            _client = value
-        }
-    private lateinit var _server: PeerServer
-    override var server: PeerServer
-        get() = _server
-        set(value) {
-            _server = value
         }
     private lateinit var _db: AppDatabase
     override var db: AppDatabase
@@ -142,6 +156,7 @@ class MyApp(private var context: Context) : IApp {
     }
 
     override fun destroy() {
+        this.fwmc?.destroy()
         this.address.destroy()
     }
 
@@ -157,11 +172,9 @@ class MyApp(private var context: Context) : IApp {
                 app.share = Share(context)
                 app.db = getDatabase(context)
                 app.handler = RoomHandler(app)
-                app.client = PeerClient( app.handler)
-                val peer = Peer("0.0.0.0", app.settings.network.port, IPType.IPV4)
-                app.server = PeerServer(app, peer)
                 app.peerManager = PeerManager(app)
                 app.startPeerManager()
+                app.restartFwmcNode(app.settings.network.port)
             }
             app.address = Address()
             return app

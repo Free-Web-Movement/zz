@@ -19,9 +19,9 @@ fun Tabs(
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         when (selectedTab) {
-            TabType.Sessions -> MessageContent(TabType.Sessions, ArrayList())
+            TabType.Sessions -> MessageContent()
             TabType.Peers -> PeerContent(page, updater)
-            TabType.Apps -> AppContent(TabType.Apps, updater)
+            TabType.Apps -> AppContent()
             TabType.Mine -> MinContent(page, updater)
         }
     }
