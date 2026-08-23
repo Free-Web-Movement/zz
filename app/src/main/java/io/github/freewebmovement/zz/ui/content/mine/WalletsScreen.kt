@@ -139,9 +139,15 @@ fun WalletsScreen() {
                                     }
                                 }
                             }
-                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 6.dp)) {
+                            // 地址完整可见：放不下自动换行 + 复制按钮
+                            Row(verticalAlignment = Alignment.Top, modifier = Modifier.padding(top = 6.dp)) {
                                 SelectionContainer {
-                                    MonoText(text = w.address, fontSize = 10, color = TextSecondary, maxLines = 1)
+                                    MonoText(
+                                        text = w.address,
+                                        fontSize = 10,
+                                        color = TextSecondary,
+                                        modifier = Modifier.weight(1f, fill = false),
+                                    )
                                 }
                                 val clip = androidx.compose.ui.platform.LocalClipboardManager.current
                                 val ctx = androidx.compose.ui.platform.LocalContext.current
@@ -151,7 +157,7 @@ fun WalletsScreen() {
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier
                                         .padding(start = 8.dp)
-                                        .size(15.dp)
+                                        .size(18.dp)
                                         .clickable {
                                             clip.setText(androidx.compose.ui.text.AnnotatedString(w.address))
                                             android.widget.Toast.makeText(ctx, ctx.getString(io.github.freewebmovement.zz.R.string.copied), android.widget.Toast.LENGTH_SHORT).show()

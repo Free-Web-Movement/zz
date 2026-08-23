@@ -5,12 +5,17 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -21,6 +26,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -31,6 +38,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -50,7 +60,7 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 import rs.zz.coin.FwmcApi
 
-private data class AcctRow(val id: String, val name: String)
+private data class AcctRow(val id: String, val name: String, val hasPassword: Boolean = false, val avatar: String = "")
 
 /**
  * 帐号管理：当前帐号标识 / 添加 / 删除 / 修复（重新验证密码）。
@@ -63,6 +73,7 @@ fun AccountScreen(updatePage: (io.github.freewebmovement.zz.ui.common.PageType) 
     var refresh by remember { mutableIntStateOf(0) }
     var showAdd by remember { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf<AcctRow?>(null) }
+    var pwProtectTarget by remember { mutableStateOf<AcctRow?>(null) }
     // id to mode: switch | repair
     var authTarget by remember { mutableStateOf<Pair<AcctRow, String>?>(null) }
 
@@ -72,13 +83,18 @@ fun AccountScreen(updatePage: (io.github.freewebmovement.zz.ui.common.PageType) 
             accounts = o.optJSONArray("accounts")?.let { arr ->
                 (0 until arr.length()).map { i ->
                     val e = arr.getJSONObject(i)
-                    AcctRow(e.optString("id"), e.optString("name"))
+                    val id = e.optString("id")
+                    val avatar = runCatching {
+                        JSONObject(FwmcApi.getProfile(id)).optJSONObject("profile")?.optString("avatar_path", "") ?: ""
+                    }.getOrDefault("")
+                    AcctRow(id, e.optString("name"), e.optBoolean("has_password", false), avatar)
                 }
             } ?: emptyList()
         }
     }
 
     LaunchedEffect(refresh) { load() }
+    LaunchedEffect(accountsRefreshSignal) { load() }
 
     Column(modifier = Modifier.fillMaxSize().background(WxBg)) {
         Row(
@@ -101,6 +117,25 @@ fun AccountScreen(updatePage: (io.github.freewebmovement.zz.ui.common.PageType) 
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 5.dp),
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(14.dp)) {
+                            // 头像：有则显示，无则默认人形
+                            if (a.avatar.startsWith("data:image/")) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
+                                        .data(a.avatar)
+                                        .build(),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.size(44.dp).clip(CircleShape),
+                                )
+                            } else {
+                                Image(
+                                    painter = painterResource(io.github.freewebmovement.zz.R.drawable.ic_default_avatar),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.size(44.dp).clip(CircleShape),
+                                )
+                            }
+                            Spacer(Modifier.width(12.dp))
                             Column(Modifier.weight(1f)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(a.name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
@@ -153,8 +188,15 @@ fun AccountScreen(updatePage: (io.github.freewebmovement.zz.ui.common.PageType) 
                                     },
                                 )
                                 Row {
+                                    Text("编辑", color = MaterialTheme.colorScheme.primary, fontSize = 13.sp,
+                                        modifier = Modifier.padding(top = 8.dp).clickable {
+                                            editAccount = a.id to a.name
+                                            updatePage(io.github.freewebmovement.zz.ui.common.PageType.MineUserEdit)
+                                        })
+                                    Text("私聊保护", color = MaterialTheme.colorScheme.primary, fontSize = 13.sp,
+                                        modifier = Modifier.padding(start = 16.dp, top = 8.dp).clickable { pwProtectTarget = a })
                                     Text("修复", color = TextMuted, fontSize = 13.sp,
-                                        modifier = Modifier.padding(top = 8.dp).clickable { authTarget = a to "repair" })
+                                        modifier = Modifier.padding(start = 16.dp, top = 8.dp).clickable { authTarget = a to "repair" })
                                     Text("删除", color = MaterialTheme.colorScheme.error, fontSize = 13.sp,
                                         modifier = Modifier.padding(start = 16.dp, top = 8.dp).clickable { deleteTarget = a })
                                 }
@@ -189,6 +231,14 @@ fun AccountScreen(updatePage: (io.github.freewebmovement.zz.ui.common.PageType) 
         )
     }
 
+    pwProtectTarget?.let { a ->
+        SetPasswordDialog(
+            account = a,
+            onDismiss = { pwProtectTarget = null },
+            onDone = { pwProtectTarget = null; refresh++ },
+        )
+    }
+
     authTarget?.let { (a, mode) ->
         AuthDialog(
             title = if (mode == "switch") "切换到「${a.name}」" else "修复「${a.name}」",
@@ -206,10 +256,79 @@ fun AccountScreen(updatePage: (io.github.freewebmovement.zz.ui.common.PageType) 
 }
 
 @Composable
+private fun SetPasswordDialog(
+    account: AcctRow,
+    onDismiss: () -> Unit,
+    onDone: () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    var oldPw by remember { mutableStateOf("") }
+    var newPw by remember { mutableStateOf("") }
+    var confirmPw by remember { mutableStateOf("") }
+    var err by remember { mutableStateOf<String?>(null) }
+    var busy by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = { if (!busy) onDismiss() },
+        title = { Text(if (account.hasPassword) "私聊保护 · 修改密码" else "私聊保护 · 设置密码") },
+        text = {
+            Column {
+                Text("设置密码后，查看该帐号的私聊需要输入密码。帐号默认无密码，可随时清除。", fontSize = 12.sp, color = TextMuted)
+                if (account.hasPassword) {
+                    OutlinedTextField(
+                        value = oldPw,
+                        onValueChange = { oldPw = it },
+                        label = { Text("原密码") },
+                        visualTransformation = PasswordVisualTransformation(),
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    )
+                }
+                OutlinedTextField(
+                    value = newPw,
+                    onValueChange = { newPw = it },
+                    label = { Text(if (account.hasPassword) "新密码" else "密码") },
+                    visualTransformation = PasswordVisualTransformation(),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                )
+                OutlinedTextField(
+                    value = confirmPw,
+                    onValueChange = { confirmPw = it },
+                    label = { Text("确认密码") },
+                    visualTransformation = PasswordVisualTransformation(),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                )
+                if (err != null) Text(err!!, color = MaterialTheme.colorScheme.error, fontSize = 13.sp, modifier = Modifier.padding(top = 6.dp))
+            }
+        },
+        confirmButton = {
+            TextButton(enabled = !busy, onClick = {
+                if (newPw.isEmpty()) { err = "请输入密码"; return@TextButton }
+                if (newPw != confirmPw) { err = "两次输入的密码不一致"; return@TextButton }
+                busy = true
+                scope.launch {
+                    val r = runCatching {
+                        JSONObject(FwmcApi.changePassword(account.id, oldPw, newPw))
+                    }.getOrDefault(JSONObject())
+                    busy = false
+                    if (r.optBoolean("success")) onDone() else err = r.optString("error", "设置失败")
+                }
+            }) { Text("保存") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(if (account.hasPassword) "取消" else "取消")
+            }
+        },
+    )
+}
+
+@Composable
 private fun AddAccountDialog(onDismiss: () -> Unit, onAdded: () -> Unit) {
     val scope = rememberCoroutineScope()
     var name by remember { mutableStateOf("") }
-    var pw by remember { mutableStateOf("") }
     var err by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -217,9 +336,6 @@ private fun AddAccountDialog(onDismiss: () -> Unit, onAdded: () -> Unit) {
         text = {
             Column {
                 OutlinedTextField(name, { name = it }, label = { Text("帐号名称") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(pw, { pw = it }, label = { Text("密码") },
-                    visualTransformation = PasswordVisualTransformation(), singleLine = true,
-                    modifier = Modifier.fillMaxWidth().padding(top = 10.dp))
                 Text("将自动生成 24 位临时数字 ID（创建时间+随机数）", fontSize = 11.sp, color = TextMuted, modifier = Modifier.padding(top = 8.dp))
                 if (err.isNotEmpty()) Text(err, color = MaterialTheme.colorScheme.error, fontSize = 12.sp, modifier = Modifier.padding(top = 6.dp))
             }
@@ -228,13 +344,13 @@ private fun AddAccountDialog(onDismiss: () -> Unit, onAdded: () -> Unit) {
             Button(
                 onClick = {
                     scope.launch {
-                        val r = runCatching { JSONObject(FwmcApi.createAccount(name.trim(), pw)) }.getOrDefault(JSONObject())
+                        val r = runCatching { JSONObject(FwmcApi.createAccount(name.trim(), "")) }.getOrDefault(JSONObject())
                         if (r.optBoolean("success")) {
                             FwmcSession.refresh(); onAdded()
                         } else err = r.optString("error", "创建失败")
                     }
                 },
-                enabled = name.isNotBlank() && pw.isNotBlank(),
+                enabled = name.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             ) { Text("创建") }
         },

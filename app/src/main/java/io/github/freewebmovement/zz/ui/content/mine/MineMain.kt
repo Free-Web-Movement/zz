@@ -68,10 +68,21 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
             val acctName = io.github.freewebmovement.zz.ui.content.FwmcSession.current?.second ?: ""
             var nickname by remember(acctName) { mutableStateOf(acctName.ifEmpty { settings.profile.nickname }) }
             var intro by remember { mutableStateOf(settings.profile.intro) }
-            val imageUri by remember {
+            val acctId = io.github.freewebmovement.zz.ui.content.FwmcSession.current?.first ?: ""
+            // 头像：优先显示当前帐号资料里的头像；否则用本地设置；再否则默认
+            var imageUri by remember(acctId) {
                 mutableStateOf<Uri?>(
                     settings.profile.imageUri.takeUnless { it.isEmpty() || it == "null" }?.let { Uri.parse(it) }
                 )
+            }
+            androidx.compose.runtime.LaunchedEffect(acctId) {
+                if (acctId.isNotEmpty()) {
+                    runCatching {
+                        val av = JSONObject(rs.zz.coin.FwmcApi.getProfile(acctId))
+                            .optJSONObject("profile")?.optString("avatar_path", "") ?: ""
+                        if (av.startsWith("data:image/")) imageUri = Uri.parse(av)
+                    }
+                }
             }
             if (nickname == "") {
                 nickname = stringResource(R.string.tab_mine_nickname)

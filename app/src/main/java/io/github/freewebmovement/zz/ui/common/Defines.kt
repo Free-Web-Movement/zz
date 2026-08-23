@@ -22,6 +22,7 @@ enum class PageType(i: Int) {
 
     MineMain(0x40),
     MineProfile(0x41),
+    MineUserEdit(0x42),
     MineAbout(0x46),
     MineFwmcProfile(0x47),
     MineWallet(0x48), MineAccounts(0x49)

@@ -25,7 +25,7 @@ object FwmcSession {
     }
 }
 
-/** 登录/注册页：无帐号时直接进入创建流程（临时数字ID+密码）。 */
+/** 登录/注册页：无帐号时直接进入创建流程（临时数字ID，密码可选）。 */
 @Composable
 fun LoginScreen() {
     val scope = rememberCoroutineScope()
@@ -77,7 +77,7 @@ fun LoginScreen() {
                     }
                 }
                 Spacer(Modifier.height(12.dp))
-                OutlinedTextField(password, { password = it }, label = { Text("密码") }, visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(password, { password = it }, label = { Text("密码（无密码帐号可留空）") }, visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(16.dp))
                 Button(
                     onClick = {
@@ -92,7 +92,7 @@ fun LoginScreen() {
                             }
                         }
                     },
-                    enabled = idOrName.isNotBlank() && password.isNotBlank(),
+                    enabled = idOrName.isNotBlank(),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     modifier = Modifier.fillMaxWidth(),
                 ) { Text(if (mode == "create") "创建帐号" else "登录", fontSize = 15.sp) }

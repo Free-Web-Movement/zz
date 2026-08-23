@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -22,6 +23,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -35,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -218,8 +221,30 @@ private fun ServerControlCard(running: Boolean, port: Int, address: String) {
         }
         if (address.isNotEmpty()) {
             Divider()
-            SelectionContainer {
-                MonoText(text = "地址 $address", fontSize = 11, color = TextSecondary, maxLines = 1)
+            Row(verticalAlignment = Alignment.Top) {
+                Text("地址 ", fontSize = 11.sp, color = TextSecondary, modifier = Modifier.padding(top = 2.dp))
+                SelectionContainer {
+                    MonoText(
+                        text = address,
+                        fontSize = 11,
+                        color = TextSecondary,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                }
+                val clip = androidx.compose.ui.platform.LocalClipboardManager.current
+                val ctx = LocalContext.current
+                Icon(
+                    painter = painterResource(id = io.github.freewebmovement.zz.R.drawable.ic_copy),
+                    contentDescription = "copy",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .size(18.dp)
+                        .clickable {
+                            clip.setText(androidx.compose.ui.text.AnnotatedString(address))
+                            android.widget.Toast.makeText(ctx, ctx.getString(io.github.freewebmovement.zz.R.string.copied), android.widget.Toast.LENGTH_SHORT).show()
+                        },
+                )
             }
         }
         Divider()

@@ -49,7 +49,15 @@ object FwmcApi {
         io { apiGetProfile(address) }
 
     suspend fun saveProfile(profileJson: String): String =
-        io { apiSaveProfile(profileJson) }
+        io { apiSaveProfile("", profileJson) }
+
+    /** 保存指定帐号（或空串=当前帐号）的资料。 */
+    suspend fun saveProfileFor(accountId: String, profileJson: String): String =
+        io { apiSaveProfile(accountId, profileJson) }
+
+    /** 上传指定帐号（或空串=当前帐号）的头像。 */
+    suspend fun setAvatarFor(accountId: String, data: ByteArray): String =
+        io { apiSetAvatarFor(accountId, data) }
 
     suspend fun transfer(to: String, amount: Long): String =
         io { apiTransfer(to, amount) }
@@ -101,6 +109,8 @@ object FwmcApi {
 
     /** Delete an account; wallets are not affected. */
     suspend fun deleteAccount(id: String): String = io { apiDeleteAccount(id) }
+    suspend fun renameAccount(id: String, name: String): String = io { apiRenameAccount(id, name) }
+    suspend fun changePassword(id: String, oldPw: String, newPw: String): String = io { apiChangePassword(id, oldPw, newPw) }
 
     /** List wallets: bound primary first, then local wallets. */
     suspend fun listWallets(): String = io { apiListWallets() }
@@ -132,7 +142,7 @@ object FwmcApi {
     private external fun apiGetChatMessages(contact: String): String
     private external fun apiSendChat(to: String, message: String): String
     private external fun apiGetProfile(address: String): String
-    private external fun apiSaveProfile(jsonBody: String): String
+    private external fun apiSaveProfile(address: String, jsonBody: String): String
     private external fun apiTransfer(to: String, amount: Long): String
     private external fun apiGetWitness(): String
     private external fun apiGetNodes(): String
@@ -141,6 +151,7 @@ object FwmcApi {
     private external fun apiAddSeed(ip: String, port: Int): String
     private external fun apiDeleteSeed(ip: String, port: Int): String
     private external fun apiSetAvatar(image: ByteArray): String
+    private external fun apiSetAvatarFor(address: String, image: ByteArray): String
     private external fun apiInitDataDir(dir: String): String
     private external fun apiListAccounts(): String
     private external fun apiCurrentAccount(): String
@@ -148,6 +159,8 @@ object FwmcApi {
     private external fun apiLogin(id: String, password: String): String
     private external fun apiLogout(): String
     private external fun apiDeleteAccount(id: String): String
+    private external fun apiRenameAccount(id: String, name: String): String
+    private external fun apiChangePassword(id: String, oldPw: String, newPw: String): String
     private external fun apiListWallets(): String
     private external fun apiCreateWallet(name: String, language: String): String
     private external fun apiCheckPort(port: Int): String
