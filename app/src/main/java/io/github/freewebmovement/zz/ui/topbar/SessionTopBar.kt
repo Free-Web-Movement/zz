@@ -27,8 +27,8 @@ fun SessionTopBar(
 ) {
     CenterAlignedTopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            titleContentColor = MaterialTheme.colorScheme.primary,
+            containerColor = io.github.freewebmovement.zz.ui.theme.CardBg,
+            titleContentColor = io.github.freewebmovement.zz.ui.theme.TextPrimary,
         ),
         title = {
             Text(getTitle(selectedTab))

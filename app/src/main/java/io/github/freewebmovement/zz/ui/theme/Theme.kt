@@ -1,57 +1,58 @@
 package io.github.freewebmovement.zz.ui.theme
 
-import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
+import io.github.freewebmovement.peer.interfaces.IPreference
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-)
+/** 当前主题状态（全局单例），切换即时生效并持久化。 */
+object AppTheme {
+    private const val KEY = "ui_theme_index"
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+    var index by mutableIntStateOf(0)
+        private set
 
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
+    val preset: ThemePreset
+        get() = THEMES[index.coerceIn(THEMES.indices)]
+
+    fun load(preference: IPreference?) {
+        index = preference?.read(KEY, 0)?.coerceIn(THEMES.indices) ?: 0
+    }
+
+    fun select(i: Int, preference: IPreference?) {
+        index = i.coerceIn(THEMES.indices)
+        preference?.save(KEY, index)
+    }
+}
+
+private fun schemeOf(p: ThemePreset) = lightColorScheme(
+    primary = p.primary,
     onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    primaryContainer = CardBg,
+    onPrimaryContainer = TextPrimary,
+    secondary = p.primaryDark,
+    background = WxBg,
+    onBackground = TextPrimary,
+    surface = CardBg,
+    onSurface = TextPrimary,
+    surfaceVariant = WxBg,
+    onSurfaceVariant = TextSecondary,
+    error = BadgeRed,
 )
 
 @Composable
 fun ZzTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = schemeOf(AppTheme.preset),
         typography = Typography,
         content = content
     )

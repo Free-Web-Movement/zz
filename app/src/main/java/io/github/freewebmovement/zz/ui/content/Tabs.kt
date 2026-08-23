@@ -7,7 +7,6 @@ import androidx.compose.ui.Modifier
 import io.github.freewebmovement.zz.ui.common.ContentType
 import io.github.freewebmovement.zz.ui.common.PageType
 import io.github.freewebmovement.zz.ui.common.TabType
-import java.util.ArrayList
 
 
 @Composable
@@ -20,8 +19,8 @@ fun Tabs(
     Box(modifier = modifier.fillMaxSize()) {
         when (selectedTab) {
             TabType.Sessions -> MessageContent()
-            TabType.Peers -> PeerContent(page, updater)
-            TabType.Apps -> AppContent()
+            TabType.Contacts -> ContactsContent()
+            TabType.Peers -> PeerContent()
             TabType.Mine -> MinContent(page, updater)
         }
     }

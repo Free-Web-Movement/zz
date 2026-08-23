@@ -47,8 +47,8 @@ fun TabView() {
                 page = when(selectedTab) {
                     TabType.Mine -> PageType.MineMain
                     TabType.Sessions -> PageType.SessionMain
+                    TabType.Contacts -> PageType.ContactMain
                     TabType.Peers -> PageType.PeerMain
-                    TabType.Apps -> PageType.AppMain
                 }
             },
         )

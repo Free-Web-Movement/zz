@@ -1,0 +1,18 @@
+<!-- 默认头像：灰底圆形 + 人形剪影，与通用图片图标区分 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#D6D6D6"
+        android:pathData="M54,54 m-54,0 a54,54 0 1,1 108,0 a54,54 0 1,1 -108,0" />
+    <path
+        android:fillColor="#9E9E9E"
+        android:pathData="M54,36 m-17,0 a17,17 0 1,1 34,0 a17,17 0 1,1 -34,0" />
+    <clip-path
+        android:pathData="M54,54 m-53,0 a53,53 0 1,1 106,0 a53,53 0 1,1 -106,0" />
+    <path
+        android:fillColor="#9E9E9E"
+        android:pathData="M54,62 C33,62 20,76 19,96 L89,96 C88,76 75,62 54,62 Z" />
+</vector>

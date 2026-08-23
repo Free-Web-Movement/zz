@@ -17,8 +17,8 @@ import io.github.freewebmovement.zz.ui.theme.black
 private fun getIcon(tab: TabType, selected: TabType): Int {
     return when(tab) {
         TabType.Sessions -> if (selected == tab) R.drawable.ic_chat_bubble_selected else R.drawable.ic_chat_bubble
+        TabType.Contacts -> if (selected == tab) R.drawable.ic_account_selected else R.drawable.ic_account
         TabType.Peers -> if (selected == tab) R.drawable.ic_server_selected else R.drawable.ic_server
-        TabType.Apps -> if (selected == tab) R.drawable.ic_app_selected else R.drawable.ic_app
         TabType.Mine -> if (selected == tab) R.drawable.ic_mine_selected else R.drawable.ic_mine
     }
 }
@@ -28,8 +28,8 @@ private fun getIcon(tab: TabType, selected: TabType): Int {
 fun getTitle(tab: TabType): String {
     return when(tab) {
         TabType.Sessions -> stringResource(R.string.title_session)
+        TabType.Contacts -> stringResource(R.string.title_contacts)
         TabType.Peers -> stringResource(R.string.title_peer)
-        TabType.Apps -> stringResource(R.string.title_app)
         TabType.Mine -> stringResource(R.string.title_mine)
     }
 }

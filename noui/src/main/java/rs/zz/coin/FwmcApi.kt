@@ -63,6 +63,61 @@ object FwmcApi {
     /** Known seed nodes. */
     suspend fun getSeeds(): String = io { apiGetSeeds() }
 
+    /** Resource weights (IP counts, witness eligibility, composite weight). */
+    suspend fun getWeights(): String = io { apiGetWeights() }
+
+    /** Add a seed server (ip, port); persists and connects immediately. */
+    suspend fun addSeed(ip: String, port: Int): String =
+        io { apiAddSeed(ip, port) }
+
+    /** Delete a seed server by (ip, port). */
+    suspend fun deleteSeed(ip: String, port: Int): String =
+        io { apiDeleteSeed(ip, port) }
+
+    /** Upload the local avatar image (JPEG/PNG bytes). */
+    suspend fun setAvatar(image: ByteArray): String =
+        io { apiSetAvatar(image) }
+
+    /** Set local data dir (accounts/wallets root); call once at app start. */
+    fun initDataDir(dir: String) {
+        apiInitDataDir(dir)
+    }
+
+    /** List local accounts (id/name). */
+    suspend fun listAccounts(): String = io { apiListAccounts() }
+
+    /** Currently logged-in account, if any. */
+    suspend fun currentAccount(): String = io { apiCurrentAccount() }
+
+    /** Create a local account (temp numeric id + password); auto-login. */
+    suspend fun createAccount(name: String, password: String): String =
+        io { apiCreateAccount(name, password) }
+
+    /** Login with account id + password. */
+    suspend fun login(id: String, password: String): String =
+        io { apiLogin(id, password) }
+
+    suspend fun logout(): String = io { apiLogout() }
+
+    /** Delete an account; wallets are not affected. */
+    suspend fun deleteAccount(id: String): String = io { apiDeleteAccount(id) }
+
+    /** List wallets: bound primary first, then local wallets. */
+    suspend fun listWallets(): String = io { apiListWallets() }
+
+    /** Create a wallet (random keypair); language = bip39 wordlist (english/chinese_simplified/...). Returns mnemonic for backup. */
+    suspend fun createWallet(name: String, language: String = "english"): String =
+        io { apiCreateWallet(name, language) }
+
+    /** Check whether a TCP port is free on 0.0.0.0. */
+    suspend fun checkPort(port: Int): String = io { apiCheckPort(port) }
+
+    /** Delete a non-bound wallet by name. */
+    suspend fun deleteWallet(name: String): String = io { apiDeleteWallet(name) }
+
+    /** Bind wallet as node primary (effective after node restart). */
+    suspend fun bindWallet(name: String): String = io { apiBindWallet(name) }
+
     private suspend inline fun io(crossinline block: () -> String): String =
         withContext(Dispatchers.IO) { block().ifEmpty { """{"success":false,"error":"empty"}""" } }
 
@@ -82,6 +137,22 @@ object FwmcApi {
     private external fun apiGetWitness(): String
     private external fun apiGetNodes(): String
     private external fun apiGetSeeds(): String
+    private external fun apiGetWeights(): String
+    private external fun apiAddSeed(ip: String, port: Int): String
+    private external fun apiDeleteSeed(ip: String, port: Int): String
+    private external fun apiSetAvatar(image: ByteArray): String
+    private external fun apiInitDataDir(dir: String): String
+    private external fun apiListAccounts(): String
+    private external fun apiCurrentAccount(): String
+    private external fun apiCreateAccount(name: String, password: String): String
+    private external fun apiLogin(id: String, password: String): String
+    private external fun apiLogout(): String
+    private external fun apiDeleteAccount(id: String): String
+    private external fun apiListWallets(): String
+    private external fun apiCreateWallet(name: String, language: String): String
+    private external fun apiCheckPort(port: Int): String
+    private external fun apiDeleteWallet(name: String): String
+    private external fun apiBindWallet(name: String): String
 
     init {
         System.loadLibrary("zz_rs")

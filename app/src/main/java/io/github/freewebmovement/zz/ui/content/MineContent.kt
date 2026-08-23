@@ -4,12 +4,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import io.github.freewebmovement.zz.ui.common.ContentType
 import io.github.freewebmovement.zz.ui.common.PageType
-import io.github.freewebmovement.zz.ui.content.mine.LocalServerIPInfo
-import io.github.freewebmovement.zz.ui.content.mine.LocalServerPort
-import io.github.freewebmovement.zz.ui.content.mine.LocalServerShare
+import io.github.freewebmovement.zz.ui.content.mine.AccountScreen
+import io.github.freewebmovement.zz.ui.content.mine.WalletsScreen
+import io.github.freewebmovement.zz.ui.content.mine.FwmcProfileScreen
 import io.github.freewebmovement.zz.ui.content.mine.MineMain
 import io.github.freewebmovement.zz.ui.content.mine.ProfileEditor
-import io.github.freewebmovement.zz.ui.content.mine.UpdateKeys
 
 @Composable
 fun MinContent(page: PageType, updater: (page: PageType, value: ContentType) -> Unit) {
@@ -20,17 +19,12 @@ fun MinContent(page: PageType, updater: (page: PageType, value: ContentType) -> 
         PageType.MineProfile -> ProfileEditor {
             updater(it, ContentType.NonStacked)
         }
-        PageType.MineServerPort -> LocalServerPort()
-        PageType.MineServerIP -> LocalServerIPInfo {
-            updater(it, ContentType.NonStacked)
+        PageType.MineFwmcProfile -> FwmcProfileScreen()
+        PageType.MineAccounts -> AccountScreen {
+            updater(it, ContentType.Stacked)
         }
-        PageType.MineKey -> UpdateKeys {
-            updater(it, ContentType.NonStacked)
-        }
-
-        PageType.MineServerShare -> LocalServerShare()
+        PageType.MineWallet -> WalletsScreen()
         else -> {
-
         }
     }
 }

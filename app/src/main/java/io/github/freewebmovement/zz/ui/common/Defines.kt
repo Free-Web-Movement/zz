@@ -4,8 +4,8 @@ import androidx.compose.ui.graphics.Color
 
 enum class TabType {
     Sessions,
+    Contacts,
     Peers,
-    Apps,
     Mine,
 }
 
@@ -17,18 +17,14 @@ enum class ContentType {
 
 enum class PageType(i: Int) {
     SessionMain(0x10),
+    ContactMain(0x15),
     PeerMain(0x20),
-    PeerAdd(0x21),
-    AppMain(0x30),
-
 
     MineMain(0x40),
     MineProfile(0x41),
-    MineKey(0x42),
-    MineServerIP(0x43),
-    MineServerPort (0x44),
-    MineServerShare (0x45),
-    MineAbout (0x46)
+    MineAbout(0x46),
+    MineFwmcProfile(0x47),
+    MineWallet(0x48), MineAccounts(0x49)
 }
 
 val rainbowColors: List<Color> = listOf(

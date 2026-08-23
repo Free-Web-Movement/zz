@@ -95,6 +95,7 @@ dependencies {
 
 
     androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation("androidx.test:runner:1.5.2")
     androidTestImplementation(platform(libs.androidx.compose.bom))
 
 }

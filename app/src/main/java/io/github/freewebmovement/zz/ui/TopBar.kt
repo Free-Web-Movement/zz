@@ -19,8 +19,8 @@ fun TopBar(
 ) {
     when (selectedTab) {
         TabType.Sessions -> SessionTopBar(selectedTab, stacked)
+        TabType.Contacts -> SessionTopBar(selectedTab, stacked)
         TabType.Peers -> PeerTopBar(selectedTab, stacked, updater)
-        TabType.Apps -> AppTopBar(selectedTab, stacked)
         TabType.Mine -> MineTopBar(selectedTab, stacked, updater)
     }
 }

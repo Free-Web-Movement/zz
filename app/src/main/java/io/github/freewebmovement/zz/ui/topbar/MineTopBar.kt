@@ -56,8 +56,6 @@ fun MineTopBar(
     val localUri = IPList.getLocalUri(port)
     val shareServerString = stringResource(R.string.share_server)
     val shareApkString = stringResource(R.string.share_app_apk)
-    val sharePublicIPString = stringResource(R.string.share_app_apk_through_public_ip)
-    val shareLocalIPString = stringResource(R.string.share_app_apk_through_local_ip)
 //    val shareNoPublicIPString = stringResource(R.string.share_app_apk_no_public_ip)
     val noIpStr = stringResource(R.string.share_app_apk_no_public_ip)
 //    val i = Intent(Intent.ACTION_SEND)
@@ -68,8 +66,8 @@ fun MineTopBar(
 //    }
     CenterAlignedTopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            titleContentColor = MaterialTheme.colorScheme.primary,
+            containerColor = io.github.freewebmovement.zz.ui.theme.CardBg,
+            titleContentColor = io.github.freewebmovement.zz.ui.theme.TextPrimary,
         ),
         title = {
             Text(getTitle(selectedTab))
@@ -112,43 +110,8 @@ fun MineTopBar(
                         showDropDownMenu = false
                         if (uri != "") {
                             share(shareServerString, uri, context)
-//                            content.startActivity(Intent.createChooser(i, title))
                         } else {
                             Toast.makeText(context, noIpStr, Toast.LENGTH_SHORT).show()
-                        }
-                        updater(PageType.MineServerShare, ContentType.Stacked)
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text(text = sharePublicIPString) },
-                    leadingIcon = {
-                        Icon(
-                            Icons.Filled.Share,
-                            sharePublicIPString
-                        )
-                    },
-                    onClick = {
-                        showDropDownMenu = false
-                        if (uri != "") {
-                            share(sharePublicIPString, "$uri/app/download/apk", context)
-//                            content.startActivity(Intent.createChooser(i, title))
-                        } else {
-                            Toast.makeText(context, noIpStr, Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text(text = shareLocalIPString) },
-                    leadingIcon = {
-                        Icon(
-                            Icons.Filled.Share,
-                            shareLocalIPString
-                        )
-                    },
-                    onClick = {
-                        showDropDownMenu = false
-                        if (localUri != "") {
-                            share(shareLocalIPString, "$localUri/app/download/apk", context)
                         }
                     }
                 )

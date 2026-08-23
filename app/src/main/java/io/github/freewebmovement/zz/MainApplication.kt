@@ -17,6 +17,7 @@ class MainApplication : Application() {
     override fun onCreate() {
         instance = this
         app = MyApp.new(this)
+        rs.zz.coin.FwmcApi.initDataDir(app.nodeDataDir())
         super.onCreate()
     }
 
