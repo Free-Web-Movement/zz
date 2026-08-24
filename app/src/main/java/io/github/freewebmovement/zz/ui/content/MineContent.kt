@@ -4,11 +4,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import io.github.freewebmovement.zz.ui.common.ContentType
 import io.github.freewebmovement.zz.ui.common.PageType
-import io.github.freewebmovement.zz.ui.content.mine.AccountScreen
-import io.github.freewebmovement.zz.ui.content.mine.WalletsScreen
-import io.github.freewebmovement.zz.ui.content.mine.FwmcProfileScreen
-import io.github.freewebmovement.zz.ui.content.mine.MineMain
-import io.github.freewebmovement.zz.ui.content.mine.ProfileEditor
+import io.github.freewebmovement.zz.ui.content.user.AccountScreen
+import io.github.freewebmovement.zz.ui.content.user.WalletsScreen
+import io.github.freewebmovement.zz.ui.content.user.FwmcProfileScreen
+import io.github.freewebmovement.zz.ui.content.user.MineMain
+import io.github.freewebmovement.zz.ui.content.user.ProfileEditor
 import io.github.freewebmovement.zz.ui.content.user.UserProfileEditor
 
 @Composable

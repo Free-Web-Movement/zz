@@ -59,6 +59,10 @@ object FwmcApi {
     suspend fun setAvatarFor(accountId: String, data: ByteArray): String =
         io { apiSetAvatarFor(accountId, data) }
 
+    /** 生成二维码矩阵（返回 width + 0/1 位串）。 */
+    suspend fun qrMatrix(data: String): String = io { apiQrMatrix(data) }
+
+
     suspend fun transfer(to: String, amount: Long): String =
         io { apiTransfer(to, amount) }
 
@@ -152,6 +156,7 @@ object FwmcApi {
     private external fun apiDeleteSeed(ip: String, port: Int): String
     private external fun apiSetAvatar(image: ByteArray): String
     private external fun apiSetAvatarFor(address: String, image: ByteArray): String
+    private external fun apiQrMatrix(data: String): String
     private external fun apiInitDataDir(dir: String): String
     private external fun apiListAccounts(): String
     private external fun apiCurrentAccount(): String

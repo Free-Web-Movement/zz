@@ -13,28 +13,27 @@ import org.junit.runner.RunWith
 import rs.zz.coin.FwmcApi
 
 /**
- * 帐号-资料对应关系测试用例（需真机/模拟器运行）：
- * 1. 创建帐号 → ID 为 24 位纯数字（创建时间+随机数），且与钱包地址算法无关
- * 2. 编辑资料（昵称+签名）→ 保存到 FWMC → 再读取应与当前帐号对应一致
- * 3. listAccounts 能查到该帐号；currentAccount 指向它
+ * 钱包即帐号：每个钱包 = 一个帐号（身份绑定钱包地址）。
+ * 1. 创建钱包 → 即创建帐号（Peer ID = 钱包地址）
+ * 2. 选择钱包（绑定）= 选择帐号
+ * 3. 资料按钱包地址独立存储；删除钱包=删除帐号（目录一并删除）
  */
 @RunWith(AndroidJUnit4::class)
 class AccountProfileTest {
 
     private var nodePtr: Long = 0
+    private val cleaned = mutableListOf<String>()
 
     @Before
     fun setUp() {
         val ctx = InstrumentationRegistry.getInstrumentation().targetContext
         val dir = java.io.File(ctx.cacheDir, "fwmc_test").apply { deleteRecursively(); mkdirs() }.absolutePath
         FwmcApi.initDataDir(dir)
-        // 资料保存依赖节点运行：启动测试节点
         val port = 27600 + (System.currentTimeMillis() % 100).toInt()
         nodePtr = rs.zz.coin.FwmcNode().start(port, dir)
-        // 等待节点就绪
         var ready = false
         repeat(30) {
-            val ok = kotlinx.coroutines.runBlocking {
+            val ok = runBlocking {
                 runCatching { JSONObject(FwmcApi.getData()).optBoolean("success") }.getOrDefault(false)
             }
             if (ok) { ready = true; return@repeat }
@@ -45,116 +44,79 @@ class AccountProfileTest {
 
     @After
     fun tearDown() {
+        cleaned.forEach {
+            runBlocking { runCatching { JSONObject(FwmcApi.deleteAccount(it)) } }
+        }
         if (nodePtr != 0L) rs.zz.coin.FwmcNode().stop(nodePtr)
     }
 
     @Test
-    fun accountProfileFlow() = runBlocking {
+    fun walletIsAccountFlow() {
         val ctx = InstrumentationRegistry.getInstrumentation().targetContext
-        // ---- 1. 创建帐号 ----
-        val name = "test_" + System.currentTimeMillis()
-        val created = JSONObject(FwmcApi.createAccount(name, "pw123456"))
-        assertTrue("createAccount 应成功: $created", created.optBoolean("success"))
-        val id = created.optString("id")
-        assertTrue("ID 应为 24 位纯数字, got=$id", id.length == 24 && id.all { it.isDigit() })
+        runBlocking {
+        // ---- 1. 创建钱包 = 创建帐号 ----
+        val name = "acct_" + System.currentTimeMillis()
+        val created = JSONObject(FwmcApi.createWallet(name, "english"))
+        assertTrue("createWallet 应成功: $created", created.optBoolean("success"))
+        val addr = created.optString("address")
+        assertTrue("钱包地址(Peer ID)应非空", addr.isNotEmpty())
+        val mnemonic = created.optString("mnemonic")
+        assertTrue("应返回助记词", mnemonic.split(Regex("\\s+")).size >= 12)
 
-        // ---- 2. currentAccount 指向新帐号 ----
+        // 创建钱包必须同步创建其用户 Profile 目录（一个钱包一个帐号）
+        val userDir = java.io.File(ctx.filesDir, "fwmc/users/$addr")
+        assertTrue("创建钱包应生成用户目录: $userDir", userDir.exists())
+        assertTrue("用户目录应有 profile.json", java.io.File(userDir, "profile.json").exists())
+
+        // ---- 2. 列表里它就是帐号 ----
+        val listRaw = FwmcApi.listAccounts()
+        val list = JSONObject(listRaw).optJSONArray("accounts")
+        val found = list?.let { arr ->
+            (0 until arr.length())
+                .map { arr.getJSONObject(it) }
+                .any { it.optString("id") == addr }
+        } ?: false
+        assertTrue("listAccounts 应包含该钱包 as acct; raw=$listRaw addr=$addr", found)
+
+        // ---- 3. 选择钱包 = 选择帐号（绑定后 currentAccount 指向它）----
+        val bind = JSONObject(FwmcApi.login(addr, ""))
+        assertTrue("选择钱包应成功: $bind", bind.optBoolean("success"))
         val cur = JSONObject(FwmcApi.currentAccount())
         assertTrue(cur.optBoolean("success"))
-        assertEquals("当前帐号应为刚创建的帐号", id, cur.optString("id"))
+        assertEquals("当前帐号应为所选钱包", addr, cur.optString("id"))
 
-        // ---- 3. 昵称/签名保存并回读一致 ----
+        // ---- 4. 资料按钱包地址独立存储 ----
         val nickname = "昵称_$name"
-        val bio = "签名_${System.currentTimeMillis()}"
         val saved = JSONObject(
-            FwmcApi.saveProfile(JSONObject().apply {
-                put("name", nickname)
-                put("notes", bio)
+            FwmcApi.saveProfileFor(addr, JSONObject().apply {
+                put("nickname", nickname)
             }.toString())
         )
-        assertTrue("saveProfile 应成功: $saved", saved.optBoolean("success"))
+        assertTrue("saveProfileFor 应成功: $saved", saved.optBoolean("success"))
+        assertEquals("资料应绑定钱包地址", nickname,
+            JSONObject(FwmcApi.getProfile(addr)).optJSONObject("profile")!!.optString("nickname"))
 
-        val raw = FwmcApi.getProfile()
-        val loaded = JSONObject(raw).optJSONObject("profile")!!
-        assertTrue("昵称应对应当前帐号 raw=$raw", nickname == loaded.optString("name"))
-        assertEquals("签名应对应当前帐号", bio, loaded.optString("notes"))
-
-        // ---- 4. listAccounts 包含该帐号 ----
-        val list = JSONObject(FwmcApi.listAccounts()).optJSONArray("accounts")!!
-        val ids = (0 until list.length()).map { list.getJSONObject(it).optString("id") }
-        assertTrue("listAccounts 应包含新帐号", ids.contains(id))
-
-        // ---- 5. 编辑帐号：重命名 + 修改密码 ----
-        val renamed = JSONObject(FwmcApi.renameAccount(id, "$name-renamed"))
-        assertTrue("renameAccount 应成功: $renamed", renamed.optBoolean("success"))
-        val list2 = JSONObject(FwmcApi.listAccounts()).optJSONArray("accounts")!!
-        val nm = (0 until list2.length())
-            .map { list2.getJSONObject(it) }
-            .firstOrNull { it.optString("id") == id }
-        assertTrue("改名后应能查到该帐号", nm != null)
-        assertEquals("名称应为新名", "$name-renamed", nm!!.optString("name"))
-
-        val pwOk = JSONObject(FwmcApi.changePassword(id, "pw123456", "pw654321"))
-        assertTrue("changePassword 应成功: $pwOk", pwOk.optBoolean("success"))
-
-        // 旧密码登录失败，新密码登录成功
-        val badLogin = JSONObject(FwmcApi.login(id, "pw123456"))
-        assertTrue("旧密码不应能登录", !badLogin.optBoolean("success"))
-        val goodLogin = JSONObject(FwmcApi.login(id, "pw654321"))
-        assertTrue("新密码应能登录: $goodLogin", goodLogin.optBoolean("success"))
-
-        // ---- 6a. 一个帐号一个目录：资料按帐号隔离，删除帐号即删目录 ----
-        val idA = JSONObject(FwmcApi.createAccount("dirA_$name", "")).optString("id")
-        JSONObject(FwmcApi.saveProfileFor(idA, JSONObject().apply {
-            put("name", "A资料")
-        }.toString()))
-        // 再建 B（自动成为当前帐号）
-        val idB = JSONObject(FwmcApi.createAccount("dirB_$name", "")).optString("id")
-        JSONObject(FwmcApi.saveProfileFor(idB, JSONObject().apply {
-            put("name", "B资料")
-        }.toString()))
-        // 当前帐号(B)与指定帐号(A) 各自独立
-        assertEquals("B 资料独立保存", "B资料",
-            JSONObject(FwmcApi.getProfile()).optJSONObject("profile")!!.optString("name"))
-        assertEquals("A 资料独立保存", "A资料",
-            JSONObject(FwmcApi.getProfile(idA)).optJSONObject("profile")!!.optString("name"))
-        assertEquals("B 资料独立保存(指定id)", "B资料",
-            JSONObject(FwmcApi.getProfile(idB)).optJSONObject("profile")!!.optString("name"))
-        // 帐号头像：按帐号上传并可读
-        val avOk = JSONObject(FwmcApi.setAvatarFor(idB, ByteArray(64) { it.toByte() })).optBoolean("success")
+        // ---- 5. 头像按钱包上传并可读 ----
+        val avOk = JSONObject(FwmcApi.setAvatarFor(addr, ByteArray(64) { it.toByte() })).optBoolean("success")
         assertTrue("setAvatarFor 应成功", avOk)
-        val avPath = JSONObject(FwmcApi.getProfile(idB)).optJSONObject("profile")!!.optString("avatar_path")
-        assertTrue("帐号头像应可读(data uri)", avPath.startsWith("data:image/"))
-        val avA = JSONObject(FwmcApi.getProfile(idA)).optJSONObject("profile")!!.optString("avatar_path")
-        assertTrue("A 帐号不应有 B 的头像", !avA.startsWith("data:image/") || avA.isEmpty())
+        val avPath = JSONObject(FwmcApi.getProfile(addr)).optJSONObject("profile")!!.optString("avatar_path")
+        assertTrue("钱包头像应可读", avPath.startsWith("data:image/"))
 
-        // 删除 A → A 的目录被清，B 不受影响
-        JSONObject(FwmcApi.deleteAccount(idA))
-        assertEquals("删除后 A 资料目录应被清除", "",
-            JSONObject(FwmcApi.getProfile(idA)).optJSONObject("profile")!!.optString("name"))
-        assertEquals("B 资料不受影响", "B资料",
-            JSONObject(FwmcApi.getProfile(idB)).optJSONObject("profile")!!.optString("name"))
-        assertEquals("当前帐号 B 资料不受影响", "B资料",
-            JSONObject(FwmcApi.getProfile()).optJSONObject("profile")!!.optString("name"))
-        // 清理 B，避免测试残留帐号污染设备数据
-        JSONObject(FwmcApi.deleteAccount(idB))
+        // ---- 6. 私聊保护：钱包身份密码 ----
+        val pwOk = JSONObject(FwmcApi.changePassword(addr, "", "secret"))
+        assertTrue("设置身份密码应成功: $pwOk", pwOk.optBoolean("success"))
+        val badLogin = JSONObject(FwmcApi.login(addr, "wrong"))
+        assertTrue("错误密码不应能选择该钱包", !badLogin.optBoolean("success"))
+        val goodLogin = JSONObject(FwmcApi.login(addr, "secret"))
+        assertTrue("正确密码应能选择该钱包: $goodLogin", goodLogin.optBoolean("success"))
 
-        // ---- 6. 无密码帐号 ----
-        val id2 = JSONObject(FwmcApi.createAccount("pwless_$name", "")).optString("id")
-        assertTrue("无密码帐号 ID 应存在", id2.isNotEmpty())
-        // 无密码：空密码与任意密码均可登录
-        assertTrue("无密码帐号空密码登录", JSONObject(FwmcApi.login(id2, "")).optBoolean("success"))
-        assertTrue("无密码帐号任意密码登录", JSONObject(FwmcApi.login(id2, "whatever")).optBoolean("success"))
-        // 有密码帐号仍需正确密码
-        val badLogin2 = JSONObject(FwmcApi.login(id, "wrong-pw"))
-        assertTrue("有密码帐号错误密码应失败", !badLogin2.optBoolean("success"))
-        assertTrue("有密码帐号正确密码应成功", JSONObject(FwmcApi.login(id, "pw654321")).optBoolean("success"))
-        val del2 = JSONObject(FwmcApi.deleteAccount(id2))
-        assertTrue(del2.optBoolean("success"))
+        // 删除钱包 = 删除帐号：用户目录同步删除
+        val del = JSONObject(FwmcApi.deleteAccount(addr))
+        assertTrue("deleteAccount 应成功: $del", del.optBoolean("success"))
+        assertTrue("删除钱包后用户目录应被删除", !java.io.File(ctx.filesDir, "fwmc/users/$addr").exists())
 
-        // 清理：删除测试帐号（不影响钱包）
-        val del = JSONObject(FwmcApi.deleteAccount(id))
-        assertTrue(del.optBoolean("success"))
-        assertTrue(ctx != null)
+        // 清理
+        cleaned.add(addr)
+        }
     }
 }

@@ -58,7 +58,6 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import io.github.freewebmovement.zz.R
 import io.github.freewebmovement.zz.ui.common.PageType
-import io.github.freewebmovement.zz.ui.content.mine.readJpegBytes
 import io.github.freewebmovement.zz.ui.theme.CardBg
 import io.github.freewebmovement.zz.ui.theme.LineColor
 import io.github.freewebmovement.zz.ui.theme.TextPrimary
@@ -76,12 +75,13 @@ import rs.zz.coin.FwmcApi
 fun UserProfileEditor(updatePage: (value: PageType) -> Unit) {
     val scope = rememberCoroutineScope()
     val ctx = LocalContext.current
-    val target = remember { io.github.freewebmovement.zz.ui.content.mine.editAccount }
-        .also { io.github.freewebmovement.zz.ui.content.mine.editAccount = null }
+    val target = remember { editAccount }
+        .also { editAccount = null }
+    // 强绑定：用户信息绑定到节点/钱包地址（Peer ID），帐号只是本地皮肤
     val targetId = target?.first ?: ""
-    val userId = targetId
+    val skinName = target?.second ?: ""
 
-    var nickname by remember(targetId) { mutableStateOf(target?.second ?: "") }
+    var nickname by remember { mutableStateOf(skinName) }
     var intro by remember(targetId) { mutableStateOf("") }
     var imageUri by remember(targetId) { mutableStateOf<android.net.Uri?>(null) }
     var gender by remember(targetId) { mutableStateOf("") }
@@ -160,38 +160,6 @@ fun UserProfileEditor(updatePage: (value: PageType) -> Unit) {
     }
 
     Column(modifier = Modifier.fillMaxHeight().verticalScroll(rememberScrollState())) {
-        // ---- 用户ID 卡 ----
-        Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = CardBg,
-            modifier = Modifier.padding(horizontal = 16.dp).padding(top = 8.dp),
-        ) {
-            Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp)) {
-                Text("用户ID", fontSize = 13.sp, color = TextSecondary)
-                Spacer(Modifier.height(4.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        userId.ifEmpty { "-" },
-                        fontSize = 15.sp,
-                        color = TextPrimary,
-                        maxLines = 1,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f),
-                    )
-                    val clip = androidx.compose.ui.platform.LocalClipboardManager.current
-                    Icon(
-                        painter = painterResource(R.drawable.ic_copy),
-                        contentDescription = "copy",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(start = 8.dp).size(18.dp).clickable {
-                            clip.setText(androidx.compose.ui.text.AnnotatedString(userId))
-                            android.widget.Toast.makeText(ctx, ctx.getString(R.string.copied), android.widget.Toast.LENGTH_SHORT).show()
-                        },
-                    )
-                }
-            }
-        }
-
         // ---- 头像（可点更换）----
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
@@ -498,7 +466,8 @@ fun UserProfileEditor(updatePage: (value: PageType) -> Unit) {
                     if (nickname.isNotBlank()) {
                         runCatching { JSONObject(FwmcApi.renameAccount(targetId, nickname)) }
                     }
-                    io.github.freewebmovement.zz.ui.content.mine.accountsRefreshSignal++
+                    accountsRefreshSignal++
+                    mineRefreshSignal++
                     updatePage(PageType.MineAccounts)
                 }
             },
@@ -557,6 +526,7 @@ fun UserProfileEditor(updatePage: (value: PageType) -> Unit) {
             confirmButton = {},
         )
     }
+
 
     // ---- 国家选择器 ----
     if (showCountryPicker) {
