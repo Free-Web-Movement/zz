@@ -21,25 +21,21 @@ import rs.zz.coin.FwmcApi
 @RunWith(AndroidJUnit4::class)
 class AccountProfileTest {
 
-    private var nodePtr: Long = 0
     private val cleaned = mutableListOf<String>()
 
     @Before
     fun setUp() {
-        val ctx = InstrumentationRegistry.getInstrumentation().targetContext
-        val dir = java.io.File(ctx.cacheDir, "fwmc_test").apply { deleteRecursively(); mkdirs() }.absolutePath
-        FwmcApi.initDataDir(dir)
-        val port = 27600 + (System.currentTimeMillis() % 100).toInt()
-        nodePtr = rs.zz.coin.FwmcNode().start(port, dir)
+        // 复用应用内嵌节点（MainApplication 自动启动），避免同进程起第二个节点污染共享 native 状态。
+        // initDataDir 为 no-op：数据目录固定为应用目录，与 UI 行为一致。
         var ready = false
-        repeat(30) {
+        repeat(40) {
             val ok = runBlocking {
                 runCatching { JSONObject(FwmcApi.getData()).optBoolean("success") }.getOrDefault(false)
             }
             if (ok) { ready = true; return@repeat }
             Thread.sleep(500)
         }
-        check(ready) { "测试节点未能在 15s 内就绪" }
+        check(ready) { "内嵌节点未能在 20s 内就绪" }
     }
 
     @After
@@ -47,7 +43,6 @@ class AccountProfileTest {
         cleaned.forEach {
             runBlocking { runCatching { JSONObject(FwmcApi.deleteAccount(it)) } }
         }
-        if (nodePtr != 0L) rs.zz.coin.FwmcNode().stop(nodePtr)
     }
 
     @Test
@@ -101,6 +96,23 @@ class AccountProfileTest {
         assertTrue("setAvatarFor 应成功", avOk)
         val avPath = JSONObject(FwmcApi.getProfile(addr)).optJSONObject("profile")!!.optString("avatar_path")
         assertTrue("钱包头像应可读", avPath.startsWith("data:image/"))
+
+        // 头像修改后同步更新：第二次上传应覆盖第一次
+        val av1 = JSONObject(FwmcApi.getProfile(addr)).optJSONObject("profile")!!.optString("avatar_path")
+        val bytesB = ByteArray(96) { (it * 7).toByte() }
+        assertTrue("第二次上传头像应成功",
+            JSONObject(FwmcApi.setAvatarFor(addr, bytesB)).optBoolean("success"))
+        val av2 = JSONObject(FwmcApi.getProfile(addr)).optJSONObject("profile")!!.optString("avatar_path")
+        assertTrue("我的页应读到新头像", av2.startsWith("data:image/") && av2 != av1)
+
+        // 编辑昵称（部分保存）不应丢头像 —— ProfileEditor 保存流程依赖此语义
+        val keep = JSONObject(FwmcApi.saveProfileFor(addr, JSONObject().apply {
+            put("nickname", "改名不改头像")
+        }.toString()))
+        assertTrue("部分保存应成功: $keep", keep.optBoolean("success"))
+        val prof = JSONObject(FwmcApi.getProfile(addr)).optJSONObject("profile")!!
+        assertEquals("部分保存后昵称更新", "改名不改头像", prof.optString("nickname"))
+        assertEquals("部分保存后头像保留", av2, prof.optString("avatar_path"))
 
         // ---- 6. 私聊保护：钱包身份密码 ----
         val pwOk = JSONObject(FwmcApi.changePassword(addr, "", "secret"))

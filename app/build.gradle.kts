@@ -96,6 +96,7 @@ dependencies {
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation("androidx.test:runner:1.5.2")
+    androidTestImplementation("androidx.test.uiautomator:uiautomator:2.3.0")
     androidTestImplementation(platform(libs.androidx.compose.bom))
 
 }

@@ -251,9 +251,11 @@ internal fun readJpegBytes(
     uri: Uri,
     maxDim: Int,
 ): ByteArray? = runCatching {
-    val input = context.contentResolver.openInputStream(uri) ?: return null
-    val raw = BitmapFactory.decodeStream(input)
-    input.close()
+    val raw = context.contentResolver.openInputStream(uri)?.use { input ->
+        BitmapFactory.decodeStream(input)
+    } ?: android.graphics.ImageDecoder.decodeBitmap(
+        android.graphics.ImageDecoder.createSource(context.contentResolver, uri),
+    ) { decoder, _, _ -> decoder.allocator = android.graphics.ImageDecoder.ALLOCATOR_SOFTWARE }
     raw ?: return null
     val scale = maxOf(1, maxOf(raw.width, raw.height) / maxDim)
     val bmp = Bitmap.createScaledBitmap(raw, raw.width / scale, raw.height / scale, true)

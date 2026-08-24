@@ -72,6 +72,21 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
             // 身份资料只来自选中钱包的 profile，不再读本地遗留设置
             var intro by remember(acctId) { mutableStateOf("") }
             var imageUri by remember(acctId) { mutableStateOf<Uri?>(null) }
+            // 兜底：任何来源（编辑器/头像选择器/外部修改）返回本页时都重新加载资料
+            val activity = LocalContext.current as? androidx.activity.ComponentActivity
+            val resumeScope = androidx.compose.runtime.rememberCoroutineScope()
+            androidx.compose.runtime.DisposableEffect(activity, acctId) {
+                val obs = androidx.lifecycle.LifecycleEventObserver { _, e ->
+                    if (e == androidx.lifecycle.Lifecycle.Event.ON_RESUME && acctId.isNotEmpty()) {
+                        mineRefreshSignal++
+                        // 会话(帐号行昵称)一并刷新，保持整页一致
+                        resumeScope.launch { io.github.freewebmovement.zz.ui.content.FwmcSession.refresh() }
+                    }
+                }
+                activity?.lifecycle?.addObserver(obs)
+                onDispose { activity?.lifecycle?.removeObserver(obs) }
+            }
+            val ctx2 = LocalContext.current
             androidx.compose.runtime.LaunchedEffect(acctId, mineRefreshSignal) {
                 if (acctId.isEmpty()) return@LaunchedEffect
                 // 显式按当前选中的钱包地址读取资料（不依赖节点是否已重启）
@@ -83,7 +98,10 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
                         if (nm.isNotEmpty()) nickname = nm
                         intro = prof.optString("notes").ifEmpty { intro }
                         val av = prof.optString("avatar_path")
-                        if (av.startsWith("data:image/")) imageUri = Uri.parse(av)
+                        if (av.startsWith("data:image/")) {
+                            // fwmc 与安卓图片库不互通：转存为本地文件后再显示
+                            imageUri = AvatarLocalStore.fromDataUrl(ctx2, acctId, av)
+                        }
                     }
                 }
             }
@@ -101,21 +119,27 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
                 val avatarPicker = androidx.activity.compose.rememberLauncherForActivityResult(
                     androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia()
                 ) { picked: Uri? ->
-                    if (picked == null) return@rememberLauncherForActivityResult
+                    if (picked == null) {
+                        android.util.Log.w("AvatarUpload", "mine picker returned null")
+                        return@rememberLauncherForActivityResult
+                    }
                     // 上传到钱包身份（users/<PeerID>/images/avatar.jpg）并即时刷新卡片
                     scope.launch {
                         val bytes = readJpegBytes(ctx, picked, maxDim = 512)
+                        android.util.Log.d("AvatarUpload", "mine bytes=${bytes?.size ?: -1} uri=$picked")
                         if (bytes != null) {
                             val ok = runCatching {
                                 JSONObject(rs.zz.coin.FwmcApi.setAvatarFor(acctId, bytes)).optBoolean("success", false)
                             }.getOrDefault(false)
                             if (ok) {
-                                val b64 = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP)
-                                imageUri = Uri.parse("data:image/jpeg;base64,$b64")
+                                // 先存安卓侧可访问的本地文件，再由 setAvatarFor 落到 fwmc 目录
+                                imageUri = AvatarLocalStore.saveJpeg(ctx, acctId, bytes)
                                 mineRefreshSignal++
                             } else {
                                 android.widget.Toast.makeText(ctx, "头像上传失败", android.widget.Toast.LENGTH_SHORT).show()
                             }
+                        } else {
+                            android.widget.Toast.makeText(ctx, "图片读取失败，请换一张试试", android.widget.Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
@@ -152,17 +176,6 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
                                 modifier = Modifier.size(60.dp).clip(CircleShape),
                             )
                         }
-                    }
-                    // 相机角标：提示可上传头像
-                    Box(
-                        modifier = Modifier
-                            .size(20.dp)
-                            .align(Alignment.BottomEnd)
-                            .clip(CircleShape)
-                            .background(AppTheme.preset.primary),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text("＋", color = Color.White, fontSize = 13.sp)
                     }
                 }
                 Column(modifier = Modifier.weight(1f).padding(start = 14.dp)) {

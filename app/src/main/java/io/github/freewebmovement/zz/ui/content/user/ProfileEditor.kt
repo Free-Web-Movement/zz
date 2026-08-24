@@ -117,14 +117,8 @@ internal fun ProfileEditorContent(
         var showCountryPicker by remember { mutableStateOf(false) }
         var pickerTarget by remember { mutableStateOf<String?>(null) }
         val userId = targetId ?: FwmcSession.current?.first ?: ""
+        val editorCtx = androidx.compose.ui.platform.LocalContext.current
         var imageUri by remember { mutableStateOf<Uri?>(null) }
-        androidx.compose.runtime.LaunchedEffect(Unit) {
-            // 我的资料编辑：用本地设置的图片；帐号编辑：由资料头像覆盖
-            if (targetId == null) {
-                val v = profile.imageUri
-                imageUri = if (v.isNotEmpty() && v != "null") Uri.parse(v) else null
-            }
-        }
         androidx.compose.runtime.LaunchedEffect(Unit) {
             // 从 FWMC 资料接口载入目标帐号资料；节点未就绪时重试，避免冷启动后空白
             repeat(30) {
@@ -150,11 +144,10 @@ internal fun ProfileEditorContent(
                         town = p.optString("town")
                         village = p.optString("village")
                     }
-                    if (targetId != null) {
-                        val av = p.optString("avatar_path")
-                        if (av.startsWith("data:image/")) {
-                            imageUri = Uri.parse(av)
-                        }
+                    // 头像唯一来源：用户目录 images/avatar.jpg；转成本地文件供界面渲染
+                    val av = p.optString("avatar_path")
+                    if (av.startsWith("data:image/")) {
+                        imageUri = AvatarLocalStore.fromDataUrl(editorCtx, userId, av)
                     }
                     true
                 }.getOrDefault(false)
@@ -167,31 +160,31 @@ internal fun ProfileEditorContent(
             rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
                 if (uri != null) {
                     Log.d("PhotoPicker", "Selected URI: $uri")
-                    if (targetId != null) {
-                        // 帐号编辑：上传到头像目录并刷新列表
+                    run {
+                        // 我的/帐号编辑统一：上传到该身份的用户目录并刷新
                         val bytes = readJpegBytes(ctx, uri, maxDim = 512)
-                        if (bytes != null) {
+                        android.util.Log.d("AvatarUpload", "editor bytes=${bytes?.size ?: -1} uid=$userId uri=$uri")
+                        if (userId.isEmpty()) {
+                            android.widget.Toast.makeText(ctx, "会话未就绪，请稍后再试", android.widget.Toast.LENGTH_SHORT).show()
+                        } else if (bytes == null) {
+                            android.widget.Toast.makeText(ctx, "图片读取失败，请换一张试试", android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                        if (bytes != null && userId.isNotEmpty()) {
                             saveScope.launch {
                                 runCatching {
-                                    JSONObject(rs.zz.coin.FwmcApi.setAvatarFor(targetId, bytes)).optBoolean("success", false)
+                                    JSONObject(rs.zz.coin.FwmcApi.setAvatarFor(userId, bytes)).optBoolean("success", false)
                                 }.getOrDefault(false).let { ok ->
                                     if (ok) {
-                                        val b64 = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP)
-                                        imageUri = Uri.parse("data:image/jpeg;base64,$b64")
+                                        // 先落安卓侧本地文件，再同步 fwmc 目录（已在上方完成）
+                                        imageUri = AvatarLocalStore.saveJpeg(ctx, userId, bytes)
+                                        // 通知我的页身份卡立即重载头像
+                                        mineRefreshSignal++
                                     } else {
                                         android.widget.Toast.makeText(ctx, "头像上传失败", android.widget.Toast.LENGTH_SHORT).show()
                                     }
                                 }
                             }
                         }
-                    } else {
-                        runCatching {
-                            ctx.contentResolver.takePersistableUriPermission(
-                                uri,
-                                android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION,
-                            )
-                        }
-                        imageUri = uri
                     }
                 }
             }
@@ -545,12 +538,7 @@ internal fun ProfileEditorContent(
 
             Button(
                 onClick = {
-                    with(MainApplication.getApp().settings) {
-                        profile.imageUri = imageUri.toString()
-                        profile.nickname = nickname
-                        profile.intro = intro
-                    }
-                    // 同步到 FWMC 资料（对应当前帐号身份）
+                    // 同步到 FWMC 资料（唯一存储：该身份的用户目录）
                     saveScope.launch {
                         runCatching {
                             org.json.JSONObject(rs.zz.coin.FwmcApi.getProfile(targetId ?: "")).optJSONObject("profile")?.let { existing ->
@@ -577,9 +565,9 @@ internal fun ProfileEditorContent(
                                 if (existing.optString("avatar_path").startsWith("data:")) {
                                     existing.remove("avatar_path")
                                 }
-                                rs.zz.coin.FwmcApi.saveProfileFor(targetId ?: "", existing.toString())
+                                rs.zz.coin.FwmcApi.saveProfileFor(userId, existing.toString())
                             } ?: run {
-                                rs.zz.coin.FwmcApi.saveProfileFor(targetId ?: "", org.json.JSONObject().apply {
+                                rs.zz.coin.FwmcApi.saveProfileFor(userId, org.json.JSONObject().apply {
                                     put("nickname", nickname)
                                     put("name", nickname)
                                     put("notes", intro)
@@ -602,10 +590,12 @@ internal fun ProfileEditorContent(
                                 }.toString())
                             }
                         }
-                        if (targetId != null && nickname.isNotBlank()) {
-                            // 帐号名 = 昵称：列表显示昵称
-                            runCatching { rs.zz.coin.FwmcApi.renameAccount(targetId, nickname) }
+                        if (userId.isNotEmpty() && nickname.isNotBlank()) {
+                            // 钱包名 = 昵称：我的页与帐号管理列表一致显示
+                            runCatching { rs.zz.coin.FwmcApi.renameAccount(userId, nickname) }
                         }
+                        // 通知我的页立即同步昵称/签名等改动
+                        mineRefreshSignal++
                         updatePage(backTo)
                         onAfterSave()
                     }
