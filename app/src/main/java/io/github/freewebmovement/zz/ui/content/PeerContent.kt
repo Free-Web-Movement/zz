@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -81,6 +82,15 @@ private data class SeedRow(
 
 private data class ConnGroup(val nodeId: String, val addrs: String, val passed: String)
 
+private data class ChainRow(
+    val address: String,
+    val online: Boolean,
+    val onlineMinutes: Long,
+    val tickCount: Long,
+    val weight: String,
+    val isCurrent: Boolean,
+)
+
 private data class RingMember(val ip: String, val port: Int, val nodeId: String, val active: Boolean)
 
 private data class WitnessData(
@@ -95,7 +105,8 @@ private data class WitnessData(
     val ringLockedHash: String = "",
     val ringLockedEpoch: Long = 0,
     val ringLockedMembers: List<RingMember> = emptyList(),
-    val chain: List<List<String>> = emptyList(),
+    val chain: List<ChainRow> = emptyList(),
+    val todayTick: Long = 0,
 )
 
 @Composable
@@ -173,11 +184,18 @@ private fun ServerDashboard() {
             !running -> SectionCard { Text("节点已停止。点击上方「启动节点」开始服务。", color = TextSecondary) }
             errorMsg.isNotEmpty() -> SectionCard { Text(errorMsg, color = MaterialTheme.colorScheme.error) }
             else -> {
-                StatusCard(witness, balance)
+                // ① 节点本身信息
+                StatusCard(witness, balance, myAddress)
+                SectionHeader("Peer 节点")
+                // ② Peer 节点
+                NodesCard(nodes)
                 ConnectionsCard(inbound, outbound)
                 SeedsCard(seeds, onChanged = { /* refreshed on next poll */ })
-                NodesCard(nodes)
+                // ③ 见证环
+                RingCard(witness)
                 WeightsCard()
+                // ④ 区块浏览
+                ExplorerCard(myAddress)
             }
         }
         Spacer(modifier = Modifier.height(12.dp))
@@ -382,22 +400,37 @@ private fun PortEditDialog(current: String, onDismiss: () -> Unit, onApply: (Int
 // ============================================================
 
 @Composable
-private fun StatusCard(w: WitnessData, balance: Long) {
-    SectionCard(title = "链状态") {
+private fun StatusCard(w: WitnessData, balance: Long, myAddress: String) {
+    SectionCard(title = "节点信息") {
         InfoGrid(
             listOf(
                 "Tick" to w.tickCount.toString(),
-                "纪元" to "${w.epochTick} / ${w.ticksPerEpoch}",
-                "距下次 Tick" to "${w.nextTickSeconds}s",
+                "纪元" to w.epoch.toString(),
+                "纪元进度" to "${w.epochTick} / ${w.ticksPerEpoch}",
             )
         )
         InfoGrid(
             listOf(
-                "纪元 ID" to w.epoch.toString(),
+                "今日 Tick" to w.todayTick.toString(),
+                "下次 Tick" to "${w.nextTickSeconds}s",
                 "我的余额" to formatAmount(balance),
-                "" to "",
             )
         )
+        if (myAddress.isNotEmpty()) {
+            Divider()
+            Row(verticalAlignment = Alignment.Top) {
+                Text("本机地址 ", fontSize = 11.sp, color = TextSecondary, modifier = Modifier.padding(top = 2.dp))
+                SelectionContainer {
+                    MonoText(
+                        text = myAddress,
+                        fontSize = 10,
+                        color = TextSecondary,
+                        maxLines = 2,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -662,6 +695,228 @@ private fun WeightsCard() {
     }
 }
 
+@Composable
+private fun SectionHeader(title: String) {
+    Text(
+        text = title,
+        fontSize = 13.sp,
+        fontWeight = FontWeight.SemiBold,
+        color = TextSecondary,
+        modifier = Modifier.padding(start = 4.dp, top = 14.dp, bottom = 2.dp),
+    )
+}
+
+/** ③ 见证环：活跃环 / 锁定环 / 见证链全量信息。 */
+@Composable
+private fun RingCard(w: WitnessData) {
+    SectionCard(title = "见证环") {
+        InfoGrid(
+            listOf(
+                "活跃纪元" to w.ringActiveEpoch.toString(),
+                "成员数" to w.ringActiveMembers.size.toString(),
+                "" to "",
+            )
+        )
+        Row(verticalAlignment = Alignment.Top) {
+            Text("环哈希 ", fontSize = 11.sp, color = TextSecondary, modifier = Modifier.padding(top = 2.dp))
+            SelectionContainer {
+                MonoText(
+                    text = w.ringActiveHash.ifEmpty { "-" },
+                    fontSize = 10,
+                    color = TextSecondary,
+                    maxLines = 2,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+            }
+        }
+        if (w.ringActiveMembers.isNotEmpty()) {
+            Divider()
+            Text("环成员", fontSize = 12.sp, color = TextSecondary)
+            w.ringActiveMembers.forEach { m ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(vertical = 2.dp),
+                ) {
+                    StatusDotBig(m.active)
+                    MonoText(
+                        text = "${m.ip}:${m.port}",
+                        fontSize = 10,
+                        color = TextSecondary,
+                        maxLines = 1,
+                        modifier = Modifier.padding(start = 6.dp).weight(1f, fill = false),
+                    )
+                }
+            }
+        }
+        if (w.ringLockedHash.isNotEmpty()) {
+            Divider()
+            Text("锁定环（纪元 \${w.ringLockedEpoch}）", fontSize = 12.sp, color = TextSecondary)
+            SelectionContainer {
+                MonoText(text = w.ringLockedHash, fontSize = 10, color = TextMuted, maxLines = 2)
+            }
+            if (w.ringLockedMembers.isNotEmpty()) {
+                Text("成员 \${w.ringLockedMembers.size} 个", fontSize = 10.sp, color = TextMuted)
+            }
+        }
+        if (w.chain.isNotEmpty()) {
+            Divider()
+            Text("见证链", fontSize = 12.sp, color = TextSecondary)
+            w.chain.forEach { c ->
+                Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        StatusDotBig(c.online)
+                        MonoText(
+                            text = c.address,
+                            fontSize = 10,
+                            color = TextPrimary,
+                            maxLines = 1,
+                            modifier = Modifier.padding(start = 6.dp).weight(1f, fill = false),
+                        )
+                        if (c.isCurrent) {
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                            ) {
+                                Text(
+                                    "本机",
+                                    fontSize = 9.sp,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
+                                )
+                            }
+                        }
+                    }
+                    Text(
+                        text = "在线 ${c.onlineMinutes} 分钟 · Tick ${c.tickCount} · 权重 ${c.weight}",
+                        fontSize = 10.sp,
+                        color = TextMuted,
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** ④ 区块浏览：地址余额 + 交易记录（getAddressInfo）。 */
+@Composable
+private fun ExplorerCard(myAddress: String) {
+    var query by remember(myAddress) { mutableStateOf(myAddress) }
+    var result by remember { mutableStateOf<JSONObject?>(null) }
+    var err by remember { mutableStateOf("") }
+    var loading by remember { mutableStateOf(false) }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+
+    fun doQuery(addr: String) {
+        if (addr.isBlank()) return
+        loading = true; err = ""
+        scope.launch {
+            val r = runCatching { JSONObject(FwmcApi.getAddressInfo(addr.trim())) }
+            loading = false
+            r.onSuccess { obj ->
+                // ok_json 不含 success 字段；err_json 才有 success=false
+                if (obj.optBoolean("success", true) && !obj.has("error")) result = obj
+                else err = obj.optString("error", "查询失败")
+            }.onFailure { err = it.message ?: "查询失败" }
+        }
+    }
+
+    SectionCard(title = "区块浏览") {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                placeholder = { Text("输入地址查询", fontSize = 12.sp) },
+                singleLine = true,
+                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 12.sp),
+                modifier = Modifier.weight(1f),
+            )
+            Spacer(Modifier.width(8.dp))
+            Button(
+                onClick = { doQuery(query) },
+                enabled = !loading && query.isNotBlank(),
+                shape = RoundedCornerShape(10.dp),
+            ) {
+                Text(if (loading) "查询中" else "查询")
+            }
+        }
+        if (myAddress.isNotEmpty() && query != myAddress) {
+            Text(
+                text = "查我的地址",
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(top = 4.dp).clickable { doQuery(myAddress) },
+            )
+        }
+        if (err.isNotEmpty()) {
+            Text(err, fontSize = 11.sp, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 6.dp))
+        }
+        val r = result
+        if (r != null) {
+            Divider()
+            InfoGrid(
+                listOf(
+                    "地址余额" to formatAmount(r.optLong("balance", 0)),
+                    "交易数" to (r.optJSONArray("transactions")?.length() ?: 0).toString(),
+                )
+            )
+            val txs = r.optJSONArray("transactions")
+            if (txs != null && txs.length() > 0) {
+                Divider()
+                Text("交易记录", fontSize = 12.sp, color = TextSecondary)
+                (0 until txs.length()).forEach { i ->
+                    val t = txs.getJSONObject(i)
+                    val amount = t.optString("amount")
+                    val amtLong = amount.toLongOrNull() ?: 0
+                    val dir = if (t.optString("from_address") == query.trim()) "-" else "+"
+                    Column(modifier = Modifier.padding(vertical = 5.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "\$dir\${formatAmount(amtLong)}",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (dir == "+") OnlineGreen else MaterialTheme.colorScheme.error,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                            ) {
+                                Text(
+                                    t.optString("tx_type", "tx"),
+                                    fontSize = 9.sp,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
+                                )
+                            }
+                        }
+                        Text("自 ${t.optString("from_address")}", fontSize = 9.sp, color = TextMuted, maxLines = 1)
+                        Text("至 ${t.optString("to_address")}", fontSize = 9.sp, color = TextMuted, maxLines = 1)
+                        val ts = t.optLong("timestamp", 0)
+                        if (ts > 0) {
+                            Text(
+                                text = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
+                                    .format(java.util.Date(ts * 1000)),
+                                fontSize = 9.sp,
+                                color = TextMuted,
+                            )
+                        }
+                        val hash = t.optString("hash")
+                        if (hash.isNotEmpty()) {
+                            SelectionContainer {
+                                MonoText(text = "hash \${hash.take(24)}…", fontSize = 9, color = TextMuted, maxLines = 1)
+                            }
+                        }
+                    }
+                    if (i < txs.length() - 1) Divider()
+                }
+            } else {
+                Divider()
+                EmptyHint("该地址暂无交易记录")
+            }
+        }
+    }
+}
+
 // ============================================================
 //  Parsing helpers
 // ============================================================
@@ -682,14 +937,28 @@ private fun parseWitness(obj: JSONObject): WitnessData {
 
     val ra = obj.optJSONObject("witness_ring_active")
     val rl = obj.optJSONObject("witness_ring_locked")
-    val chain = obj.optJSONArray("witness_chain")?.let { arr ->
+    val chain = obj.optJSONObject("witness_chain")?.let { objChain ->
+        objChain.keys().asSequence().mapNotNull { k ->
+            val o = objChain.optJSONObject(k) ?: return@mapNotNull null
+            ChainRow(
+                address = o.optString("address", k),
+                online = o.optBoolean("is_online", false),
+                onlineMinutes = o.optLong("online_minutes", 0),
+                tickCount = o.optLong("tick_count", 0),
+                weight = o.optString("weight"),
+                isCurrent = o.optBoolean("is_current", false),
+            )
+        }.toList()
+    } ?: obj.optJSONArray("witness_chain")?.let { arr ->
         (0 until arr.length()).map { i ->
             val o = arr.getJSONObject(i)
-            listOf(
-                o.optString("address"),
-                if (o.optBoolean("is_online")) "是" else "否",
-                o.optInt("tick_count", 0).toString(),
-                o.optString("weight"),
+            ChainRow(
+                address = o.optString("address"),
+                online = o.optBoolean("is_online", false),
+                onlineMinutes = o.optLong("online_minutes", 0),
+                tickCount = o.optLong("tick_count", 0),
+                weight = o.optString("weight"),
+                isCurrent = o.optBoolean("is_current", false),
             )
         }
     } ?: emptyList()
@@ -700,6 +969,7 @@ private fun parseWitness(obj: JSONObject): WitnessData {
         epochTick = obj.optLong("epoch_tick", 0),
         ticksPerEpoch = obj.optLong("ticks_per_epoch", 0),
         nextTickSeconds = obj.optLong("next_tick_seconds", 0),
+        todayTick = obj.optLong("today_tick", 0),
         ringActiveHash = ra?.optString("ring_hash") ?: "",
         ringActiveEpoch = ra?.optLong("epoch", 0) ?: 0,
         ringActiveMembers = members(ra?.optJSONArray("members")),

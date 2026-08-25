@@ -96,7 +96,7 @@ data class NetworkSetting(
 
     var port: Int = 0
         get() {
-            field = preference.read(LOCAL_SERVER_PORT, 0)
+            field = preference.read(LOCAL_SERVER_PORT, 20260)
             if (field == 0) {
                 val min = (1u shl 10) + 1u
                 val max = (1u shl 16) - 1u
