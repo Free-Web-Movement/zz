@@ -123,6 +123,14 @@ class AccountProfileTest {
         assertTrue("正确密码应能选择该钱包: $goodLogin", goodLogin.optBoolean("success"))
 
         // 删除钱包 = 删除帐号：用户目录同步删除
+        // 先切回其它已绑定钱包，避免"唯一绑定钱包"无法删除；没有则建保底钱包
+        var orig = JSONObject(FwmcApi.currentAccount()).optString("id")
+        if (orig == addr) orig = ""
+        if (orig.isEmpty()) {
+            val keeper = JSONObject(FwmcApi.createWallet("keeper_" + System.currentTimeMillis(), "english"))
+            orig = keeper.optString("address")
+        }
+        if (orig.isNotEmpty()) runCatching { JSONObject(FwmcApi.login(orig, "")) }
         val del = JSONObject(FwmcApi.deleteAccount(addr))
         assertTrue("deleteAccount 应成功: $del", del.optBoolean("success"))
         assertTrue("删除钱包后用户目录应被删除", !java.io.File(ctx.filesDir, "fwmc/users/$addr").exists())
