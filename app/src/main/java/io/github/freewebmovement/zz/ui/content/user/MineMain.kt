@@ -215,7 +215,7 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
             Text("多钱包  ›", fontSize = 13.sp, color = TextSecondary)
         }, onClick = { updatePage(PageType.MineWallet) })
 
-        SettingsRow()
+        SettingsRow(updatePage)
     }
 }
 
@@ -271,12 +271,11 @@ private fun PeerIdCard() {
 
 /** 设置行：主题配色等应用外观。 */
 @Composable
-private fun SettingsRow() {
+private fun SettingsRow(updatePage: (value: PageType) -> Unit) {
     RowItem2(label = "设置", icon = R.drawable.ic_settings, trailing = {
         Text(AppTheme.preset.label, fontSize = 13.sp, color = TextSecondary)
         Text("  ›", color = TextMuted)
-    }, onClick = { showThemeDialog.value = true })
-    ThemeDialogHost()
+    }, onClick = { updatePage(PageType.MineSettings) })
 }
 
 private val showThemeDialog = mutableStateOf(false)
@@ -289,7 +288,7 @@ private fun ThemeDialogHost() {
 }
 
 @Composable
-private fun ThemeDialog(onDismiss: () -> Unit) {
+fun ThemeDialog(onDismiss: () -> Unit) {
     val app = MainApplication.getApp()
     androidx.compose.material3.AlertDialog(
             onDismissRequest = onDismiss,

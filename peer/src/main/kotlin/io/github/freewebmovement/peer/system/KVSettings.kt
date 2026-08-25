@@ -84,6 +84,16 @@ data class ProfileSetting(
 data class NetworkSetting(
     private val preference: IPreference
 ) {
+    companion object {
+        /** fwmc 节点默认服务端口 */
+        const val DEFAULT_SERVER_PORT = 20260
+    }
+
+    /** 恢复默认端口 */
+    fun resetPort() {
+        preference.save(LOCAL_SERVER_PORT, DEFAULT_SERVER_PORT)
+    }
+
     var ipType: IPType by PreferenceAccessor(
         preference, PEER_IP_TYPE,
         field = IPType.IPV4
@@ -96,7 +106,7 @@ data class NetworkSetting(
 
     var port: Int = 0
         get() {
-            field = preference.read(LOCAL_SERVER_PORT, 20260)
+            field = preference.read(LOCAL_SERVER_PORT, DEFAULT_SERVER_PORT)
             if (field == 0) {
                 val min = (1u shl 10) + 1u
                 val max = (1u shl 16) - 1u

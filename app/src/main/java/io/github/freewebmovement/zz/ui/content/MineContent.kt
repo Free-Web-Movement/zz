@@ -31,6 +31,9 @@ fun MinContent(page: PageType, updater: (page: PageType, value: ContentType) -> 
         PageType.MineWallet -> WalletsScreen(
             onBack = { updater(PageType.MineMain, ContentType.NonStacked) },
         )
+        PageType.MineSettings -> io.github.freewebmovement.zz.ui.content.user.SettingsScreen(
+            onBack = { updater(PageType.MineMain, ContentType.NonStacked) },
+        )
         else -> {
         }
     }

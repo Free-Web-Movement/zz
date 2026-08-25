@@ -377,6 +377,16 @@ private fun PortEditDialog(current: String, onDismiss: () -> Unit, onApply: (Int
                         modifier = Modifier.padding(top = 6.dp),
                     )
                 }
+                Text(
+                    text = "恢复默认端口 ${io.github.freewebmovement.peer.system.NetworkSetting.DEFAULT_SERVER_PORT}",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .padding(top = 4.dp)
+                        .clickable {
+                            portText = io.github.freewebmovement.peer.system.NetworkSetting.DEFAULT_SERVER_PORT.toString()
+                        },
+                )
             }
         },
         confirmButton = {
