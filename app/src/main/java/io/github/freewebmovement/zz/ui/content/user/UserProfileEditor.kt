@@ -129,7 +129,9 @@ fun UserProfileEditor(updatePage: (value: PageType) -> Unit) {
                     town = p.optString("town")
                     village = p.optString("village")
                     val av = p.optString("avatar_path")
-                    if (av.startsWith("data:image/")) imageUri = android.net.Uri.parse(av)
+                    if (av.startsWith("data:image/")) {
+                        imageUri = AvatarLocalStore.fromDataUrl(ctx, targetId, av)
+                    }
                 }
                 true
             }.getOrDefault(false)
@@ -141,20 +143,26 @@ fun UserProfileEditor(updatePage: (value: PageType) -> Unit) {
     val pickAvatar = androidx.activity.compose.rememberLauncherForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia()
     ) { uri: android.net.Uri? ->
-        if (uri != null && targetId.isNotEmpty()) {
-            val bytes = readJpegBytes(ctx, uri, maxDim = 512)
-            if (bytes != null) {
-                scope.launch {
-                    val ok = runCatching {
-                        JSONObject(FwmcApi.setAvatarFor(targetId, bytes)).optBoolean("success", false)
-                    }.getOrDefault(false)
-                    if (ok) {
-                        val b64 = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP)
-                        imageUri = android.net.Uri.parse("data:image/jpeg;base64,$b64")
-                    } else {
-                        android.widget.Toast.makeText(ctx, "头像上传失败", android.widget.Toast.LENGTH_SHORT).show()
-                    }
-                }
+        if (uri == null) return@rememberLauncherForActivityResult
+        if (targetId.isEmpty()) {
+            android.widget.Toast.makeText(ctx, "会话未就绪，请稍后再试", android.widget.Toast.LENGTH_SHORT).show()
+            return@rememberLauncherForActivityResult
+        }
+        val bytes = readJpegBytes(ctx, uri, maxDim = 512)
+        android.util.Log.d("AvatarUpload", "userEditor bytes=${bytes?.size ?: -1} uid=$targetId")
+        if (bytes == null) {
+            android.widget.Toast.makeText(ctx, "图片读取失败，请换一张试试", android.widget.Toast.LENGTH_SHORT).show()
+            return@rememberLauncherForActivityResult
+        }
+        scope.launch {
+            val ok = runCatching {
+                JSONObject(FwmcApi.setAvatarFor(targetId, bytes)).optBoolean("success", false)
+            }.getOrDefault(false)
+            if (ok) {
+                // 先落安卓侧本地文件保证可显示，fwmc 目录已同步写入
+                imageUri = AvatarLocalStore.saveJpeg(ctx, targetId, bytes)
+            } else {
+                android.widget.Toast.makeText(ctx, "头像上传失败", android.widget.Toast.LENGTH_SHORT).show()
             }
         }
     }

@@ -17,7 +17,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -60,14 +64,22 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 import rs.zz.coin.FwmcApi
 
-private data class AcctRow(val id: String, val name: String, val hasPassword: Boolean = false, val avatar: String = "")
+private data class AcctRow(
+    val id: String,
+    val name: String,
+    val hasPassword: Boolean = false,
+    val avatarUri: android.net.Uri? = null,
+)
 
 /**
  * 帐号管理：当前帐号标识 / 添加 / 删除 / 修复（重新验证密码）。
  * 帐号为本地临时数字 ID；删除帐号不影响任何钱包。
  */
 @Composable
-fun AccountScreen(updatePage: (io.github.freewebmovement.zz.ui.common.PageType) -> Unit = {}) {
+fun AccountScreen(
+    updatePage: (io.github.freewebmovement.zz.ui.common.PageType) -> Unit = {},
+    onBack: () -> Unit = {},
+) {
     val scope = rememberCoroutineScope()
     var accounts by remember { mutableStateOf<List<AcctRow>>(emptyList()) }
     var refresh by remember { mutableIntStateOf(0) }
@@ -76,19 +88,23 @@ fun AccountScreen(updatePage: (io.github.freewebmovement.zz.ui.common.PageType) 
     var pwProtectTarget by remember { mutableStateOf<AcctRow?>(null) }
     // id to mode: switch | repair
     var authTarget by remember { mutableStateOf<Pair<AcctRow, String>?>(null) }
+    val listCtx = androidx.compose.ui.platform.LocalContext.current
 
     suspend fun load() {
+        val ctx = listCtx
         runCatching {
             val o = JSONObject(FwmcApi.listAccounts())
             accounts = o.optJSONArray("accounts")?.let { arr ->
                 (0 until arr.length()).map { i ->
                     val e = arr.getJSONObject(i)
                     val id = e.optString("id")
-                    // 强绑定：头像取 Peer ID 身份资料（所有皮肤共用同一身份）
-                    val avatar = runCatching {
-                        JSONObject(FwmcApi.getProfile("")).optJSONObject("profile")?.optString("avatar_path", "") ?: ""
-                    }.getOrDefault("")
-                    AcctRow(id, e.optString("name"), e.optBoolean("has_password", false), avatar)
+                    // 每行读取各自身份资料的头像，并转存为本地文件供界面可靠渲染
+                    val avatarUri = runCatching {
+                        val av = JSONObject(FwmcApi.getProfile(id)).optJSONObject("profile")
+                            ?.optString("avatar_path", "") ?: ""
+                        if (av.startsWith("data:image/")) AvatarLocalStore.fromDataUrl(ctx, id, av) else null
+                    }.getOrNull()
+                    AcctRow(id, e.optString("name"), e.optBoolean("has_password", false), avatarUri)
                 }
             } ?: emptyList()
         }
@@ -103,6 +119,9 @@ fun AccountScreen(updatePage: (io.github.freewebmovement.zz.ui.common.PageType) 
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+            }
             Text("帐号管理", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary, modifier = Modifier.weight(1f))
             Text("+ 添加帐号", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp,
                 modifier = Modifier.clickable { showAdd = true })
@@ -118,14 +137,15 @@ fun AccountScreen(updatePage: (io.github.freewebmovement.zz.ui.common.PageType) 
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 5.dp),
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(14.dp)) {
-                            // 头像：有则显示，无则默认人形
-                            if (a.avatar.startsWith("data:image/")) {
+                            // 头像：有则显示本地文件，无则默认人形
+                            if (a.avatarUri != null) {
                                 AsyncImage(
                                     model = ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
-                                        .data(a.avatar)
+                                        .data(a.avatarUri)
                                         .build(),
                                     contentDescription = null,
                                     contentScale = ContentScale.Crop,
+                                    error = painterResource(io.github.freewebmovement.zz.R.drawable.ic_default_avatar),
                                     modifier = Modifier.size(44.dp).clip(CircleShape),
                                 )
                             } else {
@@ -138,16 +158,19 @@ fun AccountScreen(updatePage: (io.github.freewebmovement.zz.ui.common.PageType) 
                             }
                             Spacer(Modifier.width(12.dp))
                             Column(Modifier.weight(1f)) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(a.name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                                Column {
+                                    Text(
+                                        a.name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary,
+                                        maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                    )
                                     if (isCurrent) {
-                                        Surface(
-                                            color = AppTheme.preset.primary,
-                                            shape = RoundedCornerShape(4.dp),
-                                            modifier = Modifier.padding(start = 8.dp),
+                                        Box(
+                                            modifier = Modifier
+                                                .padding(top = 3.dp)
+                                                .background(AppTheme.preset.primary, RoundedCornerShape(4.dp))
+                                                .padding(horizontal = 6.dp, vertical = 2.dp),
                                         ) {
-                                            Text("当前帐号", color = Color.White, fontSize = 11.sp,
-                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+                                            Text("当前帐号", color = Color.White, fontSize = 11.sp, maxLines = 1)
                                         }
                                     }
                                 }
@@ -195,11 +218,11 @@ fun AccountScreen(updatePage: (io.github.freewebmovement.zz.ui.common.PageType) 
                                             updatePage(io.github.freewebmovement.zz.ui.common.PageType.MineUserEdit)
                                         })
                                     Text("私聊保护", color = MaterialTheme.colorScheme.primary, fontSize = 13.sp,
-                                        modifier = Modifier.padding(start = 16.dp, top = 8.dp).clickable { pwProtectTarget = a })
+                                        modifier = Modifier.padding(start = 10.dp, top = 8.dp).clickable { pwProtectTarget = a })
                                     Text("修复", color = TextMuted, fontSize = 13.sp,
-                                        modifier = Modifier.padding(start = 16.dp, top = 8.dp).clickable { authTarget = a to "repair" })
+                                        modifier = Modifier.padding(start = 10.dp, top = 8.dp).clickable { authTarget = a to "repair" })
                                     Text("删除", color = MaterialTheme.colorScheme.error, fontSize = 13.sp,
-                                        modifier = Modifier.padding(start = 16.dp, top = 8.dp).clickable { deleteTarget = a })
+                                        modifier = Modifier.padding(start = 10.dp, top = 8.dp).clickable { deleteTarget = a })
                                 }
                             }
                         }

@@ -24,10 +24,13 @@ fun MinContent(page: PageType, updater: (page: PageType, value: ContentType) -> 
             updater(it, ContentType.NonStacked)
         }
         PageType.MineFwmcProfile -> FwmcProfileScreen()
-        PageType.MineAccounts -> AccountScreen {
-            updater(it, ContentType.Stacked)
-        }
-        PageType.MineWallet -> WalletsScreen()
+        PageType.MineAccounts -> AccountScreen(
+            updatePage = { updater(it, ContentType.Stacked) },
+            onBack = { updater(PageType.MineMain, ContentType.NonStacked) },
+        )
+        PageType.MineWallet -> WalletsScreen(
+            onBack = { updater(PageType.MineMain, ContentType.NonStacked) },
+        )
         else -> {
         }
     }

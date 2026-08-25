@@ -14,7 +14,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -78,7 +82,7 @@ private val MNEMONIC_LANGUAGES = listOf(
  * 删除（非绑定）/ 设为绑定钱包（重启节点生效）。
  */
 @Composable
-fun WalletsScreen() {
+fun WalletsScreen(onBack: () -> Unit = {}) {
     val scope = rememberCoroutineScope()
     var wallets by remember { mutableStateOf<List<WalletRow>>(emptyList()) }
     var balances by remember { mutableStateOf<Map<String, Long>>(emptyMap()) }
@@ -117,6 +121,9 @@ fun WalletsScreen() {
             modifier = Modifier.fillMaxWidth().background(io.github.freewebmovement.zz.ui.theme.CardBg).padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+            }
             Text("钱包管理", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary, modifier = Modifier.weight(1f))
             Text("+ 创建钱包", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp,
                 modifier = Modifier.clickable { showCreate = true })
