@@ -11,9 +11,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -63,7 +65,7 @@ import rs.zz.coin.FwmcApi
 
 @Composable
 fun MineMain(updatePage: (value: PageType) -> Unit) {
-    Column(modifier = Modifier.background(WxBg)) {
+    Column(modifier = Modifier.background(WxBg).verticalScroll(rememberScrollState())) {
         val app = MainApplication.getApp()
         val settings = app.settings
         with(settings) {
@@ -102,8 +104,8 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
                 }
             }
 
-            // ── 一、身份与钱包 ──
-            SectionTitle("身份与钱包")
+            // ── 一、账号与钱包 ──
+            SectionTitle("账号与钱包")
 
             // 头像/昵称/签名
             ProfileCard(acctId, nickname, intro, imageUri, updatePage)
@@ -123,8 +125,8 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
                 Text("多钱包  ›", fontSize = 13.sp, color = TextSecondary)
             }, onClick = { updatePage(PageType.MineWallet) })
 
-            // ── 二、节点资源与服务 ──
-            SectionTitle("节点资源与服务")
+            // ── 二、节点信息（资源与服务） ──
+            SectionTitle("节点信息（资源与服务）")
 
             // 服务器
             ServerRow(updatePage)
@@ -135,8 +137,13 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
             // 资源与权重配置
             WeightsRow(updatePage)
 
-            // ── 设置 ──
-            SettingsRow(updatePage)
+            // ── 三、设置 ──
+            SectionTitle("设置")
+
+            // 主题设置
+            ThemeRow()
+
+            ThemeDialogHost()
         }
     }
 }
@@ -324,12 +331,13 @@ private fun WeightsRow(updatePage: (value: PageType) -> Unit) {
     }, onClick = { updatePage(PageType.MineWeights) })
 }
 
+/** 主题设置入口。 */
 @Composable
-private fun SettingsRow(updatePage: (value: PageType) -> Unit) {
-    RowItem2(label = "设置", icon = R.drawable.ic_settings, trailing = {
+private fun ThemeRow() {
+    RowItem2(label = "主题设置", icon = R.drawable.ic_settings, trailing = {
         Text(AppTheme.preset.label, fontSize = 13.sp, color = TextSecondary)
         Text("  ›", color = TextMuted)
-    }, onClick = { updatePage(PageType.MineSettings) })
+    }, onClick = { showThemeDialog.value = true })
 }
 
 private val showThemeDialog = mutableStateOf(false)

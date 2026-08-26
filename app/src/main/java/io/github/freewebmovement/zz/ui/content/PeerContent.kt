@@ -223,6 +223,7 @@ fun PeerContent() {
 @Composable
 fun ServerScreen(onBack: () -> Unit = {}) {
     val app = MainApplication.getApp()
+    val ctx = LocalContext.current
     val node = rememberFwmcNodeSnapshot()
     val running = node.running
 
@@ -233,18 +234,38 @@ fun ServerScreen(onBack: () -> Unit = {}) {
 
     LaunchedEffect(running) {
         while (running) {
-            runCatching {
-                val obj = JSONObject(FwmcApi.getWeights())
+            try {
+                val raw = FwmcApi.getWeights()
+                val obj = JSONObject(raw)
                 if (obj.optBoolean("success", false)) {
                     publicIps = toStringList(obj.optJSONArray("external_ips"))
                     privateIps = toStringList(obj.optJSONArray("inner_ips"))
                 }
+                // JNI get_all_ips 在 Android 上可能返回空（ip addr show 无权限），回退到 Java NetworkInterface
+                if (privateIps.isEmpty()) {
+                    try {
+                        val ips = java.net.NetworkInterface.getNetworkInterfaces()?.toList()
+                            ?.filter { !it.isLoopback && it.isUp && it.inetAddresses.hasMoreElements() }
+                            ?.flatMap { it.inetAddresses.toList() }
+                            ?.filter { it is java.net.Inet4Address && !it.isLoopbackAddress }
+                            ?.map { it.hostAddress ?: "" }
+                            ?.filter { it.isNotEmpty() }
+                            ?: emptyList()
+                        if (ips.isNotEmpty()) {
+                            privateIps = ips.map { it }
+                        }
+                    } catch (_: Exception) {}
+                }
+            } catch (e: Exception) {
+                android.util.Log.w("ServerScreen", "getWeights failed", e)
             }
-            runCatching {
+            try {
                 val obj = JSONObject(FwmcApi.getData())
                 if (obj.optBoolean("success", false)) {
                     locationText = obj.optString("location", "")
                 }
+            } catch (e: Exception) {
+                android.util.Log.w("ServerScreen", "getData failed", e)
             }
             delay(5000)
         }
@@ -259,7 +280,7 @@ fun ServerScreen(onBack: () -> Unit = {}) {
         SubPageHeader("服务器", onBack)
 
         // 节点控制（启动/停止/端口）
-        ServerControlCard(running = running, port = node.port, address = "")
+        ServerControlCard(running = running, port = node.port, address = "", privateIps = privateIps)
 
         if (running) {
             // 网络信息
@@ -269,7 +290,7 @@ fun ServerScreen(onBack: () -> Unit = {}) {
                 Text("公网 IP", fontSize = 12.sp, color = TextSecondary)
                 if (publicIps.isNotEmpty()) {
                     publicIps.forEach { ip ->
-                        MonoText(text = ip, fontSize = 11, color = TextPrimary)
+                        MonoText(text = ip.split(":").first(), fontSize = 11, color = TextPrimary)
                     }
                 } else {
                     Text("  无", fontSize = 12.sp, color = TextMuted)
@@ -278,7 +299,7 @@ fun ServerScreen(onBack: () -> Unit = {}) {
                 Text("内网 IP", fontSize = 12.sp, color = TextSecondary)
                 if (privateIps.isNotEmpty()) {
                     privateIps.forEach { ip ->
-                        MonoText(text = ip, fontSize = 11, color = TextPrimary)
+                        MonoText(text = ip.split(":").first(), fontSize = 11, color = TextPrimary)
                     }
                 } else {
                     Text("  无", fontSize = 12.sp, color = TextMuted)
@@ -779,7 +800,7 @@ private fun EditableResourceRow(
 // ============================================================
 
 @Composable
-private fun ServerControlCard(running: Boolean, port: Int, address: String) {
+private fun ServerControlCard(running: Boolean, port: Int, address: String, privateIps: List<String> = emptyList()) {
     val app = MainApplication.getApp()
     val context = LocalContext.current
     var bump by remember { mutableIntStateOf(0) }
@@ -859,25 +880,42 @@ private fun ServerControlCard(running: Boolean, port: Int, address: String) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text("Web 服务", fontSize = 14.sp, color = TextPrimary)
+                val lanIp = privateIps.firstOrNull()?.split(":")?.firstOrNull() ?: ""
                 Text(
-                    text = if (running && port > 0) "http://<本机IP>:$port/ 局域网可访问" else "节点启动后提供 Web UI",
+                    text = if (running && port > 0 && lanIp.isNotEmpty()) "http://$lanIp:$port/ 局域网可访问" else if (running && port > 0) "http://<本机IP>:$port/" else "节点启动后提供 Web UI",
                     fontSize = 11.sp,
                     color = TextMuted,
                 )
             }
             if (running && port > 0) {
-                Text(
-                    text = "分享",
-                    color = MaterialTheme.colorScheme.primary,
-                    fontSize = 13.sp,
-                    modifier = Modifier.clickable {
-                        val send = Intent(Intent.ACTION_SEND).apply {
-                            type = "text/plain"
-                            putExtra(Intent.EXTRA_TEXT, "http://:${port}/")
-                        }
-                        context.startActivity(Intent.createChooser(send, "分享 fwmc Web UI"))
-                    }.padding(6.dp),
-                )
+                Row {
+                    Text(
+                        text = "浏览器",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 13.sp,
+                        modifier = Modifier.clickable {
+                            val lanIp = privateIps.firstOrNull()?.split(":")?.firstOrNull() ?: ""
+                            if (lanIp.isNotEmpty()) {
+                                val uri = android.net.Uri.parse("http://$lanIp:$port/")
+                                context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+                            }
+                        }.padding(6.dp),
+                    )
+                    Text(
+                        text = "分享",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 13.sp,
+                        modifier = Modifier.clickable {
+                            val lanIp = privateIps.firstOrNull()?.split(":")?.firstOrNull() ?: ""
+                            val url = if (lanIp.isNotEmpty()) "http://$lanIp:$port/" else "http://:${port}/"
+                            val send = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, url)
+                            }
+                            context.startActivity(Intent.createChooser(send, "分享 fwmc Web UI"))
+                        }.padding(6.dp),
+                    )
+                }
             }
         }
     }
