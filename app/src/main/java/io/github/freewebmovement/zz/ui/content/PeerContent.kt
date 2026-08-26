@@ -198,17 +198,24 @@ fun PeerContent() {
             !running -> SectionCard { Text("节点未运行。可在「我的 → 服务器」中启动。", color = TextSecondary) }
             errorMsg.isNotEmpty() -> SectionCard { Text(errorMsg, color = MaterialTheme.colorScheme.error) }
             else -> {
-                // ① 链状态
+                // ① 种子服务器
+                SectionHeader("种子服务器")
+                SeedsCard(seeds, onChanged = { /* refreshed on next poll */ })
+
+                // ② 区块链数据
+                SectionHeader("区块链数据")
+                GenesisCard()
                 StatusCard(witness)
-                SectionHeader("Peer 节点")
-                // ② Peer 节点
+                ExplorerCard(myAddress)
+
+                // ③ 见证环
+                SectionHeader("见证环")
+                RingCard(witness)
+
+                // ④ P2P 连接信息
+                SectionHeader("P2P 连接信息")
                 NodesCard(nodes)
                 ConnectionsCard(inbound, outbound)
-                SeedsCard(seeds, onChanged = { /* refreshed on next poll */ })
-                // ③ 见证环
-                RingCard(witness)
-                // ④ 区块浏览
-                ExplorerCard(myAddress)
             }
         }
         Spacer(modifier = Modifier.height(12.dp))
@@ -1018,6 +1025,51 @@ private fun PortEditDialog(current: String, onDismiss: () -> Unit, onApply: (Int
 // ============================================================
 //  状态 / 连接 / 见证 / 节点 / 种子 / 权重
 // ============================================================
+
+@Composable
+private fun GenesisCard() {
+    var genesis by remember { mutableStateOf<JSONObject?>(null) }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    LaunchedEffect(Unit) {
+        scope.launch {
+            runCatching {
+                val raw = FwmcApi.getGenesis()
+                val obj = JSONObject(raw)
+                if (obj.optBoolean("success", false)) genesis = obj
+            }
+        }
+    }
+    SectionCard(title = "创世纪") {
+        val g = genesis
+        if (g == null) {
+            EmptyHint("加载中…")
+        } else {
+            InfoGrid(
+                listOf(
+                    "币种" to g.optString("coin_symbol", ""),
+                    "总发行量" to formatAmount(g.optLong("total_supply", 0)),
+                    "创世分配" to "${g.optString("genesis_dev_ratio", "")}（开发者）",
+                    "释放周期" to "${g.optLong("release_years", 0)} 年",
+                )
+            )
+            Divider()
+            Text("初始分配", fontSize = 12.sp, color = TextSecondary)
+            val allocs = g.optJSONArray("allocations")
+            if (allocs != null) {
+                (0 until allocs.length()).forEach { i ->
+                    val a = allocs.getJSONObject(i)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                    ) {
+                        MonoText(text = a.optString("address"), fontSize = 10, color = TextPrimary, maxLines = 1, modifier = Modifier.weight(1f))
+                        MonoText(text = "${a.optString("percentage")}%", fontSize = 10, color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+            }
+        }
+    }
+}
 
 @Composable
 private fun StatusCard(w: WitnessData) {

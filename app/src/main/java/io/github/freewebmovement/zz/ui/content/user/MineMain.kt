@@ -140,6 +140,9 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
             // ── 三、设置 ──
             SectionTitle("设置")
 
+            // fwmc 配置
+            FwmcConfigRow(updatePage)
+
             // 主题设置
             ThemeRow()
 
@@ -329,6 +332,14 @@ private fun WeightsRow(updatePage: (value: PageType) -> Unit) {
     RowItem2(label = "资源与权重配置", icon = R.drawable.ic_briefcase, trailing = {
         Text("  ›", color = TextMuted)
     }, onClick = { updatePage(PageType.MineWeights) })
+}
+
+/** fwmc 配置入口。 */
+@Composable
+private fun FwmcConfigRow(updatePage: (value: PageType) -> Unit) {
+    RowItem2(label = "节点配置", icon = R.drawable.ic_settings, trailing = {
+        Text("  ›", color = TextMuted)
+    }, onClick = { updatePage(PageType.MineSettings) })
 }
 
 /** 主题设置入口。 */

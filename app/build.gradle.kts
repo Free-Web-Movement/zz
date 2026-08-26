@@ -84,8 +84,7 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
     // Feature module support for Fragments
-    implementation(project(":peer"))
-    implementation(project(":noui"))
+    implementation(project(":fwmc"))
 
     // If this project uses any Kotlin source, use Kotlin Symbol Processing (KSP)
     // See Add the KSP plugin to your project
