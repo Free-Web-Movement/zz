@@ -59,6 +59,7 @@ fun SettingsScreen(onBack: () -> Unit = {}) {
     var bandwidth by remember { mutableStateOf("") }
     var apiRequests by remember { mutableStateOf("") }
     var port by remember { mutableStateOf("") }
+    var ticksPerEpoch by remember { mutableStateOf("") }
     var saved by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -75,6 +76,7 @@ fun SettingsScreen(onBack: () -> Unit = {}) {
                 bandwidth = obj.optString("bandwidth_gbps", "")
                 apiRequests = obj.optString("api_requests", "")
                 port = obj.optString("p2p_port", "")
+                ticksPerEpoch = obj.optString("ticks_per_epoch", "")
             }
         }
     }
@@ -90,6 +92,7 @@ fun SettingsScreen(onBack: () -> Unit = {}) {
                 put("resource.bandwidth_gbps", bandwidth)
                 put("resource.api_requests", apiRequests)
                 put("network.p2p_port", port)
+                put("epoch.ticks_per_epoch", ticksPerEpoch)
             }
             runCatching {
                 val raw = FwmcApi.setConfig(json.toString())
@@ -128,6 +131,7 @@ fun SettingsScreen(onBack: () -> Unit = {}) {
             ConfigRow("带宽 (Gbps)", bandwidth) { bandwidth = it }
             ConfigRow("API 请求数", apiRequests) { apiRequests = it }
             ConfigRow("P2P 端口", port) { port = it }
+            ConfigRow("每纪元 Tick 数", ticksPerEpoch) { ticksPerEpoch = it }
 
             Spacer(modifier = Modifier.height(8.dp))
             Button(

@@ -58,6 +58,7 @@ import io.github.freewebmovement.zz.ui.common.SectionCard
 import io.github.freewebmovement.zz.ui.common.StatusText
 import io.github.freewebmovement.zz.ui.common.formatAmount
 import io.github.freewebmovement.zz.ui.common.rememberFwmcNodeSnapshot
+import io.github.freewebmovement.zz.ui.common.shortAddr
 import io.github.freewebmovement.zz.ui.theme.CardBg
 import io.github.freewebmovement.zz.ui.theme.TextMuted
 import io.github.freewebmovement.zz.ui.theme.OnlineGreen
@@ -70,13 +71,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import rs.zz.coin.FwmcApi
 
-private data class NodeRow(
-    val address: String,
-    val intranetIps: List<String>,
-    val wanIps: List<String>,
-    val connected: Boolean,
-)
-
 private data class SeedRow(
     val address: String,
     val port: Int,
@@ -84,8 +78,6 @@ private data class SeedRow(
     val active: Boolean,
     val lastSeen: String,
 )
-
-private data class ConnGroup(val nodeId: String, val addrs: String, val passed: String)
 
 private data class ChainRow(
     val address: String,
@@ -111,7 +103,23 @@ private data class WitnessData(
     val ringLockedEpoch: Long = 0,
     val ringLockedMembers: List<RingMember> = emptyList(),
     val chain: List<ChainRow> = emptyList(),
+    val tickRecords: List<TickRecord> = emptyList(),
+    val tickMax: Long = 0,
+    val tickRings: List<TickRing> = emptyList(),
     val todayTick: Long = 0,
+)
+
+private data class TickRecord(
+    val address: String,
+    val tickCount: Long,
+    val isFullTime: Boolean,
+)
+
+/** 每个 tick 保存的锁定环快照。 */
+private data class TickRing(
+    val tickIndex: Long,
+    val ringHash: String,
+    val members: List<String>,
 )
 
 /** 子页面通用头部：返回箭头 + 标题。 */
@@ -141,11 +149,10 @@ fun PeerContent() {
 
     var myAddress by remember { mutableStateOf("") }
     var witness by remember { mutableStateOf(WitnessData()) }
-    var inbound by remember { mutableStateOf<List<ConnGroup>>(emptyList()) }
-    var outbound by remember { mutableStateOf<List<ConnGroup>>(emptyList()) }
-    var nodes by remember { mutableStateOf<List<NodeRow>>(emptyList()) }
     var seeds by remember { mutableStateOf<List<SeedRow>>(emptyList()) }
     var errorMsg by remember { mutableStateOf("") }
+    var showTickList by remember { mutableStateOf(false) }
+    var showRingDetail by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(running) {
         while (running) {
@@ -158,19 +165,6 @@ fun PeerContent() {
                 errorMsg = ""
                 myAddress = obj.optString("my_address")
                 witness = parseWitness(obj)
-                inbound = parseConnGroups(obj.optJSONArray("inbound_connections"))
-                outbound = parseConnGroups(obj.optJSONArray("outbound_connections"))
-                nodes = obj.optJSONArray("nodes")?.let { arr ->
-                    (0 until arr.length()).map { i ->
-                        val o = arr.getJSONObject(i)
-                        NodeRow(
-                            address = o.optString("address"),
-                            intranetIps = toStringList(o.optJSONArray("intranet_ips")),
-                            wanIps = toStringList(o.optJSONArray("wan_ips")),
-                            connected = o.optBoolean("is_connected", false),
-                        )
-                    }
-                } ?: emptyList()
                 seeds = obj.optJSONArray("seeds")?.let { arr ->
                     (0 until arr.length()).map { i ->
                         val o = arr.getJSONObject(i)
@@ -188,6 +182,15 @@ fun PeerContent() {
         }
     }
 
+    if (showTickList) {
+        TickRingListScreen(witness = witness, onBack = { showTickList = false })
+        return
+    }
+    showRingDetail?.let { which ->
+        RingDetailScreen(which = which, witness = witness, onBack = { showRingDetail = null })
+        return
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -198,24 +201,22 @@ fun PeerContent() {
             !running -> SectionCard { Text("节点未运行。可在「我的 → 服务器」中启动。", color = TextSecondary) }
             errorMsg.isNotEmpty() -> SectionCard { Text(errorMsg, color = MaterialTheme.colorScheme.error) }
             else -> {
-                // ① 种子服务器
-                SectionHeader("种子服务器")
-                SeedsCard(seeds, onChanged = { /* refreshed on next poll */ })
+                // ① 纪元（含纪元状态、见证环、Tick 列表入口）
+                SectionHeader("纪元")
+                EpochCard(
+                    witness,
+                    onOpenTickList = { showTickList = true },
+                    onOpenRingMembers = { which -> showRingDetail = which },
+                )
 
-                // ② 区块链数据
-                SectionHeader("区块链数据")
+                // ② 区块链信息
+                SectionHeader("区块链信息")
                 GenesisCard()
-                StatusCard(witness)
                 ExplorerCard(myAddress)
 
-                // ③ 见证环
-                SectionHeader("见证环")
-                RingCard(witness)
-
-                // ④ P2P 连接信息
-                SectionHeader("P2P 连接信息")
-                NodesCard(nodes)
-                ConnectionsCard(inbound, outbound)
+                // ③ 种子服务器
+                SectionHeader("种子服务器")
+                SeedsCard(seeds, onChanged = { /* refreshed on next poll */ })
             }
         }
         Spacer(modifier = Modifier.height(12.dp))
@@ -824,7 +825,8 @@ private fun ServerControlCard(running: Boolean, port: Int, address: String, priv
             )
             Button(
                 onClick = {
-                    if (running) app.fwmc?.stop() else app.restartFwmcNode(app.settings.network.port)
+                    if (running) io.github.freewebmovement.android.noui.FwmcService.stop(context)
+                    else io.github.freewebmovement.android.noui.FwmcService.start(context)
                     bump++
                 },
                 colors = if (running) {
@@ -934,7 +936,12 @@ private fun ServerControlCard(running: Boolean, port: Int, address: String, priv
             onApply = { newPort ->
                 showPortEditor = false
                 app.settings.network.port = newPort
-                app.restartFwmcNode(newPort)
+                val ctx = io.github.freewebmovement.android.noui.MyApp.getContext()
+                io.github.freewebmovement.android.noui.FwmcService.stop(ctx)
+                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+                    kotlinx.coroutines.delay(500)
+                    io.github.freewebmovement.android.noui.FwmcService.start(ctx)
+                }
                 bump++
             },
         )
@@ -1072,50 +1079,279 @@ private fun GenesisCard() {
 }
 
 @Composable
-private fun StatusCard(w: WitnessData) {
-    SectionCard(title = "链状态") {
+/** 纪元卡片：嵌套 纪元状态 / 见证环 / Tick 列表入口（均为当前纪元的衍生物）。 */
+private fun EpochCard(
+    w: WitnessData,
+    onOpenTickList: () -> Unit,
+    onOpenRingMembers: (which: String) -> Unit,
+) {
+    SectionCard(title = "纪元 ${w.epoch}") {
+        // 纪元状态
         InfoGrid(
             listOf(
                 "Tick" to w.tickCount.toString(),
-                "纪元" to w.epoch.toString(),
                 "纪元进度" to "${w.epochTick} / ${w.ticksPerEpoch}",
+                "下次 Tick" to "${w.nextTickSeconds}s",
             )
         )
         InfoGrid(
             listOf(
                 "今日 Tick" to w.todayTick.toString(),
-                "下次 Tick" to "${w.nextTickSeconds}s",
+                "" to "",
+                "" to "",
             )
         )
-    }
-}
 
-@Composable
-private fun ConnectionsCard(inbound: List<ConnGroup>, outbound: List<ConnGroup>) {
-    SectionCard(title = "连接 (${inbound.size} 入站 / ${outbound.size} 出站)") {
-        GroupTable("入站连接", inbound)
-        Spacer(modifier = Modifier.height(8.dp))
-        GroupTable("出站连接", outbound)
-    }
-}
+        Divider()
 
-@Composable
-private fun GroupTable(title: String, groups: List<ConnGroup>) {
-    Text(text = title, fontSize = 13.sp, color = TextSecondary)
-    if (groups.isEmpty()) {
-        EmptyHint("暂无$title")
-    } else {
-        Row(modifier = Modifier.padding(vertical = 2.dp)) {
-            MonoText(text = "Node ID", fontSize = 10, color = TextMuted, maxLines = 1)
+        // 见证环（当前 tick 的节点组合）——成员多，入口进入子页查看完整列表
+        Text("见证环", fontSize = 12.sp, color = TextSecondary)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = { onOpenRingMembers("active") })
+                .padding(vertical = 4.dp),
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("活跃环", fontSize = 11.sp, color = TextSecondary)
+                SelectionContainer {
+                    MonoText(
+                        text = w.ringActiveHash.ifEmpty { "-" },
+                        fontSize = 10,
+                        color = TextSecondary,
+                        maxLines = 1,
+                    )
+                }
+                Text("成员 ${w.ringActiveMembers.size} 个", fontSize = 10.sp, color = TextMuted)
+            }
+            Text("查看  ›", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary)
         }
-        groups.forEach { g ->
-            Column(modifier = Modifier.padding(vertical = 2.dp)) {
-                MonoText(text = g.nodeId, fontSize = 11, color = TextPrimary, maxLines = 1)
+        if (w.ringLockedHash.isNotEmpty()) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = { onOpenRingMembers("locked") })
+                    .padding(vertical = 4.dp),
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("锁定环（纪元 ${w.ringLockedEpoch}）", fontSize = 11.sp, color = TextSecondary)
+                    SelectionContainer {
+                        MonoText(text = w.ringLockedHash, fontSize = 10, color = TextMuted, maxLines = 1)
+                    }
+                    Text("成员 ${w.ringLockedMembers.size} 个", fontSize = 10.sp, color = TextMuted)
+                }
+                Text("查看  ›", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary)
+            }
+        }
+
+        if (w.chain.isNotEmpty()) {
+            Divider()
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = { onOpenRingMembers("chain") })
+                    .padding(vertical = 4.dp),
+            ) {
+                Text("见证链 (${w.chain.size})", fontSize = 12.sp, color = TextSecondary, modifier = Modifier.weight(1f))
+                Text("查看  ›", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary)
+            }
+        }
+
+        Divider()
+
+        // Tick 列表入口（完整列表在子页显示，因为一天数据量大且每个环有很多地址）
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onOpenTickList)
+                .padding(vertical = 4.dp),
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Tick 列表", fontSize = 12.sp, color = TextSecondary)
                 Text(
-                    text = "已连接 ${g.addrs} · 通过 ${g.passed}",
+                    text = "当前 ${w.epochTick}/${w.ticksPerEpoch} · 已记录 ${w.tickRings.size} 个环",
                     fontSize = 10.sp,
                     color = TextMuted,
                 )
+            }
+            Text("查看全部  ›", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary)
+        }
+        if (w.tickRings.isNotEmpty()) {
+            val latest = w.tickRings.last()
+            Text(
+                text = "最新 #${latest.tickIndex} · ${latest.members.size} 个成员",
+                fontSize = 10.sp,
+                color = TextMuted,
+                modifier = Modifier.padding(start = 12.dp),
+            )
+        }
+    }
+}
+
+/** Tick 列表子页：显示当前纪元所有 tick 入口，点击进入该 tick 的成员列表。 */
+@Composable
+private fun TickRingListScreen(witness: WitnessData, onBack: () -> Unit) {
+    var selectedTick by remember { mutableStateOf<TickRing?>(null) }
+
+    if (selectedTick != null) {
+        TickMemberScreen(tick = selectedTick!!, onBack = { selectedTick = null })
+        return
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(io.github.freewebmovement.zz.ui.theme.WxBg)
+            .verticalScroll(rememberScrollState()),
+    ) {
+        SubPageHeader(title = "Tick 列表", onBack = onBack)
+
+        if (witness.tickRings.isEmpty()) {
+            SectionCard { Text("暂无 Tick 记录", fontSize = 13.sp, color = TextSecondary) }
+        } else {
+            SectionCard(title = "Tick 记录 (${witness.tickRings.size})") {
+                witness.tickRings.forEach { tr ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { selectedTick = tr }
+                            .padding(vertical = 6.dp),
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Tick #${tr.tickIndex}", fontSize = 13.sp, color = TextPrimary)
+                            Text("成员 ${tr.members.size} 个", fontSize = 10.sp, color = TextMuted)
+                        }
+                        Text("查看  ›", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+/** 单个 tick 的成员列表子页（复用统一成员列表模板）。 */
+@Composable
+private fun TickMemberScreen(tick: TickRing, onBack: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(io.github.freewebmovement.zz.ui.theme.WxBg)
+            .verticalScroll(rememberScrollState()),
+    ) {
+        SubPageHeader(title = "Tick #${tick.tickIndex}", onBack = onBack)
+        MemberListCard(
+            title = "锁定环成员 · ${tick.members.size} 个",
+            items = tick.members.map { m -> MemberItem(label = "", address = m) },
+            emptyHint = "（空）",
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+/** 可复制的地址行：点击复制完整地址。 */
+@Composable
+private fun CopyableAddress(address: String) {
+    val ctx = LocalContext.current
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                val cm = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                cm.setPrimaryClip(android.content.ClipData.newPlainText("address", address))
+                android.widget.Toast.makeText(ctx, "已复制", android.widget.Toast.LENGTH_SHORT).show()
+            }
+            .padding(vertical = 4.dp),
+    ) {
+        SelectionContainer {
+            MonoText(text = address, fontSize = 11, color = TextPrimary, maxLines = 1)
+        }
+        Spacer(modifier = Modifier.weight(1f))
+        Text("复制", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary)
+    }
+}
+
+/** 环成员子页：活跃环 / 锁定环 / 见证链 共用统一的成员列表模板。 */
+@Composable
+private fun RingDetailScreen(which: String, witness: WitnessData, onBack: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(io.github.freewebmovement.zz.ui.theme.WxBg)
+            .verticalScroll(rememberScrollState()),
+    ) {
+        val title = when (which) {
+            "active" -> "活跃环成员"
+            "locked" -> "锁定环成员"
+            "chain" -> "见证链"
+            else -> "成员"
+        }
+        SubPageHeader(title = title, onBack = onBack)
+
+        val items = when (which) {
+            "active" -> witness.ringActiveMembers.map { m ->
+                MemberItem(label = "${m.ip}:${m.port}", address = m.nodeId)
+            }
+            "locked" -> witness.ringLockedMembers.map { m ->
+                MemberItem(label = "${m.ip}:${m.port}", address = m.nodeId)
+            }
+            "chain" -> witness.chain.map { c ->
+                MemberItem(
+                    label = c.address,
+                    address = c.address,
+                    subtitle = "在线 ${c.onlineMinutes} 分钟 · Tick ${c.tickCount} · 权重 ${c.weight}",
+                )
+            }
+            else -> emptyList()
+        }
+        MemberListCard(
+            title = "$title · ${items.size} 个",
+            items = items,
+            emptyHint = "（空）",
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+/** 成员条目：标签 + 可复制地址 + 可选副标题。 */
+private data class MemberItem(
+    val label: String,
+    val address: String,
+    val subtitle: String = "",
+)
+
+/** 统一的成员列表模板：每个条目显示 标签 + 可复制地址 + 可选副标题。 */
+@Composable
+private fun MemberListCard(
+    title: String,
+    items: List<MemberItem>,
+    emptyHint: String = "（空）",
+) {
+    SectionCard(title = title) {
+        if (items.isEmpty()) {
+            Text(emptyHint, fontSize = 12.sp, color = TextMuted)
+        } else {
+            items.forEach { item ->
+                Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                    if (item.label.isNotEmpty()) {
+                        Text(item.label, fontSize = 11.sp, color = TextPrimary)
+                    }
+                    CopyableAddress(address = item.address)
+                    if (item.subtitle.isNotEmpty()) {
+                        Text(
+                            text = item.subtitle,
+                            fontSize = 10.sp,
+                            color = TextMuted,
+                            modifier = Modifier.padding(start = 4.dp),
+                        )
+                    }
+                }
             }
         }
     }
@@ -1236,34 +1472,6 @@ private fun SeedAddDialog(onDismiss: () -> Unit, onConfirm: (String, Int) -> Uni
 }
 
 @Composable
-private fun NodesCard(nodes: List<NodeRow>) {
-    SectionCard(title = "注册节点 (${nodes.size})") {
-        if (nodes.isEmpty()) {
-            EmptyHint("暂无注册节点")
-        } else {
-            nodes.forEach { n ->
-                Column(modifier = Modifier.padding(vertical = 4.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        StatusDotBig(n.connected)
-                        MonoText(
-                            text = n.address,
-                            fontSize = 11,
-                            color = TextPrimary,
-                            maxLines = 1,
-                            modifier = Modifier.padding(start = 6.dp),
-                        )
-                    }
-                    val lan = n.intranetIps.joinToString(", ").ifEmpty { "无" }
-                    val wan = n.wanIps.joinToString(", ").ifEmpty { "无" }
-                    Text(text = "内网 $lan", fontSize = 10.sp, color = TextMuted)
-                    Text(text = "外网 $wan", fontSize = 10.sp, color = TextMuted)
-                }
-            }
-        }
-    }
-}
-
-@Composable
 private fun StatusDotBig(active: Boolean) {
     Surface(shape = RoundedCornerShape(4.dp), color = if (active) OnlineGreen.copy(alpha = 0.15f) else Color(0xFFE0E0E0)) {
         Text(
@@ -1360,97 +1568,6 @@ private fun SectionHeader(title: String) {
         color = TextSecondary,
         modifier = Modifier.padding(start = 4.dp, top = 14.dp, bottom = 2.dp),
     )
-}
-
-/** ③ 见证环：活跃环 / 锁定环 / 见证链全量信息。 */
-@Composable
-private fun RingCard(w: WitnessData) {
-    SectionCard(title = "见证环") {
-        InfoGrid(
-            listOf(
-                "活跃纪元" to w.ringActiveEpoch.toString(),
-                "成员数" to w.ringActiveMembers.size.toString(),
-                "" to "",
-            )
-        )
-        Row(verticalAlignment = Alignment.Top) {
-            Text("环哈希 ", fontSize = 11.sp, color = TextSecondary, modifier = Modifier.padding(top = 2.dp))
-            SelectionContainer {
-                MonoText(
-                    text = w.ringActiveHash.ifEmpty { "-" },
-                    fontSize = 10,
-                    color = TextSecondary,
-                    maxLines = 2,
-                    modifier = Modifier.weight(1f, fill = false),
-                )
-            }
-        }
-        if (w.ringActiveMembers.isNotEmpty()) {
-            Divider()
-            Text("环成员", fontSize = 12.sp, color = TextSecondary)
-            w.ringActiveMembers.forEach { m ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(vertical = 2.dp),
-                ) {
-                    StatusDotBig(m.active)
-                    MonoText(
-                        text = "${m.ip}:${m.port}",
-                        fontSize = 10,
-                        color = TextSecondary,
-                        maxLines = 1,
-                        modifier = Modifier.padding(start = 6.dp).weight(1f, fill = false),
-                    )
-                }
-            }
-        }
-        if (w.ringLockedHash.isNotEmpty()) {
-            Divider()
-            Text("锁定环（纪元 \${w.ringLockedEpoch}）", fontSize = 12.sp, color = TextSecondary)
-            SelectionContainer {
-                MonoText(text = w.ringLockedHash, fontSize = 10, color = TextMuted, maxLines = 2)
-            }
-            if (w.ringLockedMembers.isNotEmpty()) {
-                Text("成员 \${w.ringLockedMembers.size} 个", fontSize = 10.sp, color = TextMuted)
-            }
-        }
-        if (w.chain.isNotEmpty()) {
-            Divider()
-            Text("见证链", fontSize = 12.sp, color = TextSecondary)
-            w.chain.forEach { c ->
-                Column(modifier = Modifier.padding(vertical = 4.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        StatusDotBig(c.online)
-                        MonoText(
-                            text = c.address,
-                            fontSize = 10,
-                            color = TextPrimary,
-                            maxLines = 1,
-                            modifier = Modifier.padding(start = 6.dp).weight(1f, fill = false),
-                        )
-                        if (c.isCurrent) {
-                            Surface(
-                                shape = RoundedCornerShape(4.dp),
-                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                            ) {
-                                Text(
-                                    "本机",
-                                    fontSize = 9.sp,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
-                                )
-                            }
-                        }
-                    }
-                    Text(
-                        text = "在线 ${c.onlineMinutes} 分钟 · Tick ${c.tickCount} · 权重 ${c.weight}",
-                        fontSize = 10.sp,
-                        color = TextMuted,
-                    )
-                }
-            }
-        }
-    }
 }
 
 /** ④ 区块浏览：地址余额 + 交易记录（getAddressInfo）。 */
@@ -1593,6 +1710,16 @@ private fun parseWitness(obj: JSONObject): WitnessData {
 
     val ra = obj.optJSONObject("witness_ring_active")
     val rl = obj.optJSONObject("witness_ring_locked")
+    val tickRecords = obj.optJSONArray("witness_tick_records")?.let { arr ->
+        (0 until arr.length()).map { i ->
+            val o = arr.getJSONObject(i)
+            TickRecord(
+                address = o.optString("address"),
+                tickCount = o.optLong("tick_count", 0),
+                isFullTime = o.optBoolean("is_full_time", false),
+            )
+        }
+    } ?: emptyList()
     val chain = obj.optJSONObject("witness_chain")?.let { objChain ->
         objChain.keys().asSequence().mapNotNull { k ->
             val o = objChain.optJSONObject(k) ?: return@mapNotNull null
@@ -1633,20 +1760,22 @@ private fun parseWitness(obj: JSONObject): WitnessData {
         ringLockedEpoch = rl?.optLong("epoch", 0) ?: 0,
         ringLockedMembers = members(rl?.optJSONArray("members")),
         chain = chain,
+        tickRecords = tickRecords,
+        tickMax = obj.optLong("witness_tick_max", 0),
+        tickRings = obj.optJSONArray("tick_rings")?.let { arr ->
+            (0 until arr.length()).map { i ->
+                val o = arr.getJSONObject(i)
+                TickRing(
+                    tickIndex = o.optLong("tick_index", 0),
+                    ringHash = o.optString("ring_hash"),
+                    members = o.optJSONArray("members")?.let { mArr ->
+                        (0 until mArr.length()).mapNotNull { j -> runCatching { mArr.getString(j) }.getOrNull() }
+                    } ?: emptyList(),
+                )
+            }
+        } ?: emptyList(),
     )
 }
-
-private fun parseConnGroups(arr: JSONArray?): List<ConnGroup> =
-    arr?.let { a ->
-        (0 until a.length()).map { i ->
-            val o = a.getJSONObject(i)
-            ConnGroup(
-                nodeId = o.optString("node_id"),
-                addrs = o.optString("addrs"),
-                passed = o.optString("passed"),
-            )
-        }
-    } ?: emptyList()
 
 private fun toStringList(arr: JSONArray?): List<String> {
     arr ?: return emptyList()

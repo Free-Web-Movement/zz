@@ -8,6 +8,8 @@ import io.github.freewebmovement.zz.ui.content.user.AccountScreen
 import io.github.freewebmovement.zz.ui.content.user.WalletsScreen
 import io.github.freewebmovement.zz.ui.content.user.FwmcProfileScreen
 import io.github.freewebmovement.zz.ui.content.user.MineMain
+import io.github.freewebmovement.zz.ui.content.user.WeightTableScreen
+import io.github.freewebmovement.zz.ui.content.user.ConnectionsScreen
 import io.github.freewebmovement.zz.ui.content.user.ProfileEditor
 import io.github.freewebmovement.zz.ui.content.user.UserProfileEditor
 
@@ -41,6 +43,12 @@ fun MinContent(page: PageType, updater: (page: PageType, value: ContentType) -> 
             onBack = { updater(PageType.MineMain, ContentType.NonStacked) },
         )
         PageType.MineWeights -> WeightsScreen(
+            onBack = { updater(PageType.MineMain, ContentType.NonStacked) },
+        )
+        PageType.MineWeightTable -> WeightTableScreen(
+            onBack = { updater(PageType.MineMain, ContentType.NonStacked) },
+        )
+        PageType.MineConnections -> ConnectionsScreen(
             onBack = { updater(PageType.MineMain, ContentType.NonStacked) },
         )
         else -> {

@@ -8,7 +8,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -17,7 +20,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -136,6 +142,12 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
 
             // 资源与权重配置
             WeightsRow(updatePage)
+
+            // 权重对照表
+            WeightTableRow(updatePage)
+
+            // 节点连接情况
+            ConnectionsRow(updatePage)
 
             // ── 三、设置 ──
             SectionTitle("设置")
@@ -334,6 +346,14 @@ private fun WeightsRow(updatePage: (value: PageType) -> Unit) {
     }, onClick = { updatePage(PageType.MineWeights) })
 }
 
+/** 节点连接情况入口。 */
+@Composable
+private fun ConnectionsRow(updatePage: (value: PageType) -> Unit) {
+    RowItem2(label = "节点连接情况", icon = R.drawable.ic_server, trailing = {
+        Text("  ›", color = TextMuted)
+    }, onClick = { updatePage(PageType.MineConnections) })
+}
+
 /** fwmc 配置入口。 */
 @Composable
 private fun FwmcConfigRow(updatePage: (value: PageType) -> Unit) {
@@ -492,5 +512,61 @@ private fun WalletEntryCard(onClick: () -> Unit) {
             }
             Text(text = "管理 · 创建  ›", fontSize = 11.sp, color = Color.White.copy(alpha = 0.85f))
         }
+    }
+}
+
+/** 权重对照表导航行。 */
+@Composable
+private fun WeightTableRow(updatePage: (value: PageType) -> Unit) {
+    RowItem2(label = "资源权重对照表", icon = R.drawable.ic_briefcase, trailing = {
+        Text("  ›", color = TextMuted)
+    }, onClick = { updatePage(PageType.MineWeightTable) })
+}
+
+/** 权重对照表子页。 */
+@Composable
+fun WeightTableScreen(onBack: () -> Unit = {}) {
+    val rows = listOf(
+        Triple("公网 IPv4", "10,000 /个", "公网上行可达的 IPv4 地址"),
+        Triple("内网 IPv4", "0", "NAT 内网地址不计入权重"),
+        Triple("公网 IPv6", "100 /个", "公网 IPv6 地址"),
+        Triple("存储 (TB)", "1 + TB × 100", "1 TB ≈ 101 权重"),
+        Triple("带宽 (Gbps)", "1 + Gbps × 10", "1 Gbps ≈ 11 权重"),
+        Triple("CPU (核×GHz)", "1 + 核×50 + GHz×10", "4核2GHz ≈ 221 权重"),
+        Triple("API 请求数/天", "1 + 千次×10", "1000次/天 ≈ 11 权重"),
+    )
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(io.github.freewebmovement.zz.ui.theme.WxBg)
+            .verticalScroll(rememberScrollState()),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth()
+                .background(io.github.freewebmovement.zz.ui.theme.CardBg)
+                .padding(horizontal = 4.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+            }
+            Text("资源权重对照表", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+        }
+
+        io.github.freewebmovement.zz.ui.common.SectionCard(title = "权重公式") {
+            rows.forEachIndexed { i, (name, formula, desc) ->
+                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(name, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary, modifier = Modifier.weight(1f))
+                        Text(formula, fontSize = 13.sp, color = MaterialTheme.colorScheme.primary)
+                    }
+                    Text(desc, fontSize = 11.sp, color = TextSecondary, modifier = Modifier.padding(top = 2.dp))
+                }
+                if (i < rows.lastIndex) {
+                    io.github.freewebmovement.zz.ui.common.Divider()
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }

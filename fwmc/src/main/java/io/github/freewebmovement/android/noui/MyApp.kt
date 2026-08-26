@@ -33,6 +33,10 @@ class MyApp(private var context: Context) : IApp {
     var fwmc: FwmcNodeController? = null
         private set
 
+    fun setFwmc(ctrl: FwmcNodeController?) {
+        fwmc = ctrl
+    }
+
     /** URL of the running fwmc node's web UI for [path] (e.g. "/chat"). */
     fun fwmcWebUrl(path: String = "/"): String {
         val ctrl = fwmc ?: return ""
@@ -50,8 +54,8 @@ class MyApp(private var context: Context) : IApp {
      */
     fun restartFwmcNode(port: Int) {
         fwmc?.destroy()
-        val effective = if (port > 1024) port else (1025..65535).random()
         val dataDir = nodeDataDir()
+        val effective = if (port > 1024) port else (1025..65535).random()
         val controller = FwmcNodeController(dataDir)
         controller.start(effective)
         fwmc = controller
@@ -161,7 +165,19 @@ class MyApp(private var context: Context) : IApp {
     }
 
     companion object {
+        @Volatile
+        private var instance: MyApp? = null
+        @Volatile
+        private var appContext: Context? = null
+
+        fun getApp(): MyApp = instance!!
+
+        fun getContext(): Context = appContext!!
+
+        fun getStoragePath(context: Context): String = File(context.filesDir, "fwmc").absolutePath
+
         fun new(context: Context): MyApp {
+            appContext = context.applicationContext
             val app = MyApp(context)
             app.scope = CoroutineScope(Dispatchers.IO)
             app.scope.launch {
@@ -174,9 +190,10 @@ class MyApp(private var context: Context) : IApp {
                 app.handler = RoomHandler(app)
                 app.peerManager = PeerManager(app)
                 app.startPeerManager()
-                app.restartFwmcNode(app.settings.network.port)
+                FwmcService.start(context)
             }
             app.address = Address()
+            instance = app
             return app
         }
     }

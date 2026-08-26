@@ -18,6 +18,9 @@ object FwmcApi {
     /** Dashboard payload (tick/epoch/witness/connections/nodes/seeds/balance). */
     suspend fun getData(): String = io { apiGetData() }
 
+    /** Raw P2P connection list with local/remote endpoints. */
+    suspend fun getConnections(): String = io { apiGetConnections() }
+
     /** Balance + recent transactions for one address. */
     suspend fun getAddressInfo(address: String): String =
         io { apiGetAddressInfo(address) }
@@ -146,6 +149,7 @@ object FwmcApi {
 
     // ---- JNI ----
     private external fun apiGetData(): String
+    private external fun apiGetConnections(): String
     private external fun apiGetAddressInfo(address: String): String
     private external fun apiGetBalance(address: String): String
     private external fun apiGetContacts(): String

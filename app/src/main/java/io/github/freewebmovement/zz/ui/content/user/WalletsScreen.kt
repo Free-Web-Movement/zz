@@ -236,8 +236,10 @@ fun WalletsScreen(onBack: () -> Unit = {}) {
                 TextButton(onClick = {
                     scope.launch {
                         runCatching { FwmcApi.bindWallet(w.name) }
-                        val app = io.github.freewebmovement.zz.MainApplication.getApp()
-                        runCatching { app.restartFwmcNode(app.settings.network.port) }
+                        val ctx = io.github.freewebmovement.android.noui.MyApp.getContext()
+                        io.github.freewebmovement.android.noui.FwmcService.stop(ctx)
+                        kotlinx.coroutines.delay(500)
+                        io.github.freewebmovement.android.noui.FwmcService.start(ctx)
                         bindTarget = null; refresh++
                     }
                 }) { Text("绑定并重启", color = MaterialTheme.colorScheme.primary) }
