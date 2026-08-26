@@ -34,6 +34,7 @@ private const val MEM_ALLOCATION = "MEM_ALLOCATION"
 private const val GPU_ALLOCATION = "GPU_ALLOCATION"
 private const val BLE_ALLOCATION = "BLE_ALLOCATION"
 private const val WIFI_ALLOCATION = "WIFI_ALLOCATION"
+private const val LOCATION_ENABLED = "LOCATION_ENABLED"
 
 private const val MINE_PROFILE_IMAGE_URI = "MINE_PROFILE_IMAGE_URI"
 private const val MINE_PROFILE_NICKNAME = "MINE_PROFILE_NICKNAME"
@@ -127,6 +128,7 @@ data class NetworkSetting(
     var gpuAllocation: Int by PreferenceAccessor(preference, GPU_ALLOCATION, field = 0)
     var bleAllocation: Int by PreferenceAccessor(preference, BLE_ALLOCATION, field = 1)
     var wifiAllocation: Int by PreferenceAccessor(preference, WIFI_ALLOCATION, field = 1)
+    var locationEnabled: Boolean by PreferenceAccessor(preference, LOCATION_ENABLED, field = false)
 
     var port: Int = 0
         get() {

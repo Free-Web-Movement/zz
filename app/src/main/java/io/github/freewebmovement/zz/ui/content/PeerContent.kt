@@ -219,21 +219,31 @@ fun PeerContent() {
 //  我的 · 服务器子页（节点控制 + 余额/地址）
 // ============================================================
 
-/** 「我的 → 服务器」：P2P 节点控制与帐户概览。 */
+/** 「我的 → 服务器」：节点控制 + 网络信息 + 位置 + 服务列表。 */
 @Composable
 fun ServerScreen(onBack: () -> Unit = {}) {
+    val app = MainApplication.getApp()
     val node = rememberFwmcNodeSnapshot()
     val running = node.running
-    var myAddress by remember { mutableStateOf("") }
-    var balance by remember { mutableLongStateOf(0L) }
+
+    var publicIps by remember { mutableStateOf<List<String>>(emptyList()) }
+    var privateIps by remember { mutableStateOf<List<String>>(emptyList()) }
+    var locationEnabled by remember { mutableStateOf(app.settings.network.locationEnabled) }
+    var locationText by remember { mutableStateOf("") }
 
     LaunchedEffect(running) {
         while (running) {
             runCatching {
+                val obj = JSONObject(FwmcApi.getWeights())
+                if (obj.optBoolean("success", false)) {
+                    publicIps = toStringList(obj.optJSONArray("external_ips"))
+                    privateIps = toStringList(obj.optJSONArray("inner_ips"))
+                }
+            }
+            runCatching {
                 val obj = JSONObject(FwmcApi.getData())
                 if (obj.optBoolean("success", false)) {
-                    myAddress = obj.optString("my_address")
-                    balance = obj.optLong("my_balance", 0)
+                    locationText = obj.optString("location", "")
                 }
             }
             delay(5000)
@@ -247,28 +257,83 @@ fun ServerScreen(onBack: () -> Unit = {}) {
             .verticalScroll(rememberScrollState()),
     ) {
         SubPageHeader("服务器", onBack)
-        ServerControlCard(running = running, port = node.port, address = myAddress)
+
+        // 节点控制（启动/停止/端口）
+        ServerControlCard(running = running, port = node.port, address = "")
+
         if (running) {
-            SectionCard(title = "节点信息") {
-                InfoGrid(listOf("我的余额" to formatAmount(balance)))
-                if (myAddress.isNotEmpty()) {
-                    Divider()
-                    Row(verticalAlignment = Alignment.Top) {
-                        Text("本机地址 ", fontSize = 11.sp, color = TextSecondary, modifier = Modifier.padding(top = 2.dp))
-                        SelectionContainer {
-                            MonoText(
-                                text = myAddress,
-                                fontSize = 10,
-                                color = TextSecondary,
-                                maxLines = 2,
-                                modifier = Modifier.weight(1f, fill = false),
-                            )
-                        }
+            // 网络信息
+            SectionCard(title = "网络信息") {
+                InfoGrid(listOf("运行端口" to "${node.port}"))
+                Divider()
+                Text("公网 IP", fontSize = 12.sp, color = TextSecondary)
+                if (publicIps.isNotEmpty()) {
+                    publicIps.forEach { ip ->
+                        MonoText(text = ip, fontSize = 11, color = TextPrimary)
                     }
+                } else {
+                    Text("  无", fontSize = 12.sp, color = TextMuted)
                 }
+                Divider()
+                Text("内网 IP", fontSize = 12.sp, color = TextSecondary)
+                if (privateIps.isNotEmpty()) {
+                    privateIps.forEach { ip ->
+                        MonoText(text = ip, fontSize = 11, color = TextPrimary)
+                    }
+                } else {
+                    Text("  无", fontSize = 12.sp, color = TextMuted)
+                }
+            }
+
+            // 位置信息
+            SectionCard(title = "位置信息") {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("位置服务", fontSize = 14.sp, color = TextPrimary)
+                        Text(
+                            text = if (locationEnabled) "已开启 · 用于节点定位" else "已关闭",
+                            fontSize = 11.sp,
+                            color = TextMuted,
+                        )
+                    }
+                    androidx.compose.material3.Switch(
+                        checked = locationEnabled,
+                        onCheckedChange = {
+                            locationEnabled = it
+                            app.settings.network.locationEnabled = it
+                        },
+                    )
+                }
+                if (locationEnabled && locationText.isNotEmpty()) {
+                    Divider()
+                    Text(locationText, fontSize = 12.sp, color = TextSecondary)
+                }
+            }
+
+            // 提供的服务
+            SectionCard(title = "提供的服务") {
+                ServiceRow("Web 静态服务器", app.settings.network.staticFileEnabled)
+                Divider()
+                ServiceRow("HTTP Proxy", false)
+                Divider()
+                ServiceRow("SOCKS Proxy", false)
+                Divider()
+                ServiceRow("FRP 服务", false)
             }
         }
         Spacer(modifier = Modifier.height(12.dp))
+    }
+}
+
+@Composable
+private fun ServiceRow(name: String, enabled: Boolean) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+        Text(name, fontSize = 13.sp, color = TextPrimary, modifier = Modifier.weight(1f))
+        StatusText(
+            active = enabled,
+            activeLabel = "运行中",
+            inactiveLabel = "未启用",
+        )
     }
 }
 

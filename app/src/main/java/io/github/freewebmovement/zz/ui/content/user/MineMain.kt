@@ -67,21 +67,17 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
         val app = MainApplication.getApp()
         val settings = app.settings
         with(settings) {
-            // 当前选中的钱包（帐号）：身份、资料都以它为键
             val acctId = io.github.freewebmovement.zz.ui.content.FwmcSession.current?.first ?: ""
             val acctName = io.github.freewebmovement.zz.ui.content.FwmcSession.current?.second ?: ""
             var nickname by remember(acctId) { mutableStateOf("") }
-            // 身份资料只来自选中钱包的 profile，不再读本地遗留设置
             var intro by remember(acctId) { mutableStateOf("") }
             var imageUri by remember(acctId) { mutableStateOf<Uri?>(null) }
-            // 兜底：任何来源（编辑器/头像选择器/外部修改）返回本页时都重新加载资料
             val activity = LocalContext.current as? androidx.activity.ComponentActivity
             val resumeScope = androidx.compose.runtime.rememberCoroutineScope()
             androidx.compose.runtime.DisposableEffect(activity, acctId) {
                 val obs = androidx.lifecycle.LifecycleEventObserver { _, e ->
                     if (e == androidx.lifecycle.Lifecycle.Event.ON_RESUME && acctId.isNotEmpty()) {
                         mineRefreshSignal++
-                        // 会话(帐号行昵称)一并刷新，保持整页一致
                         resumeScope.launch { io.github.freewebmovement.zz.ui.content.FwmcSession.refresh() }
                     }
                 }
@@ -91,7 +87,6 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
             val ctx2 = LocalContext.current
             androidx.compose.runtime.LaunchedEffect(acctId, mineRefreshSignal) {
                 if (acctId.isEmpty()) return@LaunchedEffect
-                // 显式按当前选中的钱包地址读取资料（不依赖节点是否已重启）
                 runCatching {
                     val p = JSONObject(rs.zz.coin.FwmcApi.getProfile(acctId))
                     val prof = p.optJSONObject("profile")
@@ -101,125 +96,148 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
                         intro = prof.optString("notes").ifEmpty { intro }
                         val av = prof.optString("avatar_path")
                         if (av.startsWith("data:image/")) {
-                            // fwmc 与安卓图片库不互通：转存为本地文件后再显示
                             imageUri = AvatarLocalStore.fromDataUrl(ctx2, acctId, av)
                         }
                     }
                 }
             }
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(CardBg)
-                    .clickable(onClick = { updatePage(PageType.MineProfile) })
-                    .padding(horizontal = 16.dp, vertical = 18.dp),
-            ) {
-                val ctx = LocalContext.current
-                val scope = androidx.compose.runtime.rememberCoroutineScope()
-                val avatarPicker = androidx.activity.compose.rememberLauncherForActivityResult(
-                    androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia()
-                ) { picked: Uri? ->
-                    if (picked == null) {
-                        android.util.Log.w("AvatarUpload", "mine picker returned null")
-                        return@rememberLauncherForActivityResult
-                    }
-                    // 上传到钱包身份（users/<PeerID>/images/avatar.jpg）并即时刷新卡片
-                    scope.launch {
-                        val bytes = readJpegBytes(ctx, picked, maxDim = 512)
-                        android.util.Log.d("AvatarUpload", "mine bytes=${bytes?.size ?: -1} uri=$picked")
-                        if (bytes != null) {
-                            val ok = runCatching {
-                                JSONObject(rs.zz.coin.FwmcApi.setAvatarFor(acctId, bytes)).optBoolean("success", false)
-                            }.getOrDefault(false)
-                            if (ok) {
-                                // 先存安卓侧可访问的本地文件，再由 setAvatarFor 落到 fwmc 目录
-                                imageUri = AvatarLocalStore.saveJpeg(ctx, acctId, bytes)
-                                mineRefreshSignal++
-                            } else {
-                                android.widget.Toast.makeText(ctx, "头像上传失败", android.widget.Toast.LENGTH_SHORT).show()
-                            }
-                        } else {
-                            android.widget.Toast.makeText(ctx, "图片读取失败，请换一张试试", android.widget.Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                }
-                Box(modifier = Modifier.clickable {
-                    avatarPicker.launch(androidx.activity.result.PickVisualMediaRequest(
-                        androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly))
-                }) {
-                    if (!imageUri?.toString().isNullOrEmpty()) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(ctx)
-                                .data(imageUri)
-                                .build(),
-                            contentDescription = stringResource(id = R.string.tab_mine_avatar),
-                            contentScale = ContentScale.Crop,
-                            // 加载失败/空时回落到默认头像，避免空白圆圈
-                            placeholder = painterResource(id = R.drawable.ic_default_avatar),
-                            error = painterResource(id = R.drawable.ic_default_avatar),
-                            modifier = Modifier
-                                .size(60.dp)
-                                .clip(CircleShape),
-                        )
+            // ── 一、身份与钱包 ──
+            SectionTitle("身份与钱包")
+
+            // 头像/昵称/签名
+            ProfileCard(acctId, nickname, intro, imageUri, updatePage)
+
+            // 钱包地址/节点号/身份号
+            PeerIdCard()
+
+            // 帐号管理
+            RowItem2(label = "帐号管理", icon = R.drawable.ic_account, trailing = {
+                val cur = io.github.freewebmovement.zz.ui.content.FwmcSession.current
+                Text(cur?.second?.ifEmpty { "未命名" } ?: "未命名", fontSize = 13.sp, color = TextSecondary)
+                Text("  ›", color = TextMuted)
+            }, onClick = { updatePage(PageType.MineAccounts) })
+
+            // 钱包管理
+            RowItem2(label = "钱包管理", icon = R.drawable.ic_wallet, trailing = {
+                Text("多钱包  ›", fontSize = 13.sp, color = TextSecondary)
+            }, onClick = { updatePage(PageType.MineWallet) })
+
+            // ── 二、节点资源与服务 ──
+            SectionTitle("节点资源与服务")
+
+            // 服务器
+            ServerRow(updatePage)
+
+            // 静态服务器配置
+            StaticFileRow(updatePage)
+
+            // 资源与权重配置
+            WeightsRow(updatePage)
+
+            // ── 设置 ──
+            SettingsRow(updatePage)
+        }
+    }
+}
+
+/** 分区标题。 */
+@Composable
+private fun SectionTitle(title: String) {
+    Text(
+        text = title,
+        fontSize = 13.sp,
+        fontWeight = FontWeight.SemiBold,
+        color = TextMuted,
+        modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 4.dp),
+    )
+}
+
+/** 头像/昵称/签名卡片。 */
+@Composable
+private fun ProfileCard(
+    acctId: String,
+    nickname: String,
+    intro: String,
+    imageUri: Uri?,
+    updatePage: (value: PageType) -> Unit,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(CardBg)
+            .clickable(onClick = { updatePage(PageType.MineProfile) })
+            .padding(horizontal = 16.dp, vertical = 18.dp),
+    ) {
+        val ctx = LocalContext.current
+        val scope = androidx.compose.runtime.rememberCoroutineScope()
+        val avatarPicker = androidx.activity.compose.rememberLauncherForActivityResult(
+            androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia()
+        ) { picked: Uri? ->
+            if (picked == null) return@rememberLauncherForActivityResult
+            scope.launch {
+                val bytes = readJpegBytes(ctx, picked, maxDim = 512)
+                if (bytes != null) {
+                    val ok = runCatching {
+                        JSONObject(rs.zz.coin.FwmcApi.setAvatarFor(acctId, bytes)).optBoolean("success", false)
+                    }.getOrDefault(false)
+                    if (ok) {
+                        io.github.freewebmovement.zz.ui.content.user.AvatarLocalStore.saveJpeg(ctx, acctId, bytes)
+                        mineRefreshSignal++
                     } else {
-                        Box(
-                            modifier = Modifier
-                                .size(60.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFFE0E0E0)),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_default_avatar),
-                                contentDescription = stringResource(id = R.string.tab_mine_avatar),
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.size(60.dp).clip(CircleShape),
-                            )
-                        }
+                        android.widget.Toast.makeText(ctx, "头像上传失败", android.widget.Toast.LENGTH_SHORT).show()
                     }
                 }
-                Column(modifier = Modifier.weight(1f).padding(start = 14.dp)) {
-                    Text(
-                        text = nickname.ifEmpty { "未命名" },
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = TextPrimary,
-                    )
-                    Text(
-                        text = intro.ifEmpty { "编辑签名…" },
-                        fontSize = 12.sp,
-                        color = if (intro.isEmpty()) TextMuted else TextSecondary,
-                        maxLines = 2,
-                        modifier = Modifier.padding(top = 4.dp),
-                    )
-                }
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_chevron_right),
-                    contentDescription = stringResource(R.string.tab_mine_profile),
-                    tint = Color(0xFFC8C8C8),
-                )
             }
         }
-
-        WalletEntryCard(onClick = { updatePage(PageType.MineWallet) })
-
-        PeerIdCard()
-
-        RowItem2(label = "帐号管理", icon = R.drawable.ic_account, trailing = {
-            val cur = io.github.freewebmovement.zz.ui.content.FwmcSession.current
-            Text(cur?.second?.ifEmpty { "未命名" } ?: "未命名", fontSize = 13.sp, color = TextSecondary)
-            Text("  ›", color = TextMuted)
-        }, onClick = { updatePage(PageType.MineAccounts) })
-
-        ServerRow(updatePage)
-
-        RowItem2(label = "钱包管理", icon = R.drawable.ic_wallet, trailing = {
-            Text("多钱包  ›", fontSize = 13.sp, color = TextSecondary)
-        }, onClick = { updatePage(PageType.MineWallet) })
-
-        SettingsRow(updatePage)
+        Box(modifier = Modifier.clickable {
+            avatarPicker.launch(androidx.activity.result.PickVisualMediaRequest(
+                androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly))
+        }) {
+            if (!imageUri?.toString().isNullOrEmpty()) {
+                AsyncImage(
+                    model = ImageRequest.Builder(ctx).data(imageUri).build(),
+                    contentDescription = stringResource(id = R.string.tab_mine_avatar),
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(id = R.drawable.ic_default_avatar),
+                    error = painterResource(id = R.drawable.ic_default_avatar),
+                    modifier = Modifier.size(60.dp).clip(CircleShape),
+                )
+            } else {
+                Box(
+                    modifier = Modifier.size(60.dp).clip(CircleShape).background(Color(0xFFE0E0E0)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_default_avatar),
+                        contentDescription = stringResource(id = R.string.tab_mine_avatar),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.size(60.dp).clip(CircleShape),
+                    )
+                }
+            }
+        }
+        Column(modifier = Modifier.weight(1f).padding(start = 14.dp)) {
+            Text(
+                text = nickname.ifEmpty { "未命名" },
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = TextPrimary,
+            )
+            Text(
+                text = intro.ifEmpty { "编辑签名…" },
+                fontSize = 12.sp,
+                color = if (intro.isEmpty()) TextMuted else TextSecondary,
+                maxLines = 2,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        }
+        Icon(
+            painter = painterResource(id = R.drawable.ic_chevron_right),
+            contentDescription = stringResource(R.string.tab_mine_profile),
+            tint = Color(0xFFC8C8C8),
+        )
     }
 }
 
@@ -273,7 +291,7 @@ private fun PeerIdCard() {
     if (showQr) PeerIdShareDialog(peerId = peerId, onDismiss = { showQr = false })
 }
 
-/** 设置行：主题配色等应用外观。 */
+/** 服务器入口。 */
 @Composable
 private fun ServerRow(updatePage: (value: PageType) -> Unit) {
     val node = rememberFwmcNodeSnapshot()
@@ -285,10 +303,6 @@ private fun ServerRow(updatePage: (value: PageType) -> Unit) {
         )
         Text("  ›", color = TextMuted)
     }, onClick = { updatePage(PageType.MineServer) })
-
-        StaticFileRow(updatePage)
-
-        WeightsRow(updatePage)
 }
 
 /** 静态服务器配置入口。 */
