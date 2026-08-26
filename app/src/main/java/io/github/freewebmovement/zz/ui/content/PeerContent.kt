@@ -403,24 +403,54 @@ private fun treeUriToPath(uri: android.net.Uri): String? {
 //  我的 · 资源与权重配置子页
 // ============================================================
 
-/** 「我的 → 资源与权重配置」：本机硬件资源 + 权重（公网/私网 IP）。 */
+/** 「我的 → 资源与权重配置」：手机硬件资源分配 + IP 权重。 */
 @Composable
 fun WeightsScreen(onBack: () -> Unit = {}) {
-    var diskInfo by remember { mutableStateOf("") }
-    var cpuInfo by remember { mutableStateOf("") }
-    var memoryInfo by remember { mutableStateOf("") }
+    val app = MainApplication.getApp()
+    val ctx = LocalContext.current
+
+    // 设备真实硬件数据
+    var totalDisk by remember { mutableLongStateOf(0L) }
+    var availDisk by remember { mutableLongStateOf(0L) }
+    var cpuCores by remember { mutableIntStateOf(0) }
+    var cpuFreq by remember { mutableStateOf("") }
+    var totalMem by remember { mutableLongStateOf(0L) }
+    var availMem by remember { mutableLongStateOf(0L) }
+
+    // 用户分配量（持久化到 KVSettings）
+    var diskAlloc by remember { mutableIntStateOf(app.settings.network.diskAllocation) }
+    var cpuAlloc by remember { mutableIntStateOf(app.settings.network.cpuAllocation) }
+    var memAlloc by remember { mutableIntStateOf(app.settings.network.memAllocation) }
+    var gpuAlloc by remember { mutableIntStateOf(app.settings.network.gpuAllocation) }
+    var bleAlloc by remember { mutableIntStateOf(app.settings.network.bleAllocation) }
+    var wifiAlloc by remember { mutableIntStateOf(app.settings.network.wifiAllocation) }
+
+    var ipData by remember { mutableStateOf<JSONObject?>(null) }
 
     LaunchedEffect(Unit) {
         runCatching {
+            // 磁盘
             val stat = android.os.StatFs(android.os.Environment.getDataDirectory().path)
-            val total = stat.totalBytes / (1024 * 1024)
-            val avail = stat.availableBytes / (1024 * 1024)
-            diskInfo = "$avail MB 可用 / $total MB"
-            cpuInfo = "${Runtime.getRuntime().availableProcessors()} 核心"
+            totalDisk = stat.totalBytes / (1024 * 1024)
+            availDisk = stat.availableBytes / (1024 * 1024)
+            // CPU
+            cpuCores = Runtime.getRuntime().availableProcessors()
+            cpuFreq = runCatching {
+                java.io.File("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq")
+                    .readText().trim().toLongOrNull()?.let { "${it / 1000} MHz" } ?: "未知"
+            }.getOrDefault("未知")
+            // 内存
+            val mi = android.os.Debug.MemoryInfo()
+            android.os.Debug.getMemoryInfo(mi)
             val r = Runtime.getRuntime()
-            val max = r.maxMemory() / (1024 * 1024)
-            val used = (r.totalMemory() - r.freeMemory()) / (1024 * 1024)
-            memoryInfo = "$used MB 已用 / $max MB"
+            totalMem = r.maxMemory() / (1024 * 1024)
+            availMem = r.freeMemory() / (1024 * 1024)
+        }
+        runCatching {
+            val obj = JSONObject(FwmcApi.getWeights())
+            if (obj.optBoolean("success", false)) {
+                ipData = obj
+            }
         }
     }
 
@@ -432,19 +462,250 @@ fun WeightsScreen(onBack: () -> Unit = {}) {
     ) {
         SubPageHeader("资源与权重配置", onBack)
 
-        SectionCard(title = "本机资源") {
-            InfoGrid(listOf("磁盘" to diskInfo))
+        // 磁盘
+        SectionCard(title = "磁盘") {
+            InfoGrid(listOf(
+                "总容量" to "$totalDisk MB",
+                "可用" to "$availDisk MB",
+            ))
             Divider()
-            InfoGrid(listOf("CPU" to cpuInfo))
-            Divider()
-            InfoGrid(listOf("内存" to memoryInfo))
+            EditableResourceRow(
+                label = "分配容量",
+                value = diskAlloc.toLong(),
+                unit = "MB",
+                maxValue = totalDisk,
+                onValueChanged = {
+                    diskAlloc = it.toInt()
+                    app.settings.network.diskAllocation = it.toInt()
+                },
+            )
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        WeightsCard()
+        // CPU
+        SectionCard(title = "CPU") {
+            InfoGrid(listOf(
+                "核心数" to "$cpuCores 核心",
+                "频率" to cpuFreq,
+            ))
+            Divider()
+            EditableResourceRow(
+                label = "分配核心",
+                value = cpuAlloc.toLong(),
+                unit = "核",
+                maxValue = cpuCores.toLong(),
+                onValueChanged = {
+                    cpuAlloc = it.toInt()
+                    app.settings.network.cpuAllocation = it.toInt()
+                },
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // 内存
+        SectionCard(title = "内存") {
+            InfoGrid(listOf(
+                "总容量" to "$totalMem MB",
+                "可用" to "$availMem MB",
+            ))
+            Divider()
+            EditableResourceRow(
+                label = "分配容量",
+                value = memAlloc.toLong(),
+                unit = "MB",
+                maxValue = totalMem,
+                onValueChanged = {
+                    memAlloc = it.toInt()
+                    app.settings.network.memAllocation = it.toInt()
+                },
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // GPU
+        SectionCard(title = "GPU") {
+            val gpuName = remember {
+                runCatching {
+                    val pm = ctx.getSystemService(android.content.Context.POWER_SERVICE) as android.os.PowerManager
+                    val gl = pm.isPowerSaveMode // placeholder — real GPU name needs GL surface
+                    "图形处理器"
+                }.getOrDefault("图形处理器")
+            }
+            InfoGrid(listOf("能力" to "图形计算 / 渲染"))
+            Divider()
+            EditableResourceRow(
+                label = "分配",
+                value = gpuAlloc.toLong(),
+                unit = "核",
+                maxValue = 16,
+                onValueChanged = {
+                    gpuAlloc = it.toInt()
+                    app.settings.network.gpuAllocation = it.toInt()
+                },
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // 蓝牙
+        SectionCard(title = "蓝牙") {
+            val bleSupported = remember {
+                runCatching { ctx.packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_BLUETOOTH_LE) }.getOrDefault(false)
+            }
+            val bleEnabled = remember {
+                runCatching {
+                    val bm = ctx.getSystemService(android.content.Context.BLUETOOTH_SERVICE) as? android.bluetooth.BluetoothManager
+                    bm?.adapter?.isEnabled == true
+                }.getOrDefault(false)
+            }
+            InfoGrid(listOf(
+                "BLE 支持" to if (bleSupported) "是" else "否",
+                "当前状态" to if (bleEnabled) "已开启" else "已关闭",
+            ))
+            Divider()
+            EditableResourceRow(
+                label = "分配通道",
+                value = bleAlloc.toLong(),
+                unit = "个",
+                maxValue = 8,
+                onValueChanged = {
+                    bleAlloc = it.toInt()
+                    app.settings.network.bleAllocation = it.toInt()
+                },
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // WiFi
+        SectionCard(title = "WiFi") {
+            val wifiInfo = remember {
+                runCatching {
+                    val wm = ctx.applicationContext.getSystemService(android.content.Context.WIFI_SERVICE) as? android.net.wifi.WifiManager
+                    val info = wm?.connectionInfo
+                    val ssid = info?.ssid?.removePrefix("\"")?.removeSuffix("\"") ?: "未连接"
+                    val speed = info?.linkSpeed ?: 0
+                    Pair(ssid, speed)
+                }.getOrDefault(Pair("未知", 0))
+            }
+            InfoGrid(listOf(
+                "网络" to wifiInfo.first,
+                "速率" to if (wifiInfo.second > 0) "${wifiInfo.second} Mbps" else "未知",
+            ))
+            Divider()
+            EditableResourceRow(
+                label = "分配带宽",
+                value = wifiAlloc.toLong(),
+                unit = "Mbps",
+                maxValue = 1000,
+                onValueChanged = {
+                    wifiAlloc = it.toInt()
+                    app.settings.network.wifiAllocation = it.toInt()
+                },
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // IP 资源
+        val r = ipData?.optJSONObject("resources")
+        SectionCard(title = "IP 资源") {
+            if (r == null) {
+                EmptyHint("暂无数据")
+            } else {
+                val publicCount = r.optLong("public_ip_count")
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                    Text("公网", fontSize = 13.sp, color = TextPrimary, modifier = Modifier.width(64.dp))
+                    Text(
+                        text = if (publicCount > 0) "有（$publicCount 个）" else "无",
+                        fontSize = 12.sp,
+                        color = if (publicCount > 0) OnlineGreen else TextMuted,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text("权重 ${r.optString("public_ip_weight")}", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+                }
+                Divider()
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                    Text("私网", fontSize = 13.sp, color = TextPrimary, modifier = Modifier.width(64.dp))
+                    Text(
+                        text = if (r.optLong("private_ip_count") > 0) "有" else "无",
+                        fontSize = 12.sp,
+                        color = if (r.optLong("private_ip_count") > 0) OnlineGreen else TextMuted,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text("权重 ${r.optString("private_ip_weight")}", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+                }
+                Divider()
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("见证资格", fontSize = 12.sp, color = TextSecondary, modifier = Modifier.weight(1f))
+                    StatusText(
+                        active = r.optBoolean("witness_participation", false),
+                        activeLabel = "有资格",
+                        inactiveLabel = "无公网出口",
+                    )
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(12.dp))
+    }
+}
+
+@Composable
+private fun EditableResourceRow(
+    label: String,
+    value: Long,
+    unit: String,
+    maxValue: Long,
+    onValueChanged: (Long) -> Unit,
+) {
+    var editing by remember { mutableStateOf(false) }
+    var textValue by remember { mutableStateOf(value.toString()) }
+
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+        Text(label, fontSize = 12.sp, color = TextSecondary, modifier = Modifier.width(64.dp))
+        if (editing) {
+            OutlinedTextField(
+                value = textValue,
+                onValueChange = { textValue = it.filter { c -> c.isDigit() } },
+                modifier = Modifier.weight(1f),
+                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp),
+                singleLine = true,
+            )
+            Text(unit, fontSize = 12.sp, color = TextMuted, modifier = Modifier.padding(start = 4.dp))
+            Text(
+                text = "保存",
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .clickable {
+                        val v = textValue.toLongOrNull()?.coerceIn(0, maxValue) ?: 0
+                        onValueChanged(v)
+                        editing = false
+                    },
+            )
+        } else {
+            Text(
+                text = "$value $unit",
+                fontSize = 13.sp,
+                color = TextPrimary,
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable {
+                        textValue = value.toString()
+                        editing = true
+                    },
+            )
+            Text("编辑", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.clickable {
+                    textValue = value.toString()
+                    editing = true
+                })
+        }
     }
 }
 

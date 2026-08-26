@@ -28,6 +28,13 @@ private const val LOCAL_SERVER_PORT = "LOCAL_SERVER_PORT"
 private const val STATIC_FILE_ENABLED = "STATIC_FILE_ENABLED"
 private const val STATIC_FILE_ROOT = "STATIC_FILE_ROOT"
 
+private const val DISK_ALLOCATION = "DISK_ALLOCATION"
+private const val CPU_ALLOCATION = "CPU_ALLOCATION"
+private const val MEM_ALLOCATION = "MEM_ALLOCATION"
+private const val GPU_ALLOCATION = "GPU_ALLOCATION"
+private const val BLE_ALLOCATION = "BLE_ALLOCATION"
+private const val WIFI_ALLOCATION = "WIFI_ALLOCATION"
+
 private const val MINE_PROFILE_IMAGE_URI = "MINE_PROFILE_IMAGE_URI"
 private const val MINE_PROFILE_NICKNAME = "MINE_PROFILE_NICKNAME"
 private const val MINE_PROFILE_INTRO = "MINE_PROFILE_INTRO"
@@ -113,6 +120,13 @@ data class NetworkSetting(
     var staticFileRoot: String by PreferenceAccessor(
         preference, STATIC_FILE_ROOT, field = ""
     )
+
+    var diskAllocation: Int by PreferenceAccessor(preference, DISK_ALLOCATION, field = 0)
+    var cpuAllocation: Int by PreferenceAccessor(preference, CPU_ALLOCATION, field = 0)
+    var memAllocation: Int by PreferenceAccessor(preference, MEM_ALLOCATION, field = 0)
+    var gpuAllocation: Int by PreferenceAccessor(preference, GPU_ALLOCATION, field = 0)
+    var bleAllocation: Int by PreferenceAccessor(preference, BLE_ALLOCATION, field = 1)
+    var wifiAllocation: Int by PreferenceAccessor(preference, WIFI_ALLOCATION, field = 1)
 
     var port: Int = 0
         get() {
