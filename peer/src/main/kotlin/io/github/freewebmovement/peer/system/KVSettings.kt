@@ -25,6 +25,8 @@ import kotlin.reflect.KProperty
 private const val PEER_IP_TYPE = "PEER_IP_TYPE"
 private const val PEER_IP_SCOPE_TYPE = "PEER_IP_SCOPE_TYPE"
 private const val LOCAL_SERVER_PORT = "LOCAL_SERVER_PORT"
+private const val STATIC_FILE_ENABLED = "STATIC_FILE_ENABLED"
+private const val STATIC_FILE_ROOT = "STATIC_FILE_ROOT"
 
 private const val MINE_PROFILE_IMAGE_URI = "MINE_PROFILE_IMAGE_URI"
 private const val MINE_PROFILE_NICKNAME = "MINE_PROFILE_NICKNAME"
@@ -102,6 +104,14 @@ data class NetworkSetting(
     var ipScopeType: IPScopeType by PreferenceAccessor(
         preference, PEER_IP_SCOPE_TYPE,
         field = IPScopeType.LOCAL
+    )
+
+    var staticFileEnabled: Boolean by PreferenceAccessor(
+        preference, STATIC_FILE_ENABLED, field = false
+    )
+
+    var staticFileRoot: String by PreferenceAccessor(
+        preference, STATIC_FILE_ROOT, field = ""
     )
 
     var port: Int = 0

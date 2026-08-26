@@ -1,6 +1,8 @@
 package io.github.freewebmovement.zz.ui.content
 
 import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -18,6 +20,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -25,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -109,21 +114,32 @@ private data class WitnessData(
     val todayTick: Long = 0,
 )
 
+/** 子页面通用头部：返回箭头 + 标题。 */
 @Composable
-fun PeerContent() {
-    ServerDashboard()
+private fun SubPageHeader(title: String, onBack: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth()
+            .background(CardBg)
+            .padding(horizontal = 4.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IconButton(onClick = onBack) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+        }
+        Text(title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+    }
 }
 
 /**
- * 网络 tab = 服务器管理 + 网络状态总览（超越 WebUI 的服务器控制能力）。
+ * 网络 tab = 公共网络信息：链状态 / Peer 节点 / 见证环 / 区块浏览。
+ * 本机服务器相关入口见「我的」页。
  */
 @Composable
-private fun ServerDashboard() {
+fun PeerContent() {
     val node = rememberFwmcNodeSnapshot()
     val running = node.running
 
     var myAddress by remember { mutableStateOf("") }
-    var balance by remember { mutableLongStateOf(0L) }
     var witness by remember { mutableStateOf(WitnessData()) }
     var inbound by remember { mutableStateOf<List<ConnGroup>>(emptyList()) }
     var outbound by remember { mutableStateOf<List<ConnGroup>>(emptyList()) }
@@ -141,7 +157,6 @@ private fun ServerDashboard() {
                 }
                 errorMsg = ""
                 myAddress = obj.optString("my_address")
-                balance = obj.optLong("my_balance", 0)
                 witness = parseWitness(obj)
                 inbound = parseConnGroups(obj.optJSONArray("inbound_connections"))
                 outbound = parseConnGroups(obj.optJSONArray("outbound_connections"))
@@ -179,13 +194,12 @@ private fun ServerDashboard() {
             .background(io.github.freewebmovement.zz.ui.theme.WxBg)
             .verticalScroll(rememberScrollState()),
     ) {
-        ServerControlCard(running = running, port = node.port, address = myAddress)
         when {
-            !running -> SectionCard { Text("节点已停止。点击上方「启动节点」开始服务。", color = TextSecondary) }
+            !running -> SectionCard { Text("节点未运行。可在「我的 → 服务器」中启动。", color = TextSecondary) }
             errorMsg.isNotEmpty() -> SectionCard { Text(errorMsg, color = MaterialTheme.colorScheme.error) }
             else -> {
-                // ① 节点本身信息
-                StatusCard(witness, balance, myAddress)
+                // ① 链状态
+                StatusCard(witness)
                 SectionHeader("Peer 节点")
                 // ② Peer 节点
                 NodesCard(nodes)
@@ -193,11 +207,213 @@ private fun ServerDashboard() {
                 SeedsCard(seeds, onChanged = { /* refreshed on next poll */ })
                 // ③ 见证环
                 RingCard(witness)
-                WeightsCard()
                 // ④ 区块浏览
                 ExplorerCard(myAddress)
             }
         }
+        Spacer(modifier = Modifier.height(12.dp))
+    }
+}
+
+// ============================================================
+//  我的 · 服务器子页（节点控制 + 余额/地址）
+// ============================================================
+
+/** 「我的 → 服务器」：P2P 节点控制与帐户概览。 */
+@Composable
+fun ServerScreen(onBack: () -> Unit = {}) {
+    val node = rememberFwmcNodeSnapshot()
+    val running = node.running
+    var myAddress by remember { mutableStateOf("") }
+    var balance by remember { mutableLongStateOf(0L) }
+
+    LaunchedEffect(running) {
+        while (running) {
+            runCatching {
+                val obj = JSONObject(FwmcApi.getData())
+                if (obj.optBoolean("success", false)) {
+                    myAddress = obj.optString("my_address")
+                    balance = obj.optLong("my_balance", 0)
+                }
+            }
+            delay(5000)
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(io.github.freewebmovement.zz.ui.theme.WxBg)
+            .verticalScroll(rememberScrollState()),
+    ) {
+        SubPageHeader("服务器", onBack)
+        ServerControlCard(running = running, port = node.port, address = myAddress)
+        if (running) {
+            SectionCard(title = "节点信息") {
+                InfoGrid(listOf("我的余额" to formatAmount(balance)))
+                if (myAddress.isNotEmpty()) {
+                    Divider()
+                    Row(verticalAlignment = Alignment.Top) {
+                        Text("本机地址 ", fontSize = 11.sp, color = TextSecondary, modifier = Modifier.padding(top = 2.dp))
+                        SelectionContainer {
+                            MonoText(
+                                text = myAddress,
+                                fontSize = 10,
+                                color = TextSecondary,
+                                maxLines = 2,
+                                modifier = Modifier.weight(1f, fill = false),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+    }
+}
+
+// ============================================================
+//  我的 · 静态服务器配置子页
+// ============================================================
+
+/** 「我的 → 静态服务器配置」：启用开关 + 根目录选择。 */
+@Composable
+fun StaticFileScreen(onBack: () -> Unit = {}) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(io.github.freewebmovement.zz.ui.theme.WxBg)
+            .verticalScroll(rememberScrollState()),
+    ) {
+        SubPageHeader("静态服务器配置", onBack)
+        StaticFileCard()
+        Spacer(modifier = Modifier.height(12.dp))
+    }
+}
+
+/** 静态文件服务器设置：与节点共用同一端口；默认目录 = fwmc 数据目录/www。 */
+@Composable
+private fun StaticFileCard() {
+    val app = MainApplication.getApp()
+    val ctx = LocalContext.current
+    var enabled by remember { mutableStateOf(app.settings.network.staticFileEnabled) }
+    var rootDir by remember {
+        mutableStateOf(app.settings.network.staticFileRoot.ifEmpty { defaultWwwDir(ctx) })
+    }
+    var showTip by remember { mutableStateOf("") }
+
+    val picker = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        runCatching {
+            ctx.contentResolver.takePersistableUriPermission(
+                uri,
+                android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION,
+            )
+        }
+        val path = treeUriToPath(uri)
+        if (path != null) {
+            rootDir = path
+            app.settings.network.staticFileRoot = path
+            showTip = "已选择: $path"
+        } else {
+            showTip = "该存储暂不支持，请选择内部存储目录"
+        }
+    }
+
+    SectionCard(title = "静态文件服务器") {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("启用", fontSize = 14.sp, color = TextPrimary)
+                Text(
+                    text = "与节点共用端口（单端口统一服务）",
+                    fontSize = 11.sp,
+                    color = TextMuted,
+                )
+            }
+            androidx.compose.material3.Switch(
+                checked = enabled,
+                onCheckedChange = {
+                    enabled = it
+                    app.settings.network.staticFileEnabled = it
+                    if (it && rootDir.isEmpty()) {
+                        rootDir = defaultWwwDir(ctx)
+                        app.settings.network.staticFileRoot = rootDir
+                    }
+                },
+            )
+        }
+        Divider()
+        Row(verticalAlignment = Alignment.Top) {
+            Text("目录 ", fontSize = 11.sp, color = TextSecondary, modifier = Modifier.padding(top = 2.dp))
+            SelectionContainer {
+                MonoText(
+                    text = rootDir.ifEmpty { defaultWwwDir(ctx) },
+                    fontSize = 10,
+                    color = TextSecondary,
+                    maxLines = 3,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+            }
+        }
+        Row(modifier = Modifier.padding(top = 6.dp)) {
+            Text(
+                text = "选择目录",
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.clickable { picker.launch(null) }.padding(end = 18.dp),
+            )
+            Text(
+                text = "恢复默认目录",
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.clickable {
+                    rootDir = defaultWwwDir(ctx)
+                    app.settings.network.staticFileRoot = rootDir
+                    showTip = "已恢复默认目录"
+                },
+            )
+        }
+        if (showTip.isNotEmpty()) {
+            Text(showTip, fontSize = 10.sp, color = TextMuted, modifier = Modifier.padding(top = 4.dp))
+        }
+    }
+}
+
+/** 默认静态目录：fwmc 数据目录的 www 子目录（自动创建）。 */
+private fun defaultWwwDir(ctx: android.content.Context): String {
+    val d = java.io.File(ctx.filesDir, "fwmc/www")
+    d.mkdirs()
+    return d.absolutePath
+}
+
+/** SAF tree URI → 真实文件路径（仅支持内部存储 primary）。 */
+private fun treeUriToPath(uri: android.net.Uri): String? {
+    val docId = runCatching {
+        android.provider.DocumentsContract.getTreeDocumentId(uri)
+    }.getOrNull() ?: return null
+    if (!docId.startsWith("primary:")) return null
+    val rel = docId.removePrefix("primary:")
+    val base = android.os.Environment.getExternalStorageDirectory().absolutePath
+    return if (rel.isEmpty()) base else "$base/$rel"
+}
+
+// ============================================================
+//  我的 · 资源与权重配置子页
+// ============================================================
+
+/** 「我的 → 资源与权重配置」。 */
+@Composable
+fun WeightsScreen(onBack: () -> Unit = {}) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(io.github.freewebmovement.zz.ui.theme.WxBg)
+            .verticalScroll(rememberScrollState()),
+    ) {
+        SubPageHeader("资源与权重配置", onBack)
+        WeightsCard()
         Spacer(modifier = Modifier.height(12.dp))
     }
 }
@@ -410,8 +626,8 @@ private fun PortEditDialog(current: String, onDismiss: () -> Unit, onApply: (Int
 // ============================================================
 
 @Composable
-private fun StatusCard(w: WitnessData, balance: Long, myAddress: String) {
-    SectionCard(title = "节点信息") {
+private fun StatusCard(w: WitnessData) {
+    SectionCard(title = "链状态") {
         InfoGrid(
             listOf(
                 "Tick" to w.tickCount.toString(),
@@ -423,24 +639,8 @@ private fun StatusCard(w: WitnessData, balance: Long, myAddress: String) {
             listOf(
                 "今日 Tick" to w.todayTick.toString(),
                 "下次 Tick" to "${w.nextTickSeconds}s",
-                "我的余额" to formatAmount(balance),
             )
         )
-        if (myAddress.isNotEmpty()) {
-            Divider()
-            Row(verticalAlignment = Alignment.Top) {
-                Text("本机地址 ", fontSize = 11.sp, color = TextSecondary, modifier = Modifier.padding(top = 2.dp))
-                SelectionContainer {
-                    MonoText(
-                        text = myAddress,
-                        fontSize = 10,
-                        color = TextSecondary,
-                        maxLines = 2,
-                        modifier = Modifier.weight(1f, fill = false),
-                    )
-                }
-            }
-        }
     }
 }
 

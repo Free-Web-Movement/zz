@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import io.github.freewebmovement.zz.MainApplication
+import io.github.freewebmovement.zz.ui.common.rememberFwmcNodeSnapshot
 import io.github.freewebmovement.zz.R
 import io.github.freewebmovement.zz.ui.common.MonoText
 import io.github.freewebmovement.zz.ui.common.PageType
@@ -47,6 +48,7 @@ import io.github.freewebmovement.zz.ui.common.RowItem
 import io.github.freewebmovement.zz.ui.common.avatarColor
 import io.github.freewebmovement.zz.ui.common.formatAmount
 import io.github.freewebmovement.zz.ui.theme.CardBg
+import io.github.freewebmovement.zz.ui.theme.OnlineGreen
 import io.github.freewebmovement.zz.ui.theme.TextMuted
 import io.github.freewebmovement.zz.ui.theme.TextPrimary
 import io.github.freewebmovement.zz.ui.theme.TextSecondary
@@ -211,6 +213,8 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
             Text("  ›", color = TextMuted)
         }, onClick = { updatePage(PageType.MineAccounts) })
 
+        ServerRow(updatePage)
+
         RowItem2(label = "钱包管理", icon = R.drawable.ic_wallet, trailing = {
             Text("多钱包  ›", fontSize = 13.sp, color = TextSecondary)
         }, onClick = { updatePage(PageType.MineWallet) })
@@ -270,6 +274,42 @@ private fun PeerIdCard() {
 }
 
 /** 设置行：主题配色等应用外观。 */
+@Composable
+private fun ServerRow(updatePage: (value: PageType) -> Unit) {
+    val node = rememberFwmcNodeSnapshot()
+    RowItem2(label = "服务器", icon = R.drawable.ic_server, trailing = {
+        Text(
+            text = if (node.running) "运行中 · ${node.port}" else "未运行",
+            fontSize = 13.sp,
+            color = if (node.running) OnlineGreen else TextSecondary,
+        )
+        Text("  ›", color = TextMuted)
+    }, onClick = { updatePage(PageType.MineServer) })
+
+        StaticFileRow(updatePage)
+
+        WeightsRow(updatePage)
+}
+
+/** 静态服务器配置入口。 */
+@Composable
+private fun StaticFileRow(updatePage: (value: PageType) -> Unit) {
+    val app = MainApplication.getApp()
+    val enabled = app.settings.network.staticFileEnabled
+    RowItem2(label = "静态服务器配置", icon = R.drawable.ic_mine_local_server_share, trailing = {
+        Text(if (enabled) "已启用" else "未启用", fontSize = 13.sp, color = TextSecondary)
+        Text("  ›", color = TextMuted)
+    }, onClick = { updatePage(PageType.MineStaticFile) })
+}
+
+/** 资源与权重配置入口。 */
+@Composable
+private fun WeightsRow(updatePage: (value: PageType) -> Unit) {
+    RowItem2(label = "资源与权重配置", icon = R.drawable.ic_briefcase, trailing = {
+        Text("  ›", color = TextMuted)
+    }, onClick = { updatePage(PageType.MineWeights) })
+}
+
 @Composable
 private fun SettingsRow(updatePage: (value: PageType) -> Unit) {
     RowItem2(label = "设置", icon = R.drawable.ic_settings, trailing = {

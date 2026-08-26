@@ -34,6 +34,15 @@ fun MinContent(page: PageType, updater: (page: PageType, value: ContentType) -> 
         PageType.MineSettings -> io.github.freewebmovement.zz.ui.content.user.SettingsScreen(
             onBack = { updater(PageType.MineMain, ContentType.NonStacked) },
         )
+        PageType.MineServer -> ServerScreen(
+            onBack = { updater(PageType.MineMain, ContentType.NonStacked) },
+        )
+        PageType.MineStaticFile -> StaticFileScreen(
+            onBack = { updater(PageType.MineMain, ContentType.NonStacked) },
+        )
+        PageType.MineWeights -> WeightsScreen(
+            onBack = { updater(PageType.MineMain, ContentType.NonStacked) },
+        )
         else -> {
         }
     }
