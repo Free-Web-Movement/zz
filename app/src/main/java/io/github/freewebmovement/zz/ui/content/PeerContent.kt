@@ -403,9 +403,27 @@ private fun treeUriToPath(uri: android.net.Uri): String? {
 //  我的 · 资源与权重配置子页
 // ============================================================
 
-/** 「我的 → 资源与权重配置」。 */
+/** 「我的 → 资源与权重配置」：本机硬件资源 + 权重（公网/私网 IP）。 */
 @Composable
 fun WeightsScreen(onBack: () -> Unit = {}) {
+    var diskInfo by remember { mutableStateOf("") }
+    var cpuInfo by remember { mutableStateOf("") }
+    var memoryInfo by remember { mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        runCatching {
+            val stat = android.os.StatFs(android.os.Environment.getDataDirectory().path)
+            val total = stat.totalBytes / (1024 * 1024)
+            val avail = stat.availableBytes / (1024 * 1024)
+            diskInfo = "$avail MB 可用 / $total MB"
+            cpuInfo = "${Runtime.getRuntime().availableProcessors()} 核心"
+            val r = Runtime.getRuntime()
+            val max = r.maxMemory() / (1024 * 1024)
+            val used = (r.totalMemory() - r.freeMemory()) / (1024 * 1024)
+            memoryInfo = "$used MB 已用 / $max MB"
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -413,7 +431,19 @@ fun WeightsScreen(onBack: () -> Unit = {}) {
             .verticalScroll(rememberScrollState()),
     ) {
         SubPageHeader("资源与权重配置", onBack)
+
+        SectionCard(title = "本机资源") {
+            InfoGrid(listOf("磁盘" to diskInfo))
+            Divider()
+            InfoGrid(listOf("CPU" to cpuInfo))
+            Divider()
+            InfoGrid(listOf("内存" to memoryInfo))
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         WeightsCard()
+
         Spacer(modifier = Modifier.height(12.dp))
     }
 }
