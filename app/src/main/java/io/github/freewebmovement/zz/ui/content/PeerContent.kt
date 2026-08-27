@@ -572,8 +572,8 @@ fun WeightsScreen(onBack: () -> Unit = {}) {
                 WeightDetailRow("公网 IPv4", wr.optString("public_ip_count", "0"), wr.optString("public_ip_weight", "0"))
                 WeightDetailRow("私网 IP", wr.optString("private_ip_count", "0"), wr.optString("private_ip_weight", "0"))
                 WeightDetailRow("公网 IPv6", wr.optString("public_ipv6_count", "0"), wr.optString("public_ipv6_weight", "0"))
-                WeightDetailRow("存储", "${wr.optDouble("storage_tb", 0.0)} TB", wr.optString("storage_weight", "0"))
-                WeightDetailRow("带宽", "${wr.optDouble("bandwidth_gbps", 0.0)} Gbps", wr.optString("bandwidth_weight", "0"))
+                WeightDetailRow("存储", "${wr.optDouble("storage_tb", 0.0)} GB", wr.optString("storage_weight", "0"))
+                WeightDetailRow("带宽", "${wr.optLong("bandwidth_bytes", 0) / (1024 * 1024)} MB", wr.optString("bandwidth_weight", "0"))
                 val cpuTicks = wr.optLong("cpu_time_ticks", 0)
                 val cpuMin = cpuTicks / 6000
                 WeightDetailRow("CPU 时间", "$cpuMin 分钟", wr.optString("cpu_weight", "0"))

@@ -338,10 +338,34 @@ private fun StaticFileRow(updatePage: (value: PageType) -> Unit) {
     }, onClick = { updatePage(PageType.MineStaticFile) })
 }
 
-/** 资源与权重配置入口。 */
+/** 资源与权重配置入口。首页此处实时显示节点权重，点击进入详情。 */
 @Composable
 private fun WeightsRow(updatePage: (value: PageType) -> Unit) {
+    val node = rememberFwmcNodeSnapshot()
+    var totalWeight by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(node.running) {
+        while (node.running) {
+            runCatching {
+                val obj = JSONObject(FwmcApi.getWeights())
+                if (obj.optBoolean("success", false)) {
+                    totalWeight = obj
+                        .optJSONObject("resources")
+                        ?.optString("composite_weight")
+                }
+            }
+            delay(5000)
+        }
+    }
     RowItem2(label = "资源与权重配置", icon = R.drawable.ic_briefcase, trailing = {
+        Text(
+            text = when {
+                !node.running -> "未运行"
+                totalWeight != null -> "权重 $totalWeight"
+                else -> ""
+            },
+            fontSize = 13.sp,
+            color = if (node.running) OnlineGreen else TextSecondary,
+        )
         Text("  ›", color = TextMuted)
     }, onClick = { updatePage(PageType.MineWeights) })
 }
@@ -527,14 +551,15 @@ private fun WeightTableRow(updatePage: (value: PageType) -> Unit) {
 @Composable
 fun WeightTableScreen(onBack: () -> Unit = {}) {
     val rows = listOf(
-        Triple("公网 IPv4", "5,000 /个", "公网上行可达的 IPv4 地址（核心资源）"),
+        Triple("公网 IPv4", "1,000 /个", "公网上行可达的 IPv4 地址（核心资源）"),
         Triple("内网 IPv4", "0", "NAT 内网地址不计入权重"),
-        Triple("公网 IPv6", "500 /个", "公网 IPv6 地址（弱于 IPv4）"),
-        Triple("存储 (TB)", "1 + TB × 200", "1 TB ≈ 201 权重"),
-        Triple("带宽 (Gbps)", "1 + Gbps × 50", "1 Gbps ≈ 51 权重"),
-        Triple("CPU（实际消耗）", "1 分钟 ≈ 1 权重", "读 /proc 实测进程 CPU 时间"),
-        Triple("内存（实际占用）", "1 GB ≈ 100 权重", "读 /proc 实测进程物理内存"),
-        Triple("API 请求数/天", "1 + 千次×20", "1000次/天 ≈ 21 权重"),
+        Triple("公网 IPv6", "100 /个", "公网 IPv6 地址（弱于 IPv4）"),
+        Triple("存储（24h 实测）", "1 TB ≈ 1 权重", "数据目录实测占用，低于 1T 为 0"),
+        Triple("带宽（24h 实测）", "1 G ≈ 1 权重", "实测收发字节累计，低于 1G 为 0"),
+        Triple("CPU（24h 实测）", "1 GHz·天 ≈ 1 权重", "实测进程 CPU 时间，低于一天为 0"),
+        Triple("内存（24h 实测）", "1 G ≈ 1 权重", "实测进程占用，低于 1G 为 0"),
+        Triple("API（24h 实测）", "1000 次/小时 ≈ 1 权重", "累计 2.4 万次 ≈ 1 权重"),
+        Triple("节点权重兜底", "最低为 1", "所有资源为 0 时节点仍为 1"),
     )
     Column(
         modifier = Modifier
