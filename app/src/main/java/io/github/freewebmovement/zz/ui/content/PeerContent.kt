@@ -106,7 +106,6 @@ private data class WitnessData(
     val tickRecords: List<TickRecord> = emptyList(),
     val tickMax: Long = 0,
     val tickRings: List<TickRing> = emptyList(),
-    val todayTick: Long = 0,
 )
 
 private data class TickRecord(
@@ -1094,13 +1093,6 @@ private fun EpochCard(
                 "下次 Tick" to "${w.nextTickSeconds}s",
             )
         )
-        InfoGrid(
-            listOf(
-                "今日 Tick" to w.todayTick.toString(),
-                "" to "",
-                "" to "",
-            )
-        )
 
         Divider()
 
@@ -1752,7 +1744,6 @@ private fun parseWitness(obj: JSONObject): WitnessData {
         epochTick = obj.optLong("epoch_tick", 0),
         ticksPerEpoch = obj.optLong("ticks_per_epoch", 0),
         nextTickSeconds = obj.optLong("next_tick_seconds", 0),
-        todayTick = obj.optLong("today_tick", 0),
         ringActiveHash = ra?.optString("ring_hash") ?: "",
         ringActiveEpoch = ra?.optLong("epoch", 0) ?: 0,
         ringActiveMembers = members(ra?.optJSONArray("members")),
