@@ -557,6 +557,39 @@ fun WeightsScreen(onBack: () -> Unit = {}) {
     ) {
         SubPageHeader("资源与权重配置", onBack)
 
+        // 节点权重总览
+        val wr = ipData?.optJSONObject("resources")
+        SectionCard(title = "节点权重") {
+            if (wr == null) {
+                EmptyHint("暂无数据")
+            } else {
+                val totalWeight = wr.optString("composite_weight", "0")
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                    Text("总权重", fontSize = 14.sp, color = TextPrimary, modifier = Modifier.weight(1f))
+                    Text(totalWeight, fontSize = 18.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                }
+                Divider()
+                WeightDetailRow("公网 IP", wr.optString("public_ip_count", "0"), wr.optString("public_ip_weight", "0"))
+                WeightDetailRow("私网 IP", wr.optString("private_ip_count", "0"), wr.optString("private_ip_weight", "0"))
+                WeightDetailRow("公网 IPv6", wr.optString("public_ipv6_count", "0"), wr.optString("public_ipv6_weight", "0"))
+                WeightDetailRow("存储", "${wr.optDouble("storage_tb", 0.0)} TB", wr.optString("storage_weight", "0"))
+                WeightDetailRow("带宽", "${wr.optDouble("bandwidth_gbps", 0.0)} Gbps", wr.optString("bandwidth_weight", "0"))
+                WeightDetailRow("CPU", "${wr.optLong("cpu_cores", 0)}核 ${wr.optDouble("cpu_ghz", 0.0)}GHz", wr.optString("cpu_weight", "0"))
+                WeightDetailRow("API", "${wr.optLong("api_requests", 0)} 次/天", wr.optString("api_weight", "0"))
+                Divider()
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                    Text("见证资格", fontSize = 12.sp, color = TextSecondary, modifier = Modifier.weight(1f))
+                    StatusText(
+                        active = wr.optBoolean("witness_participation", false),
+                        activeLabel = "有资格",
+                        inactiveLabel = "无公网出口",
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         // 磁盘
         SectionCard(title = "磁盘") {
             InfoGrid(listOf(
@@ -801,6 +834,17 @@ private fun EditableResourceRow(
                     editing = true
                 })
         }
+    }
+}
+
+@Composable
+private fun WeightDetailRow(label: String, value: String, weight: String) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier
+        .fillMaxWidth()
+        .padding(vertical = 2.dp)) {
+        Text(label, fontSize = 13.sp, color = TextSecondary, modifier = Modifier.width(80.dp))
+        Text(value, fontSize = 13.sp, color = TextPrimary, modifier = Modifier.weight(1f))
+        Text("权重 $weight", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
     }
 }
 
