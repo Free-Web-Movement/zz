@@ -5,6 +5,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
@@ -1085,14 +1087,34 @@ private fun EpochCard(
     onOpenRingMembers: (which: String) -> Unit,
 ) {
     SectionCard(title = "纪元 ${w.epoch}") {
-        // 纪元状态
-        InfoGrid(
-            listOf(
-                "Tick" to w.tickCount.toString(),
-                "纪元进度" to "${w.epochTick} / ${w.ticksPerEpoch}",
-                "下次 Tick" to "${w.nextTickSeconds}s",
+        // 纪元进度
+        val epochPct = if (w.ticksPerEpoch > 0) w.epochTick.toFloat() / w.ticksPerEpoch else 0f
+        Column(modifier = Modifier.padding(vertical = 4.dp)) {
+            Text("当前 epoch (${w.epochTick}/${w.ticksPerEpoch})", fontSize = 12.sp, color = TextSecondary)
+            Spacer(modifier = Modifier.height(4.dp))
+            LinearProgressIndicator(
+                progress = { epochPct },
+                modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
             )
-        )
+        }
+
+        // Tick 状态（当前 tick 内的进度）
+        val tickInterval = 900L // 15 min default
+        val secondsIntoTick = tickInterval - w.nextTickSeconds.coerceIn(0, tickInterval)
+        val tickMinutes = secondsIntoTick / 60
+        val tickPct = if (tickInterval > 0) secondsIntoTick.toFloat() / tickInterval else 0f
+        Column(modifier = Modifier.padding(vertical = 4.dp)) {
+            Text("当前 tick 状态 (${tickMinutes}/15)", fontSize = 12.sp, color = TextSecondary)
+            Spacer(modifier = Modifier.height(4.dp))
+            LinearProgressIndicator(
+                progress = { tickPct },
+                modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
+                color = MaterialTheme.colorScheme.tertiary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            )
+        }
 
         Divider()
 
