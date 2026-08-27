@@ -183,11 +183,9 @@ private fun mergeSessions(contacts: List<ContactRow>, convs: List<ConvRow>): Lis
 }
 
 private val FMT_HM = SimpleDateFormat("HH:mm", Locale.getDefault())
-private val FMT_YESTERDAY = SimpleDateFormat("昨天 HH:mm", Locale.getDefault())
-private val FMT_FULL = SimpleDateFormat("yyyy年M月d日 HH:mm", Locale.getDefault())
 private val FMT_FULL_TIME = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
 
-private fun formatListTime(epochSec: Long): String {
+private fun formatListTime(epochSec: Long, yesterdayLabel: String, listDatePattern: String): String {
     if (epochSec <= 0) return ""
     val cal = java.util.Calendar.getInstance()
     val todayStart = cal.apply {
@@ -197,8 +195,8 @@ private fun formatListTime(epochSec: Long): String {
     val t = epochSec * 1000
     return when {
         t >= todayStart -> FMT_HM.format(Date(t))
-        t >= todayStart - 86400_000L -> FMT_YESTERDAY.format(Date(t)).replace("昨天", "昨天 ")
-        else -> SimpleDateFormat("M月d日", Locale.getDefault()).format(Date(t))
+        t >= todayStart - 86400_000L -> "$yesterdayLabel ${FMT_HM.format(Date(t))}"
+        else -> SimpleDateFormat(listDatePattern, Locale.getDefault()).format(Date(t))
     }
 }
 
@@ -226,6 +224,7 @@ fun MessageContent() {
 
 @Composable
 private fun SessionList(onOpen: (String, String) -> Unit) {
+    val s = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
     val node = rememberFwmcNodeSnapshot()
     val running = node.running
     var sessions by remember { mutableStateOf<List<SessionItem>>(emptyList()) }
@@ -248,10 +247,10 @@ private fun SessionList(onOpen: (String, String) -> Unit) {
     Column(modifier = Modifier.fillMaxSize().background(WxBg)) {
         if (!running) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("fwmc 节点未运行，请在「网络」页启动节点", color = TextSecondary, textAlign = TextAlign.Center)
+                Text(s.message.nodeNotRunning, color = TextSecondary, textAlign = TextAlign.Center)
             }
         } else if (sessions.isEmpty()) {
-            EmptyHint("暂无会话\n去「联系人」页添加好友开始聊天")
+            EmptyHint(s.message.noSessions)
         } else {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 items(sessions, key = { it.address }) { s ->
@@ -271,6 +270,7 @@ private fun SessionList(onOpen: (String, String) -> Unit) {
 
 @Composable
 private fun SessionRow(s: SessionItem, onClick: () -> Unit) {
+    val str = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -290,10 +290,10 @@ private fun SessionRow(s: SessionItem, onClick: () -> Unit) {
                     modifier = Modifier.weight(1f, fill = false),
                 )
                 Spacer(modifier = Modifier.weight(1f))
-                Text(text = formatListTime(s.timestamp), fontSize = 11.sp, color = TextMuted)
+                Text(text = formatListTime(s.timestamp, str.message.yesterday, str.message.listDateFormat), fontSize = 11.sp, color = TextMuted)
             }
             Text(
-                text = s.preview.ifEmpty { "开始聊天吧" },
+                text = s.preview.ifEmpty { str.message.startChat },
                 fontSize = 13.sp,
                 color = TextSecondary,
                 maxLines = 1,
@@ -336,6 +336,7 @@ private fun decorate(msgs: List<ChatMsg>): List<ChatEntry> {
 
 @Composable
 fun ChatScreen(contact: String, name: String, onBack: () -> Unit) {
+    val s = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
     var msgs by remember { mutableStateOf<List<ChatMsg>>(emptyList()) }
     var input by remember { mutableStateOf("") }
     var showEmoji by remember { mutableStateOf(false) }
@@ -389,7 +390,7 @@ fun ChatScreen(contact: String, name: String, onBack: () -> Unit) {
             contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 10.dp),
         ) {
             if (entries.isEmpty()) {
-                item { EmptyHint("暂无消息，打个招呼吧！") }
+                item { EmptyHint(s.message.noMessages) }
             }
             items(entries.asReversed()) { entry ->
                 when (entry) {
@@ -436,7 +437,7 @@ fun ChatScreen(contact: String, name: String, onBack: () -> Unit) {
             OutlinedTextField(
                 value = input,
                 onValueChange = { input = it },
-                placeholder = { Text("输入消息…", color = TextMuted) },
+                placeholder = { Text(s.message.inputHint, color = TextMuted) },
                 modifier = Modifier.weight(1f),
                 maxLines = 4,
                 shape = RoundedCornerShape(8.dp),
@@ -459,7 +460,7 @@ fun ChatScreen(contact: String, name: String, onBack: () -> Unit) {
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.padding(start = 8.dp),
             ) {
-                Text("发送")
+                Text(s.message.send)
             }
         }
     }
@@ -506,23 +507,24 @@ internal fun AddContactDialog(
     onDismiss: () -> Unit,
     onConfirm: (name: String, address: String) -> Unit,
 ) {
+    val s = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
     var name by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("添加联系人") },
+        title = { Text(s.message.addContact) },
         text = {
             Column {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("名称") },
+                    label = { Text(s.message.name) },
                     modifier = Modifier.fillMaxWidth(),
                 )
                 OutlinedTextField(
                     value = address,
                     onValueChange = { address = it },
-                    label = { Text("FWMC 地址") },
+                    label = { Text(s.message.fwmcAddress) },
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -530,10 +532,10 @@ internal fun AddContactDialog(
         confirmButton = {
             TextButton(
                 onClick = { if (name.isNotBlank() && address.isNotBlank()) onConfirm(name.trim(), address.trim()) },
-            ) { Text("确定", color = MaterialTheme.colorScheme.primary) }
+            ) { Text(s.common.confirm, color = MaterialTheme.colorScheme.primary) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("取消") }
+            TextButton(onClick = onDismiss) { Text(s.common.cancel) }
         },
     )
 }

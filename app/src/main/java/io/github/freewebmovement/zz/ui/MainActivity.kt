@@ -34,14 +34,18 @@ class MainActivity : ComponentActivity() {
 
         val preference = io.github.freewebmovement.zz.MainApplication.getApp().preference
         AppTheme.load(preference)
+        io.github.freewebmovement.zz.ui.i18n.AppLang.load(preference)
+        io.github.freewebmovement.zz.ui.i18n.AppLang.syncWebLang()
         setContent {
             ZzTheme {
-                LaunchedEffect(Unit) { FwmcSession.refresh() }
-                Scaffold(modifier = Modifier.fillMaxSize()) {
-                    if (FwmcSession.current == null) {
-                        LoginScreen()
-                    } else {
-                        TabView()
+                io.github.freewebmovement.zz.ui.i18n.AppLangProvider {
+                    LaunchedEffect(Unit) { FwmcSession.refresh() }
+                    Scaffold(modifier = Modifier.fillMaxSize()) {
+                        if (FwmcSession.current == null) {
+                            LoginScreen()
+                        } else {
+                            TabView()
+                        }
                     }
                 }
             }

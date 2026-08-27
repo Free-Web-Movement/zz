@@ -93,6 +93,7 @@ internal fun ProfileEditorContent(
     onAfterSave: () -> Unit = {},
     targetName: String? = null,
 ) {
+    val s = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
     val saveScope = androidx.compose.runtime.rememberCoroutineScope()
     with(MainApplication.getApp().settings) {
         var nickname by remember { mutableStateOf(targetName ?: (FwmcSession.current?.second ?: profile.nickname)) }
@@ -165,9 +166,9 @@ internal fun ProfileEditorContent(
                         val bytes = readJpegBytes(ctx, uri, maxDim = 512)
                         android.util.Log.d("AvatarUpload", "editor bytes=${bytes?.size ?: -1} uid=$userId uri=$uri")
                         if (userId.isEmpty()) {
-                            android.widget.Toast.makeText(ctx, "会话未就绪，请稍后再试", android.widget.Toast.LENGTH_SHORT).show()
+                            android.widget.Toast.makeText(ctx, s.profile.sessionNotReady, android.widget.Toast.LENGTH_SHORT).show()
                         } else if (bytes == null) {
-                            android.widget.Toast.makeText(ctx, "图片读取失败，请换一张试试", android.widget.Toast.LENGTH_SHORT).show()
+                            android.widget.Toast.makeText(ctx, s.profile.imageLoadFailed, android.widget.Toast.LENGTH_SHORT).show()
                         }
                         if (bytes != null && userId.isNotEmpty()) {
                             saveScope.launch {
@@ -180,7 +181,7 @@ internal fun ProfileEditorContent(
                                         // 通知我的页身份卡立即重载头像
                                         mineRefreshSignal++
                                     } else {
-                                        android.widget.Toast.makeText(ctx, "头像上传失败", android.widget.Toast.LENGTH_SHORT).show()
+                                        android.widget.Toast.makeText(ctx, s.profile.avatarUploadFailed, android.widget.Toast.LENGTH_SHORT).show()
                                     }
                                 }
                             }
@@ -201,7 +202,7 @@ internal fun ProfileEditorContent(
                 modifier = Modifier.padding(horizontal = 16.dp).padding(top = 8.dp),
             ) {
                 Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp)) {
-                    Text("用户ID", fontSize = 13.sp, color = io.github.freewebmovement.zz.ui.theme.TextSecondary)
+                    Text(s.profile.userId, fontSize = 13.sp, color = io.github.freewebmovement.zz.ui.theme.TextSecondary)
                     Spacer(Modifier.height(4.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
@@ -216,11 +217,11 @@ internal fun ProfileEditorContent(
                         val ctx = LocalContext.current
                         Icon(
                             painter = painterResource(id = R.drawable.ic_copy),
-                            contentDescription = "copy",
+                            contentDescription = s.common.copy,
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(start = 8.dp).size(18.dp).clickable {
                                 clip.setText(androidx.compose.ui.text.AnnotatedString(userId))
-                                android.widget.Toast.makeText(ctx, ctx.getString(R.string.copied), android.widget.Toast.LENGTH_SHORT).show()
+                                android.widget.Toast.makeText(ctx, s.common.copied, android.widget.Toast.LENGTH_SHORT).show()
                             },
                         )
                     }
@@ -242,7 +243,7 @@ internal fun ProfileEditorContent(
                             model = ImageRequest.Builder(LocalContext.current)
                                 .data(imageUri)
                                 .build(),
-                            contentDescription = stringResource(id = R.string.tab_mine_avatar),
+                            contentDescription = s.profile.avatar,
                             contentScale = ContentScale.Crop,
                             placeholder = painterResource(id = R.drawable.ic_default_avatar),
                             error = painterResource(id = R.drawable.ic_default_avatar),
@@ -253,7 +254,7 @@ internal fun ProfileEditorContent(
                     } else {
                         Image(
                             painter = painterResource(id = R.drawable.ic_default_avatar),
-                            contentDescription = stringResource(id = R.string.tab_mine_avatar),
+                            contentDescription = s.profile.avatar,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .size(128.dp)
@@ -291,7 +292,7 @@ internal fun ProfileEditorContent(
                         unfocusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
                     )
                     Text(
-                        stringResource(R.string.tab_mine_nickname),
+                        s.profile.nickname,
                         fontSize = 13.sp,
                         color = io.github.freewebmovement.zz.ui.theme.TextSecondary,
                         modifier = Modifier.padding(top = 12.dp),
@@ -306,7 +307,7 @@ internal fun ProfileEditorContent(
                     )
                     HorizontalDivider(color = io.github.freewebmovement.zz.ui.theme.LineColor)
                     Text(
-                        stringResource(R.string.signature),
+                        s.mine.signature,
                         fontSize = 13.sp,
                         color = io.github.freewebmovement.zz.ui.theme.TextSecondary,
                         modifier = Modifier.padding(top = 12.dp),
@@ -334,7 +335,7 @@ internal fun ProfileEditorContent(
                         focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
                         unfocusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
                     )
-                    Text("详细信息", fontSize = 13.sp, color = io.github.freewebmovement.zz.ui.theme.TextSecondary, modifier = Modifier.padding(top = 12.dp))
+                    Text(s.profile.detailInfo, fontSize = 13.sp, color = io.github.freewebmovement.zz.ui.theme.TextSecondary, modifier = Modifier.padding(top = 12.dp))
                     Spacer(Modifier.height(4.dp))
 
                     val pickerModifier: (String) -> Modifier = { target ->
@@ -371,7 +372,7 @@ internal fun ProfileEditorContent(
                                     .border(1.dp, io.github.freewebmovement.zz.ui.theme.LineColor, RoundedCornerShape(8.dp))
                                     .clickable {
                                         when (picker) {
-                                            "国家" -> showCountryPicker = true
+                                            "country" -> showCountryPicker = true
                                             else -> pickerTarget = picker
                                         }
                                     }
@@ -381,7 +382,7 @@ internal fun ProfileEditorContent(
                                 Spacer(Modifier.height(6.dp))
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
-                                        value.ifEmpty { "请选择" },
+                                        value.ifEmpty { s.profile.choose },
                                         fontSize = 14.sp,
                                         color = if (value.isEmpty()) io.github.freewebmovement.zz.ui.theme.TextSecondary else MaterialTheme.colorScheme.onSurface,
                                         maxLines = 1,
@@ -406,24 +407,24 @@ internal fun ProfileEditorContent(
                     }
 
                     Row(Modifier.fillMaxWidth()) {
-                        ExtField("性别", gender, { gender = it }, picker = "性别")
+                        ExtField(s.profile.gender, gender, { gender = it }, picker = "gender")
                         Spacer(Modifier.width(10.dp))
-                        ExtField("血型", bloodType, { bloodType = it }, picker = "血型")
+                        ExtField(s.profile.bloodType, bloodType, { bloodType = it }, picker = "bloodType")
                     }
                     Row(Modifier.fillMaxWidth()) {
-                        ExtField("年龄", age, { age = it.filter { c -> c.isDigit() }.take(3) }, number = true)
+                        ExtField(s.profile.age, age, { age = it.filter { c -> c.isDigit() }.take(3) }, number = true)
                         Spacer(Modifier.width(10.dp))
-                        ExtField("身高 (cm)", heightCm, { heightCm = it.filter { c -> c.isDigit() }.take(3) }, number = true)
+                        ExtField(s.profile.height, heightCm, { heightCm = it.filter { c -> c.isDigit() }.take(3) }, number = true)
                     }
                     Row(Modifier.fillMaxWidth()) {
-                        ExtField("体重 (kg)", weightKg, { weightKg = it.filter { c -> c.isDigit() }.take(3) }, number = true)
+                        ExtField(s.profile.weight, weightKg, { weightKg = it.filter { c -> c.isDigit() }.take(3) }, number = true)
                         Spacer(Modifier.width(10.dp))
-                        ExtField("民族", ethnicity, { ethnicity = it })
+                        ExtField(s.profile.ethnicity, ethnicity, { ethnicity = it })
                     }
                     Row(Modifier.fillMaxWidth()) {
-                        ExtField("学历", education, { education = it }, picker = "学历")
+                        ExtField(s.profile.education, education, { education = it }, picker = "education")
                         Spacer(Modifier.width(10.dp))
-                        ExtField("国家 / 地区", country, { country = it }, picker = "国家")
+                        ExtField(s.profile.countryRegion, country, { country = it }, picker = "country")
                     }
                 }
             }
@@ -439,7 +440,7 @@ internal fun ProfileEditorContent(
                         focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
                         unfocusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
                     )
-                    Text("所在地区", fontSize = 13.sp, color = io.github.freewebmovement.zz.ui.theme.TextSecondary, modifier = Modifier.padding(top = 12.dp))
+                    Text(s.profile.region, fontSize = 13.sp, color = io.github.freewebmovement.zz.ui.theme.TextSecondary, modifier = Modifier.padding(top = 12.dp))
                     Spacer(Modifier.height(4.dp))
 
                     @Composable fun RowScope.RegField(label: String, value: String, onValue: (String) -> Unit) {
@@ -455,19 +456,19 @@ internal fun ProfileEditorContent(
                     }
 
                     Row(Modifier.fillMaxWidth()) {
-                        RegField("省 / 州", province, { province = it })
+                        RegField(s.profile.provinceState, province, { province = it })
                         Spacer(Modifier.width(10.dp))
-                        RegField("市", city, { city = it })
+                        RegField(s.profile.city, city, { city = it })
                     }
                     Row(Modifier.fillMaxWidth()) {
-                        RegField("区 / 县", county, { county = it })
+                        RegField(s.profile.districtCounty, county, { county = it })
                         Spacer(Modifier.width(10.dp))
-                        RegField("镇 / 乡", town, { town = it })
+                        RegField(s.profile.townTownship, town, { town = it })
                     }
                     Row(Modifier.fillMaxWidth()) {
-                        RegField("村 / 社区", village, { village = it })
+                        RegField(s.profile.villageCommunity, village, { village = it })
                         Spacer(Modifier.width(10.dp))
-                        RegField("详细地址", homeAddress, { homeAddress = it })
+                        RegField(s.profile.detailAddress, homeAddress, { homeAddress = it })
                     }
                 }
             }
@@ -483,7 +484,7 @@ internal fun ProfileEditorContent(
                         focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
                         unfocusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
                     )
-                    Text("更多", fontSize = 13.sp, color = io.github.freewebmovement.zz.ui.theme.TextSecondary, modifier = Modifier.padding(top = 12.dp))
+                    Text(s.profile.more, fontSize = 13.sp, color = io.github.freewebmovement.zz.ui.theme.TextSecondary, modifier = Modifier.padding(top = 12.dp))
                     Spacer(Modifier.height(4.dp))
 
                     @Composable fun MoreLabel(label: String, icon: Int) {
@@ -501,14 +502,14 @@ internal fun ProfileEditorContent(
                                 .padding(vertical = 4.dp)
                                 .clip(RoundedCornerShape(8.dp))
                                 .border(1.dp, io.github.freewebmovement.zz.ui.theme.LineColor, RoundedCornerShape(8.dp))
-                                .clickable { pickerTarget = "星座" }
+                                .clickable { pickerTarget = "zodiac" }
                                 .padding(horizontal = 12.dp, vertical = 10.dp),
                         ) {
-                            MoreLabel("星座", R.drawable.ic_zodiac)
+                            MoreLabel(s.profile.zodiac, R.drawable.ic_zodiac)
                             Spacer(Modifier.height(6.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    zodiac.ifEmpty { "请选择" },
+                                    zodiac.ifEmpty { s.profile.choose },
                                     fontSize = 14.sp,
                                     color = if (zodiac.isEmpty()) io.github.freewebmovement.zz.ui.theme.TextSecondary else MaterialTheme.colorScheme.onSurface,
                                     maxLines = 1,
@@ -526,7 +527,7 @@ internal fun ProfileEditorContent(
                         OutlinedTextField(
                             value = occupation,
                             onValueChange = { occupation = it },
-                            label = { MoreLabel("职业", R.drawable.ic_briefcase) },
+                            label = { MoreLabel(s.profile.occupation, R.drawable.ic_briefcase) },
                             singleLine = true,
                             textStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp),
                             colors = moreColors,
@@ -608,31 +609,56 @@ internal fun ProfileEditorContent(
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             ) {
-                Text(stringResource(R.string.action_save))
+                Text(s.common.save)
             }
             Spacer(Modifier.height(24.dp))
 
+            val zodiacs = listOf(
+                s.profile.zodiacAries to "♈",
+                s.profile.zodiacTaurus to "♉",
+                s.profile.zodiacGemini to "♊",
+                s.profile.zodiacCancer to "♋",
+                s.profile.zodiacLeo to "♌",
+                s.profile.zodiacVirgo to "♍",
+                s.profile.zodiacLibra to "♎",
+                s.profile.zodiacScorpio to "♏",
+                s.profile.zodiacSagittarius to "♐",
+                s.profile.zodiacCapricorn to "♑",
+                s.profile.zodiacAquarius to "♒",
+                s.profile.zodiacPisces to "♓",
+            )
             val options: Map<String, List<String>> = mapOf(
-                "性别" to listOf("男", "女", "保密"),
-                "血型" to listOf("A", "B", "AB", "O"),
-                "学历" to listOf("小学", "初中", "高中", "大专", "本科", "硕士", "博士"),
-                "星座" to listOf("白羊座","金牛座","双子座","巨蟹座","狮子座","处女座","天秤座","天蝎座","射手座","摩羯座","水瓶座","双鱼座"),
+                "gender" to listOf(s.profile.male, s.profile.female, s.profile.confidential),
+                "bloodType" to listOf("A", "B", "AB", "O"),
+                "education" to listOf(
+                    s.profile.educationPrimary,
+                    s.profile.educationJunior,
+                    s.profile.educationSenior,
+                    s.profile.educationCollege,
+                    s.profile.educationBachelor,
+                    s.profile.educationMaster,
+                    s.profile.educationDoctor,
+                ),
+                "zodiac" to zodiacs.map { it.first },
             )
-            val zodiacSymbols = mapOf(
-                "白羊座" to "♈","金牛座" to "♉","双子座" to "♊","巨蟹座" to "♋","狮子座" to "♌","处女座" to "♍",
-                "天秤座" to "♎","天蝎座" to "♏","射手座" to "♐","摩羯座" to "♑","水瓶座" to "♒","双鱼座" to "♓",
-            )
+            val zodiacSymbols = zodiacs.toMap()
             pickerTarget?.let { target ->
                 val opts = options[target].orEmpty()
                 val current = when (target) {
-                    "性别" -> gender
-                    "血型" -> bloodType
-                    "星座" -> zodiac
+                    "gender" -> gender
+                    "bloodType" -> bloodType
+                    "zodiac" -> zodiac
                     else -> education
+                }
+                val pickerTitle = when (target) {
+                    "gender" -> s.profile.gender
+                    "bloodType" -> s.profile.bloodType
+                    "zodiac" -> s.profile.zodiac
+                    else -> s.profile.education
                 }
                 AlertDialog(
                     onDismissRequest = { pickerTarget = null },
-                    title = { Text(target) },
+                    title = { Text(pickerTitle) },
                     text = {
                         Column {
                             opts.forEach { opt ->
@@ -640,16 +666,16 @@ internal fun ProfileEditorContent(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier.fillMaxWidth().clickable {
                                         when (target) {
-                                            "性别" -> gender = opt
-                                            "血型" -> bloodType = opt
-                                            "星座" -> zodiac = opt
-                                            "学历" -> education = opt
+                                            "gender" -> gender = opt
+                                            "bloodType" -> bloodType = opt
+                                            "zodiac" -> zodiac = opt
+                                            "education" -> education = opt
                                         }
                                         pickerTarget = null
                                     },
                                 ) {
                                     RadioButton(selected = opt == current, onClick = null)
-                                    if (target == "星座") {
+                                    if (target == "zodiac") {
                                         Text(zodiacSymbols[opt] ?: "", fontSize = 17.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(start = 8.dp))
                                     }
                                     Text(opt, fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(start = 8.dp))
@@ -677,13 +703,13 @@ internal fun ProfileEditorContent(
                 }
                 AlertDialog(
                     onDismissRequest = { showCountryPicker = false },
-                    title = { Text("国家 / 地区") },
+                    title = { Text(s.profile.countryRegion) },
                     text = {
                         Column {
                             OutlinedTextField(
                                 value = query,
                                 onValueChange = { query = it },
-                                placeholder = { Text("搜索国家…", fontSize = 13.sp) },
+                                placeholder = { Text(s.profile.searchCountry, fontSize = 13.sp) },
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth(),
                             )

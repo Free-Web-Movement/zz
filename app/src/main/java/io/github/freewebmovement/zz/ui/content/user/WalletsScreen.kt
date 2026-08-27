@@ -83,6 +83,7 @@ private val MNEMONIC_LANGUAGES = listOf(
  */
 @Composable
 fun WalletsScreen(onBack: () -> Unit = {}) {
+    val s = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
     val scope = rememberCoroutineScope()
     var wallets by remember { mutableStateOf<List<WalletRow>>(emptyList()) }
     var balances by remember { mutableStateOf<Map<String, Long>>(emptyMap()) }
@@ -122,14 +123,14 @@ fun WalletsScreen(onBack: () -> Unit = {}) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = s.common.back)
             }
-            Text("钱包管理", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary, modifier = Modifier.weight(1f))
-            Text("+ 创建钱包", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp,
+            Text(s.wallets.title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary, modifier = Modifier.weight(1f))
+            Text("+ " + s.wallets.createWallet, color = MaterialTheme.colorScheme.primary, fontSize = 14.sp,
                 modifier = Modifier.clickable { showCreate = true })
         }
         if (wallets.isEmpty()) {
-            EmptyHint("还没有钱包\n点击右上角「创建钱包」")
+            EmptyHint(s.wallets.noneTitle)
         } else {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 items(wallets, key = { it.name }) { w ->
@@ -142,7 +143,7 @@ fun WalletsScreen(onBack: () -> Unit = {}) {
                                 Text(w.name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary, modifier = Modifier.weight(1f))
                                 if (w.bound) {
                                     Surface(color = AppTheme.preset.primary, shape = RoundedCornerShape(4.dp)) {
-                                        Text("已绑定", color = Color.White, fontSize = 11.sp, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+                                        Text(s.wallets.bound, color = Color.White, fontSize = 11.sp, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
                                     }
                                 }
                             }
@@ -160,14 +161,14 @@ fun WalletsScreen(onBack: () -> Unit = {}) {
                                 val ctx = androidx.compose.ui.platform.LocalContext.current
                                 androidx.compose.material3.Icon(
                                     painter = androidx.compose.ui.res.painterResource(io.github.freewebmovement.zz.R.drawable.ic_copy),
-                                    contentDescription = "copy",
+                                    contentDescription = s.common.copy,
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier
                                         .padding(start = 8.dp)
                                         .size(18.dp)
                                         .clickable {
                                             clip.setText(androidx.compose.ui.text.AnnotatedString(w.address))
-                                            android.widget.Toast.makeText(ctx, ctx.getString(io.github.freewebmovement.zz.R.string.copied), android.widget.Toast.LENGTH_SHORT).show()
+                                            android.widget.Toast.makeText(ctx, s.common.copied, android.widget.Toast.LENGTH_SHORT).show()
                                         },
                                 )
                             }
@@ -180,16 +181,16 @@ fun WalletsScreen(onBack: () -> Unit = {}) {
                             )
                             Row(modifier = Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(18.dp)) {
                                 if (!w.bound) {
-                                    Text("设为绑定", color = MaterialTheme.colorScheme.primary, fontSize = 13.sp,
+                                    Text(s.wallets.setBinding, color = MaterialTheme.colorScheme.primary, fontSize = 13.sp,
                                         modifier = Modifier.clickable { bindTarget = w })
-                                    Text("删除", color = MaterialTheme.colorScheme.error, fontSize = 13.sp,
+                                    Text(s.wallets.delete, color = MaterialTheme.colorScheme.error, fontSize = 13.sp,
                                         modifier = Modifier.clickable { deleteTarget = w })
                                 }
                             }
                         }
                     }
                 }
-                item { EmptyHint("提示：一个 fwmc 节点只能绑定一个钱包；\n切换绑定后需重启节点生效。") }
+                item { EmptyHint(s.wallets.bindNote) }
             }
         }
     }
@@ -215,14 +216,14 @@ fun WalletsScreen(onBack: () -> Unit = {}) {
     deleteTarget?.let { w ->
         AlertDialog(
             onDismissRequest = { deleteTarget = null },
-            title = { Text("删除钱包") },
-            text = { Text("确定删除「${w.name}」吗？\n该操作不可恢复，请确认已备份助记词！\n\n删除帐号不影响钱包存留。") },
+            title = { Text(s.wallets.deleteWallet) },
+            text = { Text(s.wallets.deleteConfirmTemplate.format(w.name)) },
             confirmButton = {
                 TextButton(onClick = {
                     scope.launch { runCatching { FwmcApi.deleteWallet(w.name) }; deleteTarget = null; refresh++ }
-                }) { Text("删除", color = MaterialTheme.colorScheme.error) }
+                }) { Text(s.wallets.delete, color = MaterialTheme.colorScheme.error) }
             },
-            dismissButton = { TextButton(onClick = { deleteTarget = null }) { Text("取消") } },
+            dismissButton = { TextButton(onClick = { deleteTarget = null }) { Text(s.wallets.cancel) } },
         )
     }
 
@@ -230,8 +231,8 @@ fun WalletsScreen(onBack: () -> Unit = {}) {
     bindTarget?.let { w ->
         AlertDialog(
             onDismissRequest = { bindTarget = null },
-            title = { Text("设为绑定钱包") },
-            text = { Text("将把「${w.name}」设为 fwmc 节点的主钱包。\n下次节点启动后生效。是否立即重启节点？") },
+            title = { Text(s.wallets.setBindingButton) },
+            text = { Text(s.wallets.bindConfirmTemplate.format(w.name)) },
             confirmButton = {
                 TextButton(onClick = {
                     scope.launch {
@@ -242,15 +243,16 @@ fun WalletsScreen(onBack: () -> Unit = {}) {
                         io.github.freewebmovement.android.noui.FwmcService.start(ctx)
                         bindTarget = null; refresh++
                     }
-                }) { Text("绑定并重启", color = MaterialTheme.colorScheme.primary) }
+                }) { Text(s.wallets.bindAndRestart, color = MaterialTheme.colorScheme.primary) }
             },
-            dismissButton = { TextButton(onClick = { bindTarget = null }) { Text("稍后手动重启", color = TextSecondary) } },
+            dismissButton = { TextButton(onClick = { bindTarget = null }) { Text(s.wallets.restartLater, color = TextSecondary) } },
         )
     }
 }
 
 @Composable
 private fun CreateWalletDialog(onDismiss: () -> Unit, onCreated: (String, String) -> Unit) {
+    val s = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
     val scope = rememberCoroutineScope()
     var name by remember { mutableStateOf("") }
     var lang by remember { mutableStateOf(MNEMONIC_LANGUAGES[0]) }
@@ -259,13 +261,13 @@ private fun CreateWalletDialog(onDismiss: () -> Unit, onCreated: (String, String
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("创建钱包") },
+        title = { Text(s.wallets.createWallet) },
         text = {
             Column {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("钱包名称") },
+                    label = { Text(s.wallets.walletName) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -274,7 +276,7 @@ private fun CreateWalletDialog(onDismiss: () -> Unit, onCreated: (String, String
                         value = lang.second,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("助记词语言") },
+                        label = { Text(s.wallets.mnemonicLang) },
                         trailingIcon = { TextButton(onClick = { langMenu = !langMenu }) { Text(if (langMenu) "▲" else "▼") } },
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -299,27 +301,28 @@ private fun CreateWalletDialog(onDismiss: () -> Unit, onCreated: (String, String
                         if (r.optBoolean("success")) {
                             onCreated(r.optString("name"), r.optString("mnemonic"))
                         } else {
-                            err = r.optString("error", "创建失败")
+                            err = r.optString("error", s.wallets.createFailed)
                         }
                     }
                 },
                 enabled = name.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-            ) { Text("生成助记词") }
+            ) { Text(s.wallets.generateMnemonic) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(s.wallets.cancel) } },
     )
 }
 
 @Composable
 private fun MnemonicConfirmDialog(name: String, words: String, onDone: () -> Unit) {
+    val s = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
     val wordList = words.split(' ', '　').filter { it.isNotBlank() }
     AlertDialog(
         onDismissRequest = { /* 必须显式确认 */ },
-        title = { Text("备份助记词 · $name") },
+        title = { Text(s.wallets.backupNote.format(name)) },
         text = {
             Column {
-                Text("请按顺序抄写并离线保存以下 ${wordList.size} 个助记词。\n它是恢复钱包资产的唯一凭证！", fontSize = 13.sp, color = TextSecondary)
+                Text(s.wallets.backupMnemonicTemplate.format(wordList.size), fontSize = 13.sp, color = TextSecondary)
                 Column(modifier = Modifier.padding(vertical = 12.dp)) {
                     wordList.chunked(4).forEachIndexed { rowIdx, rowWords ->
                         Row(modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
@@ -337,7 +340,7 @@ private fun MnemonicConfirmDialog(name: String, words: String, onDone: () -> Uni
             Button(
                 onClick = onDone,
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-            ) { Text("我已抄写备份") }
+            ) { Text(s.wallets.backedUpCopied) }
         },
     )
 }

@@ -61,6 +61,7 @@ import io.github.freewebmovement.zz.ui.common.StatusText
 import io.github.freewebmovement.zz.ui.common.formatAmount
 import io.github.freewebmovement.zz.ui.common.rememberFwmcNodeSnapshot
 import io.github.freewebmovement.zz.ui.common.shortAddr
+import io.github.freewebmovement.zz.ui.i18n.LocalAppStrings
 import io.github.freewebmovement.zz.ui.theme.CardBg
 import io.github.freewebmovement.zz.ui.theme.TextMuted
 import io.github.freewebmovement.zz.ui.theme.OnlineGreen
@@ -126,6 +127,7 @@ private data class TickRing(
 /** 子页面通用头部：返回箭头 + 标题。 */
 @Composable
 private fun SubPageHeader(title: String, onBack: () -> Unit) {
+    val s = LocalAppStrings.current
     Row(
         modifier = Modifier.fillMaxWidth()
             .background(CardBg)
@@ -133,7 +135,7 @@ private fun SubPageHeader(title: String, onBack: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(onClick = onBack) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = s.common.back)
         }
         Text(title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
     }
@@ -145,6 +147,7 @@ private fun SubPageHeader(title: String, onBack: () -> Unit) {
  */
 @Composable
 fun PeerContent() {
+    val s = LocalAppStrings.current
     val node = rememberFwmcNodeSnapshot()
     val running = node.running
 
@@ -160,7 +163,7 @@ fun PeerContent() {
             runCatching {
                 val obj = JSONObject(FwmcApi.getData())
                 if (!obj.optBoolean("success", false)) {
-                    errorMsg = obj.optString("error", "加载失败")
+                    errorMsg = obj.optString("error", s.common.loadFailed)
                     return@runCatching
                 }
                 errorMsg = ""
@@ -199,11 +202,11 @@ fun PeerContent() {
             .verticalScroll(rememberScrollState()),
     ) {
         when {
-            !running -> SectionCard { Text("节点未运行。可在「我的 → 服务器」中启动。", color = TextSecondary) }
+            !running -> SectionCard { Text(s.server.nodeNotRunningHint, color = TextSecondary) }
             errorMsg.isNotEmpty() -> SectionCard { Text(errorMsg, color = MaterialTheme.colorScheme.error) }
             else -> {
                 // ① 纪元（含纪元状态、见证环、Tick 列表入口）
-                SectionHeader("纪元")
+                SectionHeader(s.peer.epoch)
                 EpochCard(
                     witness,
                     onOpenTickList = { showTickList = true },
@@ -211,12 +214,12 @@ fun PeerContent() {
                 )
 
                 // ② 区块链信息
-                SectionHeader("区块链信息")
+                SectionHeader(s.peer.blockChain)
                 GenesisCard()
                 ExplorerCard(myAddress)
 
                 // ③ 种子服务器
-                SectionHeader("种子服务器")
+                SectionHeader(s.peer.seedServer)
                 SeedsCard(seeds, onChanged = { /* refreshed on next poll */ })
             }
         }
@@ -232,6 +235,7 @@ fun PeerContent() {
 @Composable
 fun ServerScreen(onBack: () -> Unit = {}) {
     val app = MainApplication.getApp()
+    val s = LocalAppStrings.current
     val ctx = LocalContext.current
     val node = rememberFwmcNodeSnapshot()
     val running = node.running
@@ -286,42 +290,42 @@ fun ServerScreen(onBack: () -> Unit = {}) {
             .background(io.github.freewebmovement.zz.ui.theme.WxBg)
             .verticalScroll(rememberScrollState()),
     ) {
-        SubPageHeader("服务器", onBack)
+        SubPageHeader(s.server.title, onBack)
 
         // 节点控制（启动/停止/端口）
         ServerControlCard(running = running, port = node.port, address = "", privateIps = privateIps)
 
         if (running) {
             // 网络信息
-            SectionCard(title = "网络信息") {
-                InfoGrid(listOf("运行端口" to "${node.port}"))
+            SectionCard(title = s.server.networkInfo) {
+                InfoGrid(listOf(s.server.runningPort to "${node.port}"))
                 Divider()
-                Text("公网 IP", fontSize = 12.sp, color = TextSecondary)
+                Text(s.server.publicIp, fontSize = 12.sp, color = TextSecondary)
                 if (publicIps.isNotEmpty()) {
                     publicIps.forEach { ip ->
                         MonoText(text = ip.split(":").first(), fontSize = 11, color = TextPrimary)
                     }
                 } else {
-                    Text("  无", fontSize = 12.sp, color = TextMuted)
+                    Text("  " + s.common.none, fontSize = 12.sp, color = TextMuted)
                 }
                 Divider()
-                Text("内网 IP", fontSize = 12.sp, color = TextSecondary)
+                Text(s.server.privateIp, fontSize = 12.sp, color = TextSecondary)
                 if (privateIps.isNotEmpty()) {
                     privateIps.forEach { ip ->
                         MonoText(text = ip.split(":").first(), fontSize = 11, color = TextPrimary)
                     }
                 } else {
-                    Text("  无", fontSize = 12.sp, color = TextMuted)
+                    Text("  " + s.common.none, fontSize = 12.sp, color = TextMuted)
                 }
             }
 
             // 位置信息
-            SectionCard(title = "位置信息") {
+            SectionCard(title = s.peer.location) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("位置服务", fontSize = 14.sp, color = TextPrimary)
+                        Text(s.peer.locationService, fontSize = 14.sp, color = TextPrimary)
                         Text(
-                            text = if (locationEnabled) "已开启 · 用于节点定位" else "已关闭",
+                            text = if (locationEnabled) s.peer.locationNote else s.common.stopped,
                             fontSize = 11.sp,
                             color = TextMuted,
                         )
@@ -341,14 +345,14 @@ fun ServerScreen(onBack: () -> Unit = {}) {
             }
 
             // 提供的服务
-            SectionCard(title = "提供的服务") {
-                ServiceRow("Web 静态服务器", app.settings.network.staticFileEnabled)
+            SectionCard(title = s.server.serviceProvided) {
+                ServiceRow(s.peer.staticFileServer, app.settings.network.staticFileEnabled)
                 Divider()
                 ServiceRow("HTTP Proxy", false)
                 Divider()
                 ServiceRow("SOCKS Proxy", false)
                 Divider()
-                ServiceRow("FRP 服务", false)
+                ServiceRow(s.peer.frpService, false)
             }
         }
         Spacer(modifier = Modifier.height(12.dp))
@@ -357,12 +361,13 @@ fun ServerScreen(onBack: () -> Unit = {}) {
 
 @Composable
 private fun ServiceRow(name: String, enabled: Boolean) {
+    val s = LocalAppStrings.current
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         Text(name, fontSize = 13.sp, color = TextPrimary, modifier = Modifier.weight(1f))
         StatusText(
             active = enabled,
-            activeLabel = "运行中",
-            inactiveLabel = "未启用",
+            activeLabel = s.common.running,
+            inactiveLabel = s.common.disabled,
         )
     }
 }
@@ -374,13 +379,14 @@ private fun ServiceRow(name: String, enabled: Boolean) {
 /** 「我的 → 静态服务器配置」：启用开关 + 根目录选择。 */
 @Composable
 fun StaticFileScreen(onBack: () -> Unit = {}) {
+    val s = LocalAppStrings.current
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(io.github.freewebmovement.zz.ui.theme.WxBg)
             .verticalScroll(rememberScrollState()),
     ) {
-        SubPageHeader("静态服务器配置", onBack)
+        SubPageHeader(s.peer.staticConfig, onBack)
         StaticFileCard()
         Spacer(modifier = Modifier.height(12.dp))
     }
@@ -390,6 +396,7 @@ fun StaticFileScreen(onBack: () -> Unit = {}) {
 @Composable
 private fun StaticFileCard() {
     val app = MainApplication.getApp()
+    val s = LocalAppStrings.current
     val ctx = LocalContext.current
     var enabled by remember { mutableStateOf(app.settings.network.staticFileEnabled) }
     var rootDir by remember {
@@ -411,18 +418,18 @@ private fun StaticFileCard() {
         if (path != null) {
             rootDir = path
             app.settings.network.staticFileRoot = path
-            showTip = "已选择: $path"
+            showTip = s.peer.selectedTemplate.format(path)
         } else {
-            showTip = "该存储暂不支持，请选择内部存储目录"
+            showTip = s.server.internalStorageOnly
         }
     }
 
-    SectionCard(title = "静态文件服务器") {
+    SectionCard(title = s.peer.webStaticServer) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("启用", fontSize = 14.sp, color = TextPrimary)
+                Text(s.common.enable, fontSize = 14.sp, color = TextPrimary)
                 Text(
-                    text = "与节点共用端口（单端口统一服务）",
+                    text = s.peer.sharePort,
                     fontSize = 11.sp,
                     color = TextMuted,
                 )
@@ -441,7 +448,7 @@ private fun StaticFileCard() {
         }
         Divider()
         Row(verticalAlignment = Alignment.Top) {
-            Text("目录 ", fontSize = 11.sp, color = TextSecondary, modifier = Modifier.padding(top = 2.dp))
+            Text(s.server.dirPrefixed, fontSize = 11.sp, color = TextSecondary, modifier = Modifier.padding(top = 2.dp))
             SelectionContainer {
                 MonoText(
                     text = rootDir.ifEmpty { defaultWwwDir(ctx) },
@@ -454,19 +461,19 @@ private fun StaticFileCard() {
         }
         Row(modifier = Modifier.padding(top = 6.dp)) {
             Text(
-                text = "选择目录",
+                text = s.server.chooseDir,
                 fontSize = 13.sp,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.clickable { picker.launch(null) }.padding(end = 18.dp),
             )
             Text(
-                text = "恢复默认目录",
+                text = s.peer.restoreDefaultDir,
                 fontSize = 13.sp,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.clickable {
                     rootDir = defaultWwwDir(ctx)
                     app.settings.network.staticFileRoot = rootDir
-                    showTip = "已恢复默认目录"
+                    showTip = s.server.defaultDirRecovered
                 },
             )
         }
@@ -502,6 +509,7 @@ private fun treeUriToPath(uri: android.net.Uri): String? {
 @Composable
 fun WeightsScreen(onBack: () -> Unit = {}) {
     val app = MainApplication.getApp()
+    val s = LocalAppStrings.current
     val ctx = LocalContext.current
 
     // 设备真实硬件数据
@@ -532,8 +540,8 @@ fun WeightsScreen(onBack: () -> Unit = {}) {
             cpuCores = Runtime.getRuntime().availableProcessors()
             cpuFreq = runCatching {
                 java.io.File("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq")
-                    .readText().trim().toLongOrNull()?.let { "${it / 1000} MHz" } ?: "未知"
-            }.getOrDefault("未知")
+                    .readText().trim().toLongOrNull()?.let { "${it / 1000} MHz" } ?: s.common.unknown
+            }.getOrDefault(s.common.unknown)
             // 内存
             val mi = android.os.Debug.MemoryInfo()
             android.os.Debug.getMemoryInfo(mi)
@@ -555,38 +563,38 @@ fun WeightsScreen(onBack: () -> Unit = {}) {
             .background(io.github.freewebmovement.zz.ui.theme.WxBg)
             .verticalScroll(rememberScrollState()),
     ) {
-        SubPageHeader("资源与权重配置", onBack)
+        SubPageHeader(s.mine.weightsRow, onBack)
 
         // 节点权重总览
         val wr = ipData?.optJSONObject("resources")
-        SectionCard(title = "节点权重") {
+        SectionCard(title = s.server.nodeWeight) {
             if (wr == null) {
-                EmptyHint("暂无数据")
+                EmptyHint(s.server.noData)
             } else {
                 val totalWeight = wr.optString("composite_weight", "0")
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                    Text("总权重", fontSize = 14.sp, color = TextPrimary, modifier = Modifier.weight(1f))
+                    Text(s.peer.totalWeight, fontSize = 14.sp, color = TextPrimary, modifier = Modifier.weight(1f))
                     Text(totalWeight, fontSize = 18.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                 }
                 Divider()
-                WeightDetailRow("公网 IPv4", wr.optString("public_ip_count", "0"), wr.optString("public_ip_weight", "0"))
-                WeightDetailRow("私网 IP", wr.optString("private_ip_count", "0"), wr.optString("private_ip_weight", "0"))
-                WeightDetailRow("公网 IPv6", wr.optString("public_ipv6_count", "0"), wr.optString("public_ipv6_weight", "0"))
-                WeightDetailRow("存储", "${wr.optDouble("storage_tb", 0.0)} GB", wr.optString("storage_weight", "0"))
-                WeightDetailRow("带宽", "${wr.optLong("bandwidth_bytes", 0) / (1024 * 1024)} MB", wr.optString("bandwidth_weight", "0"))
+                WeightDetailRow(s.peer.publicIpCount, wr.optString("public_ip_count", "0"), wr.optString("public_ip_weight", "0"))
+                WeightDetailRow(s.peer.privateIpCount, wr.optString("private_ip_count", "0"), wr.optString("private_ip_weight", "0"))
+                WeightDetailRow(s.peer.publicIpv6, wr.optString("public_ipv6_count", "0"), wr.optString("public_ipv6_weight", "0"))
+                WeightDetailRow(s.peer.storage, "${wr.optDouble("storage_tb", 0.0)} GB", wr.optString("storage_weight", "0"))
+                WeightDetailRow(s.peer.bandwidth, "${wr.optLong("bandwidth_bytes", 0) / (1024 * 1024)} MB", wr.optString("bandwidth_weight", "0"))
                 val cpuTicks = wr.optLong("cpu_time_ticks", 0)
                 val cpuMin = cpuTicks / 6000
-                WeightDetailRow("CPU 时间", "$cpuMin 分钟", wr.optString("cpu_weight", "0"))
+                WeightDetailRow(s.peer.cpuTime, s.peer.cpuMinTemplate.format(cpuMin), wr.optString("cpu_weight", "0"))
                 val memKb = wr.optLong("memory_kb", 0)
-                WeightDetailRow("内存", "${memKb / 1024} MB", wr.optString("memory_weight", "0"))
-                WeightDetailRow("API", "${wr.optLong("api_requests", 0)} 次/天", wr.optString("api_weight", "0"))
+                WeightDetailRow(s.peer.memory, "${memKb / 1024} MB", wr.optString("memory_weight", "0"))
+                WeightDetailRow(s.peer.apiLabel, s.peer.apiPerDayTemplate.format(wr.optLong("api_requests", 0)), wr.optString("api_weight", "0"))
                 Divider()
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                    Text("见证资格", fontSize = 12.sp, color = TextSecondary, modifier = Modifier.weight(1f))
+                    Text(s.peer.witnessEligibility, fontSize = 12.sp, color = TextSecondary, modifier = Modifier.weight(1f))
                     StatusText(
                         active = wr.optBoolean("witness_participation", false),
-                        activeLabel = "有资格",
-                        inactiveLabel = "无公网出口",
+                        activeLabel = s.peer.eligible,
+                        inactiveLabel = s.peer.noPublicEgress,
                     )
                 }
             }
@@ -595,14 +603,14 @@ fun WeightsScreen(onBack: () -> Unit = {}) {
         Spacer(modifier = Modifier.height(8.dp))
 
         // 磁盘
-        SectionCard(title = "磁盘") {
+        SectionCard(title = s.peer.disk) {
             InfoGrid(listOf(
-                "总容量" to "$totalDisk MB",
-                "可用" to "$availDisk MB",
+                s.peer.totalCapacity to "$totalDisk MB",
+                s.peer.available to "$availDisk MB",
             ))
             Divider()
             EditableResourceRow(
-                label = "分配容量",
+                label = s.peer.waitAlloc,
                 value = diskAlloc.toLong(),
                 unit = "MB",
                 maxValue = totalDisk,
@@ -618,14 +626,14 @@ fun WeightsScreen(onBack: () -> Unit = {}) {
         // CPU
         SectionCard(title = "CPU") {
             InfoGrid(listOf(
-                "核心数" to "$cpuCores 核心",
-                "频率" to cpuFreq,
+                s.peer.coresCount to s.peer.coresTemplate.format(cpuCores),
+                s.peer.frequency to cpuFreq,
             ))
             Divider()
             EditableResourceRow(
-                label = "分配核心",
+                label = s.peer.allocCores,
                 value = cpuAlloc.toLong(),
-                unit = "核",
+                unit = s.peer.cores,
                 maxValue = cpuCores.toLong(),
                 onValueChanged = {
                     cpuAlloc = it.toInt()
@@ -637,14 +645,14 @@ fun WeightsScreen(onBack: () -> Unit = {}) {
         Spacer(modifier = Modifier.height(8.dp))
 
         // 内存
-        SectionCard(title = "内存") {
+        SectionCard(title = s.peer.memory) {
             InfoGrid(listOf(
-                "总容量" to "$totalMem MB",
-                "可用" to "$availMem MB",
+                s.peer.totalCapacity to "$totalMem MB",
+                s.peer.available to "$availMem MB",
             ))
             Divider()
             EditableResourceRow(
-                label = "分配容量",
+                label = s.peer.waitAlloc,
                 value = memAlloc.toLong(),
                 unit = "MB",
                 maxValue = totalMem,
@@ -663,15 +671,15 @@ fun WeightsScreen(onBack: () -> Unit = {}) {
                 runCatching {
                     val pm = ctx.getSystemService(android.content.Context.POWER_SERVICE) as android.os.PowerManager
                     val gl = pm.isPowerSaveMode // placeholder — real GPU name needs GL surface
-                    "图形处理器"
-                }.getOrDefault("图形处理器")
+                    s.peer.gpu
+                }.getOrDefault(s.peer.gpu)
             }
-            InfoGrid(listOf("能力" to "图形计算 / 渲染"))
+            InfoGrid(listOf(s.peer.capability to s.peer.gpuNote))
             Divider()
             EditableResourceRow(
-                label = "分配",
+                label = s.peer.allocation,
                 value = gpuAlloc.toLong(),
-                unit = "核",
+                unit = s.peer.cores,
                 maxValue = 16,
                 onValueChanged = {
                     gpuAlloc = it.toInt()
@@ -683,7 +691,7 @@ fun WeightsScreen(onBack: () -> Unit = {}) {
         Spacer(modifier = Modifier.height(8.dp))
 
         // 蓝牙
-        SectionCard(title = "蓝牙") {
+        SectionCard(title = s.peer.bluetooth) {
             val bleSupported = remember {
                 runCatching { ctx.packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_BLUETOOTH_LE) }.getOrDefault(false)
             }
@@ -694,14 +702,14 @@ fun WeightsScreen(onBack: () -> Unit = {}) {
                 }.getOrDefault(false)
             }
             InfoGrid(listOf(
-                "BLE 支持" to if (bleSupported) "是" else "否",
-                "当前状态" to if (bleEnabled) "已开启" else "已关闭",
+                s.peer.bleSupport to if (bleSupported) s.common.yes else s.common.no,
+                s.peer.status to if (bleEnabled) s.common.switchedOn else s.common.stopped,
             ))
             Divider()
             EditableResourceRow(
-                label = "分配通道",
+                label = s.peer.allocChannels,
                 value = bleAlloc.toLong(),
-                unit = "个",
+                unit = s.peer.countUnit,
                 maxValue = 8,
                 onValueChanged = {
                     bleAlloc = it.toInt()
@@ -718,18 +726,18 @@ fun WeightsScreen(onBack: () -> Unit = {}) {
                 runCatching {
                     val wm = ctx.applicationContext.getSystemService(android.content.Context.WIFI_SERVICE) as? android.net.wifi.WifiManager
                     val info = wm?.connectionInfo
-                    val ssid = info?.ssid?.removePrefix("\"")?.removeSuffix("\"") ?: "未连接"
+                    val ssid = info?.ssid?.removePrefix("\"")?.removeSuffix("\"") ?: s.peer.notConnected
                     val speed = info?.linkSpeed ?: 0
                     Pair(ssid, speed)
-                }.getOrDefault(Pair("未知", 0))
+                }.getOrDefault(Pair(s.common.unknown, 0))
             }
             InfoGrid(listOf(
-                "网络" to wifiInfo.first,
-                "速率" to if (wifiInfo.second > 0) "${wifiInfo.second} Mbps" else "未知",
+                s.peer.network to wifiInfo.first,
+                s.peer.rate to if (wifiInfo.second > 0) "${wifiInfo.second} Mbps" else s.common.unknown,
             ))
             Divider()
             EditableResourceRow(
-                label = "分配带宽",
+                label = s.peer.allocBandwidth,
                 value = wifiAlloc.toLong(),
                 unit = "Mbps",
                 maxValue = 1000,
@@ -744,39 +752,39 @@ fun WeightsScreen(onBack: () -> Unit = {}) {
 
         // IP 资源
         val r = ipData?.optJSONObject("resources")
-        SectionCard(title = "IP 资源") {
+        SectionCard(title = s.peer.ipResources) {
             if (r == null) {
-                EmptyHint("暂无数据")
+                EmptyHint(s.server.noData)
             } else {
                 val publicCount = r.optLong("public_ip_count")
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                    Text("公网", fontSize = 13.sp, color = TextPrimary, modifier = Modifier.width(64.dp))
+                    Text(s.server.publicNet, fontSize = 13.sp, color = TextPrimary, modifier = Modifier.width(64.dp))
                     Text(
-                        text = if (publicCount > 0) "有（$publicCount 个）" else "无",
+                        text = if (publicCount > 0) s.peer.hasPublic.format(publicCount) else s.common.none,
                         fontSize = 12.sp,
                         color = if (publicCount > 0) OnlineGreen else TextMuted,
                         modifier = Modifier.weight(1f),
                     )
-                    Text("权重 ${r.optString("public_ip_weight")}", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+                    Text(s.peer.weightValue.format(r.optString("public_ip_weight")), fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
                 }
                 Divider()
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                    Text("私网", fontSize = 13.sp, color = TextPrimary, modifier = Modifier.width(64.dp))
+                    Text(s.server.privateNet, fontSize = 13.sp, color = TextPrimary, modifier = Modifier.width(64.dp))
                     Text(
-                        text = if (r.optLong("private_ip_count") > 0) "有" else "无",
+                        text = if (r.optLong("private_ip_count") > 0) s.common.have else s.common.none,
                         fontSize = 12.sp,
                         color = if (r.optLong("private_ip_count") > 0) OnlineGreen else TextMuted,
                         modifier = Modifier.weight(1f),
                     )
-                    Text("权重 ${r.optString("private_ip_weight")}", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+                    Text(s.peer.weightValue.format(r.optString("private_ip_weight")), fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
                 }
                 Divider()
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("见证资格", fontSize = 12.sp, color = TextSecondary, modifier = Modifier.weight(1f))
+                    Text(s.peer.witnessEligibility, fontSize = 12.sp, color = TextSecondary, modifier = Modifier.weight(1f))
                     StatusText(
                         active = r.optBoolean("witness_participation", false),
-                        activeLabel = "有资格",
-                        inactiveLabel = "无公网出口",
+                        activeLabel = s.peer.eligible,
+                        inactiveLabel = s.peer.noPublicEgress,
                     )
                 }
             }
@@ -794,6 +802,7 @@ private fun EditableResourceRow(
     maxValue: Long,
     onValueChanged: (Long) -> Unit,
 ) {
+    val s = LocalAppStrings.current
     var editing by remember { mutableStateOf(false) }
     var textValue by remember { mutableStateOf(value.toString()) }
 
@@ -809,7 +818,7 @@ private fun EditableResourceRow(
             )
             Text(unit, fontSize = 12.sp, color = TextMuted, modifier = Modifier.padding(start = 4.dp))
             Text(
-                text = "保存",
+                text = s.common.save,
                 fontSize = 13.sp,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
@@ -832,7 +841,7 @@ private fun EditableResourceRow(
                         editing = true
                     },
             )
-            Text("编辑", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary,
+            Text(s.common.edit, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.clickable {
                     textValue = value.toString()
                     editing = true
@@ -843,12 +852,13 @@ private fun EditableResourceRow(
 
 @Composable
 private fun WeightDetailRow(label: String, value: String, weight: String) {
+    val s = LocalAppStrings.current
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier
         .fillMaxWidth()
         .padding(vertical = 2.dp)) {
         Text(label, fontSize = 13.sp, color = TextSecondary, modifier = Modifier.width(80.dp))
         Text(value, fontSize = 13.sp, color = TextPrimary, modifier = Modifier.weight(1f))
-        Text("权重 $weight", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+        Text(s.peer.weightValue.format(weight), fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
     }
 }
 
@@ -859,15 +869,16 @@ private fun WeightDetailRow(label: String, value: String, weight: String) {
 @Composable
 private fun ServerControlCard(running: Boolean, port: Int, address: String, privateIps: List<String> = emptyList()) {
     val app = MainApplication.getApp()
+    val s = LocalAppStrings.current
     val context = LocalContext.current
     var bump by remember { mutableIntStateOf(0) }
     var showPortEditor by remember { mutableStateOf(false) }
 
-    SectionCard(title = "服务器管理") {
+    SectionCard(title = s.server.serverMgmt) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            StatusText(active = running, activeLabel = "运行中", inactiveLabel = "未运行")
+            StatusText(active = running, activeLabel = s.common.running, inactiveLabel = s.mine.notRunning)
             Text(
-                text = if (running && port > 0) "  端口 $port" else "",
+                text = if (running && port > 0) "  " + s.peer.port + " $port" else "",
                 fontSize = 12.sp,
                 color = TextSecondary,
                 modifier = Modifier.weight(1f),
@@ -885,13 +896,13 @@ private fun ServerControlCard(running: Boolean, port: Int, address: String, priv
                 },
                 shape = RoundedCornerShape(10.dp),
             ) {
-                Text(if (running) "停止节点" else "启动节点")
+                Text(if (running) s.server.stopNode else s.server.startNode)
             }
         }
         if (address.isNotEmpty()) {
             Divider()
             Row(verticalAlignment = Alignment.Top) {
-                Text("地址 ", fontSize = 11.sp, color = TextSecondary, modifier = Modifier.padding(top = 2.dp))
+                Text(s.peer.addr, fontSize = 11.sp, color = TextSecondary, modifier = Modifier.padding(top = 2.dp))
                 SelectionContainer {
                     MonoText(
                         text = address,
@@ -904,14 +915,14 @@ private fun ServerControlCard(running: Boolean, port: Int, address: String, priv
                 val ctx = LocalContext.current
                 Icon(
                     painter = painterResource(id = io.github.freewebmovement.zz.R.drawable.ic_copy),
-                    contentDescription = "copy",
+                    contentDescription = s.common.copy,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .padding(start = 8.dp)
                         .size(18.dp)
                         .clickable {
                             clip.setText(androidx.compose.ui.text.AnnotatedString(address))
-                            android.widget.Toast.makeText(ctx, ctx.getString(io.github.freewebmovement.zz.R.string.copied), android.widget.Toast.LENGTH_SHORT).show()
+                            android.widget.Toast.makeText(ctx, s.common.copied, android.widget.Toast.LENGTH_SHORT).show()
                         },
                 )
             }
@@ -922,14 +933,14 @@ private fun ServerControlCard(running: Boolean, port: Int, address: String, priv
             modifier = Modifier.fillMaxWidth().clickable { showPortEditor = true },
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("服务端口", fontSize = 14.sp, color = TextPrimary)
+                Text(s.server.servicePort, fontSize = 14.sp, color = TextPrimary)
                 Text(
-                    text = "当前 ${if (port > 0) port else app.settings.network.port}，点击修改并重启",
+                    text = s.server.currentPortTemplate.format(if (port > 0) port else app.settings.network.port),
                     fontSize = 11.sp,
                     color = TextMuted,
                 )
             }
-            Text("修改 ›", color = MaterialTheme.colorScheme.primary, fontSize = 13.sp)
+            Text(s.server.modify + "  ›", color = MaterialTheme.colorScheme.primary, fontSize = 13.sp)
         }
         Divider()
         Row(
@@ -937,10 +948,10 @@ private fun ServerControlCard(running: Boolean, port: Int, address: String, priv
             modifier = Modifier.fillMaxWidth(),
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Web 服务", fontSize = 14.sp, color = TextPrimary)
+                Text(s.peer.webService, fontSize = 14.sp, color = TextPrimary)
                 val lanIp = privateIps.firstOrNull()?.split(":")?.firstOrNull() ?: ""
                 Text(
-                    text = if (running && port > 0 && lanIp.isNotEmpty()) "http://$lanIp:$port/ 局域网可访问" else if (running && port > 0) "http://<本机IP>:$port/" else "节点启动后提供 Web UI",
+                    text = if (running && port > 0 && lanIp.isNotEmpty()) s.peer.lanUrl.format(lanIp, port) else if (running && port > 0) s.peer.localUrl.format(port) else s.server.nodeProvidesWeb,
                     fontSize = 11.sp,
                     color = TextMuted,
                 )
@@ -948,7 +959,7 @@ private fun ServerControlCard(running: Boolean, port: Int, address: String, priv
             if (running && port > 0) {
                 Row {
                     Text(
-                        text = "浏览器",
+                        text = s.appContent.browser,
                         color = MaterialTheme.colorScheme.primary,
                         fontSize = 13.sp,
                         modifier = Modifier.clickable {
@@ -960,7 +971,7 @@ private fun ServerControlCard(running: Boolean, port: Int, address: String, priv
                         }.padding(6.dp),
                     )
                     Text(
-                        text = "分享",
+                        text = s.server.share,
                         color = MaterialTheme.colorScheme.primary,
                         fontSize = 13.sp,
                         modifier = Modifier.clickable {
@@ -970,7 +981,7 @@ private fun ServerControlCard(running: Boolean, port: Int, address: String, priv
                                 type = "text/plain"
                                 putExtra(Intent.EXTRA_TEXT, url)
                             }
-                            context.startActivity(Intent.createChooser(send, "分享 fwmc Web UI"))
+                            context.startActivity(Intent.createChooser(send, s.server.shareWebUi))
                         }.padding(6.dp),
                     )
                 }
@@ -999,6 +1010,7 @@ private fun ServerControlCard(running: Boolean, port: Int, address: String, priv
 
 @Composable
 private fun PortEditDialog(current: String, onDismiss: () -> Unit, onApply: (Int) -> Unit) {
+    val s = LocalAppStrings.current
     var portText by remember { mutableStateOf(current) }
     // idle=无效输入 checking=检测中 free=可用 busy=被占用 self=未变更
     var state by remember { mutableStateOf("idle") }
@@ -1021,21 +1033,21 @@ private fun PortEditDialog(current: String, onDismiss: () -> Unit, onApply: (Int
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("修改服务端口") },
+        title = { Text(s.server.modifyPort) },
         text = {
             Column {
                 OutlinedTextField(
                     value = portText,
                     onValueChange = { portText = it.filter { c -> c.isDigit() }.take(5) },
-                    label = { Text("端口 (1025-65535)") },
+                    label = { Text(s.server.portRange) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                 )
                 val hint = when (state) {
-                    "checking" -> "正在检测端口占用…"
-                    "free" -> "✓ 端口可用"
-                    "busy" -> "✗ 端口已被占用，请更换"
-                    "self" -> "当前运行中的端口（未变更）"
+                    "checking" -> s.server.checkingPort
+                    "free" -> s.server.portAvailable
+                    "busy" -> s.server.portOccupied
+                    "self" -> s.server.unchangedPort
                     else -> ""
                 }
                 if (hint.isNotEmpty()) {
@@ -1051,7 +1063,7 @@ private fun PortEditDialog(current: String, onDismiss: () -> Unit, onApply: (Int
                     )
                 }
                 Text(
-                    text = "恢复默认端口 ${io.github.freewebmovement.peer.system.NetworkSetting.DEFAULT_SERVER_PORT}",
+                    text = s.server.resetDefaultPort.format(io.github.freewebmovement.peer.system.NetworkSetting.DEFAULT_SERVER_PORT),
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
@@ -1071,10 +1083,10 @@ private fun PortEditDialog(current: String, onDismiss: () -> Unit, onApply: (Int
                 },
                 enabled = enabled,
             ) {
-                Text("保存并重启", color = if (enabled) MaterialTheme.colorScheme.primary else TextSecondary)
+                Text(s.server.saveAndRestart, color = if (enabled) MaterialTheme.colorScheme.primary else TextSecondary)
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(s.common.cancel) } },
     )
 }
 
@@ -1084,6 +1096,7 @@ private fun PortEditDialog(current: String, onDismiss: () -> Unit, onApply: (Int
 
 @Composable
 private fun GenesisCard() {
+    val s = LocalAppStrings.current
     var genesis by remember { mutableStateOf<JSONObject?>(null) }
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     LaunchedEffect(Unit) {
@@ -1095,21 +1108,21 @@ private fun GenesisCard() {
             }
         }
     }
-    SectionCard(title = "创世纪") {
+    SectionCard(title = s.peer.genesisCard) {
         val g = genesis
         if (g == null) {
-            EmptyHint("加载中…")
+            EmptyHint(s.common.loading)
         } else {
             InfoGrid(
                 listOf(
-                    "币种" to g.optString("coin_symbol", ""),
-                    "总发行量" to formatAmount(g.optLong("total_supply", 0)),
-                    "创世分配" to "${g.optString("genesis_dev_ratio", "")}（开发者）",
-                    "释放周期" to "${g.optLong("release_years", 0)} 年",
+                    s.peer.coinSymbol to g.optString("coin_symbol", ""),
+                    s.peer.totalSupply to formatAmount(g.optLong("total_supply", 0)),
+                    s.peer.genesisAllocation to s.peer.genesisDevRatio.format(g.optString("genesis_dev_ratio", "")),
+                    s.peer.releaseCycle to s.peer.releaseYears.format(g.optLong("release_years", 0)),
                 )
             )
             Divider()
-            Text("初始分配", fontSize = 12.sp, color = TextSecondary)
+            Text(s.peer.initialAllocation, fontSize = 12.sp, color = TextSecondary)
             val allocs = g.optJSONArray("allocations")
             if (allocs != null) {
                 (0 until allocs.length()).forEach { i ->
@@ -1134,11 +1147,12 @@ private fun EpochCard(
     onOpenTickList: () -> Unit,
     onOpenRingMembers: (which: String) -> Unit,
 ) {
-    SectionCard(title = "纪元 ${w.epoch}") {
+    val s = LocalAppStrings.current
+    SectionCard(title = s.peer.epochInfo.format(w.epoch)) {
         // 纪元进度
         val epochPct = if (w.ticksPerEpoch > 0) w.epochTick.toFloat() / w.ticksPerEpoch else 0f
         Column(modifier = Modifier.padding(vertical = 4.dp)) {
-            Text("当前 epoch (${w.epochTick}/${w.ticksPerEpoch})", fontSize = 12.sp, color = TextSecondary)
+            Text(s.peer.currentEpoch.format(w.epochTick, w.ticksPerEpoch), fontSize = 12.sp, color = TextSecondary)
             Spacer(modifier = Modifier.height(4.dp))
             LinearProgressIndicator(
                 progress = { epochPct },
@@ -1154,7 +1168,7 @@ private fun EpochCard(
         val tickMinutes = secondsIntoTick / 60
         val tickPct = if (tickInterval > 0) secondsIntoTick.toFloat() / tickInterval else 0f
         Column(modifier = Modifier.padding(vertical = 4.dp)) {
-            Text("当前 tick 状态 (${tickMinutes}/15)", fontSize = 12.sp, color = TextSecondary)
+            Text(s.peer.tickStatus.format(tickMinutes, 15), fontSize = 12.sp, color = TextSecondary)
             Spacer(modifier = Modifier.height(4.dp))
             LinearProgressIndicator(
                 progress = { tickPct },
@@ -1167,7 +1181,7 @@ private fun EpochCard(
         Divider()
 
         // 见证环（当前 tick 的节点组合）——成员多，入口进入子页查看完整列表
-        Text("见证环", fontSize = 12.sp, color = TextSecondary)
+        Text(s.peer.witnessRing, fontSize = 12.sp, color = TextSecondary)
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -1176,7 +1190,7 @@ private fun EpochCard(
                 .padding(vertical = 4.dp),
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("活跃环", fontSize = 11.sp, color = TextSecondary)
+                Text(s.peer.activeRing, fontSize = 11.sp, color = TextSecondary)
                 SelectionContainer {
                     MonoText(
                         text = w.ringActiveHash.ifEmpty { "-" },
@@ -1185,9 +1199,9 @@ private fun EpochCard(
                         maxLines = 1,
                     )
                 }
-                Text("成员 ${w.ringActiveMembers.size} 个", fontSize = 10.sp, color = TextMuted)
+                Text(s.peer.membersCount.format(w.ringActiveMembers.size), fontSize = 10.sp, color = TextMuted)
             }
-            Text("查看  ›", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary)
+            Text(s.peer.view + "  ›", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary)
         }
         if (w.ringLockedHash.isNotEmpty()) {
             Row(
@@ -1198,13 +1212,13 @@ private fun EpochCard(
                     .padding(vertical = 4.dp),
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("锁定环（纪元 ${w.ringLockedEpoch}）", fontSize = 11.sp, color = TextSecondary)
+                    Text(s.peer.lockedRingEpoch.format(w.ringLockedEpoch), fontSize = 11.sp, color = TextSecondary)
                     SelectionContainer {
                         MonoText(text = w.ringLockedHash, fontSize = 10, color = TextMuted, maxLines = 1)
                     }
-                    Text("成员 ${w.ringLockedMembers.size} 个", fontSize = 10.sp, color = TextMuted)
+                    Text(s.peer.membersCount.format(w.ringLockedMembers.size), fontSize = 10.sp, color = TextMuted)
                 }
-                Text("查看  ›", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary)
+                Text(s.peer.view + "  ›", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary)
             }
         }
 
@@ -1217,8 +1231,8 @@ private fun EpochCard(
                     .clickable(onClick = { onOpenRingMembers("chain") })
                     .padding(vertical = 4.dp),
             ) {
-                Text("见证链 (${w.chain.size})", fontSize = 12.sp, color = TextSecondary, modifier = Modifier.weight(1f))
-                Text("查看  ›", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary)
+                Text(s.peer.witnessChainTemplate.format(w.chain.size), fontSize = 12.sp, color = TextSecondary, modifier = Modifier.weight(1f))
+                Text(s.peer.view + "  ›", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary)
             }
         }
 
@@ -1233,19 +1247,19 @@ private fun EpochCard(
                 .padding(vertical = 4.dp),
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Tick 列表", fontSize = 12.sp, color = TextSecondary)
+                Text(s.peer.tickList, fontSize = 12.sp, color = TextSecondary)
                 Text(
-                    text = "当前 ${w.epochTick}/${w.ticksPerEpoch} · 已记录 ${w.tickRings.size} 个环",
+                    text = s.peer.ringEpochSummary.format(w.epochTick, w.ticksPerEpoch, w.tickRings.size),
                     fontSize = 10.sp,
                     color = TextMuted,
                 )
             }
-            Text("查看全部  ›", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary)
+            Text(s.peer.viewAll + "  ›", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary)
         }
         if (w.tickRings.isNotEmpty()) {
             val latest = w.tickRings.last()
             Text(
-                text = "最新 #${latest.tickIndex} · ${latest.members.size} 个成员",
+                text = s.peer.latestRing.format(latest.tickIndex, latest.members.size),
                 fontSize = 10.sp,
                 color = TextMuted,
                 modifier = Modifier.padding(start = 12.dp),
@@ -1257,6 +1271,7 @@ private fun EpochCard(
 /** Tick 列表子页：显示当前纪元所有 tick 入口，点击进入该 tick 的成员列表。 */
 @Composable
 private fun TickRingListScreen(witness: WitnessData, onBack: () -> Unit) {
+    val s = LocalAppStrings.current
     var selectedTick by remember { mutableStateOf<TickRing?>(null) }
 
     if (selectedTick != null) {
@@ -1270,12 +1285,12 @@ private fun TickRingListScreen(witness: WitnessData, onBack: () -> Unit) {
             .background(io.github.freewebmovement.zz.ui.theme.WxBg)
             .verticalScroll(rememberScrollState()),
     ) {
-        SubPageHeader(title = "Tick 列表", onBack = onBack)
+        SubPageHeader(title = s.peer.tickList, onBack = onBack)
 
         if (witness.tickRings.isEmpty()) {
-            SectionCard { Text("暂无 Tick 记录", fontSize = 13.sp, color = TextSecondary) }
+            SectionCard { Text(s.peer.noTickRecords, fontSize = 13.sp, color = TextSecondary) }
         } else {
-            SectionCard(title = "Tick 记录 (${witness.tickRings.size})") {
+            SectionCard(title = s.peer.tickRecords.format(witness.tickRings.size)) {
                 witness.tickRings.forEach { tr ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -1285,10 +1300,10 @@ private fun TickRingListScreen(witness: WitnessData, onBack: () -> Unit) {
                             .padding(vertical = 6.dp),
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Tick #${tr.tickIndex}", fontSize = 13.sp, color = TextPrimary)
-                            Text("成员 ${tr.members.size} 个", fontSize = 10.sp, color = TextMuted)
+                            Text(s.peer.tickHeader.format(tr.tickIndex), fontSize = 13.sp, color = TextPrimary)
+                            Text(s.peer.membersCount.format(tr.members.size), fontSize = 10.sp, color = TextMuted)
                         }
-                        Text("查看  ›", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary)
+                        Text(s.peer.view + "  ›", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary)
                     }
                 }
             }
@@ -1300,17 +1315,18 @@ private fun TickRingListScreen(witness: WitnessData, onBack: () -> Unit) {
 /** 单个 tick 的成员列表子页（复用统一成员列表模板）。 */
 @Composable
 private fun TickMemberScreen(tick: TickRing, onBack: () -> Unit) {
+    val s = LocalAppStrings.current
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(io.github.freewebmovement.zz.ui.theme.WxBg)
             .verticalScroll(rememberScrollState()),
     ) {
-        SubPageHeader(title = "Tick #${tick.tickIndex}", onBack = onBack)
+        SubPageHeader(title = s.peer.tickHeader.format(tick.tickIndex), onBack = onBack)
         MemberListCard(
-            title = "锁定环成员 · ${tick.members.size} 个",
+            title = s.peer.lockedRingMembers.format(tick.members.size),
             items = tick.members.map { m -> MemberItem(label = "", address = m) },
-            emptyHint = "（空）",
+            emptyHint = s.common.empty,
         )
         Spacer(modifier = Modifier.height(24.dp))
     }
@@ -1319,6 +1335,7 @@ private fun TickMemberScreen(tick: TickRing, onBack: () -> Unit) {
 /** 可复制的地址行：点击复制完整地址。 */
 @Composable
 private fun CopyableAddress(address: String) {
+    val s = LocalAppStrings.current
     val ctx = LocalContext.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -1327,7 +1344,7 @@ private fun CopyableAddress(address: String) {
             .clickable {
                 val cm = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                 cm.setPrimaryClip(android.content.ClipData.newPlainText("address", address))
-                android.widget.Toast.makeText(ctx, "已复制", android.widget.Toast.LENGTH_SHORT).show()
+                android.widget.Toast.makeText(ctx, s.common.copied, android.widget.Toast.LENGTH_SHORT).show()
             }
             .padding(vertical = 4.dp),
     ) {
@@ -1335,13 +1352,14 @@ private fun CopyableAddress(address: String) {
             MonoText(text = address, fontSize = 11, color = TextPrimary, maxLines = 1)
         }
         Spacer(modifier = Modifier.weight(1f))
-        Text("复制", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary)
+        Text(s.common.copy, fontSize = 11.sp, color = MaterialTheme.colorScheme.primary)
     }
 }
 
 /** 环成员子页：活跃环 / 锁定环 / 见证链 共用统一的成员列表模板。 */
 @Composable
 private fun RingDetailScreen(which: String, witness: WitnessData, onBack: () -> Unit) {
+    val s = LocalAppStrings.current
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -1349,10 +1367,10 @@ private fun RingDetailScreen(which: String, witness: WitnessData, onBack: () -> 
             .verticalScroll(rememberScrollState()),
     ) {
         val title = when (which) {
-            "active" -> "活跃环成员"
-            "locked" -> "锁定环成员"
-            "chain" -> "见证链"
-            else -> "成员"
+            "active" -> s.peer.activeRingMembers
+            "locked" -> s.peer.lockedRing
+            "chain" -> s.peer.witnessChain
+            else -> s.peer.memberCount
         }
         SubPageHeader(title = title, onBack = onBack)
 
@@ -1367,15 +1385,15 @@ private fun RingDetailScreen(which: String, witness: WitnessData, onBack: () -> 
                 MemberItem(
                     label = c.address,
                     address = c.address,
-                    subtitle = "在线 ${c.onlineMinutes} 分钟 · Tick ${c.tickCount} · 权重 ${c.weight}",
+                    subtitle = s.peer.onlineMinutes.format(c.onlineMinutes, c.tickCount, c.weight),
                 )
             }
             else -> emptyList()
         }
         MemberListCard(
-            title = "$title · ${items.size} 个",
+            title = s.peer.ringDetailTitle.format(title, items.size),
             items = items,
-            emptyHint = "（空）",
+            emptyHint = s.common.empty,
         )
         Spacer(modifier = Modifier.height(24.dp))
     }
@@ -1393,7 +1411,7 @@ private data class MemberItem(
 private fun MemberListCard(
     title: String,
     items: List<MemberItem>,
-    emptyHint: String = "（空）",
+    emptyHint: String,
 ) {
     SectionCard(title = title) {
         if (items.isEmpty()) {
@@ -1421,15 +1439,16 @@ private fun MemberListCard(
 
 @Composable
 private fun SeedsCard(seeds: List<SeedRow>, onChanged: () -> Unit) {
+    val s = LocalAppStrings.current
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     var showAdd by remember { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf<SeedRow?>(null) }
 
     SectionCard(
-        title = "种子服务器 (${seeds.size})",
+        title = s.peer.seedServerCount.format(seeds.size),
         trailing = {
             Text(
-                text = "+ 添加",
+                text = "+ " + s.common.add,
                 color = MaterialTheme.colorScheme.primary,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
@@ -1438,33 +1457,38 @@ private fun SeedsCard(seeds: List<SeedRow>, onChanged: () -> Unit) {
         },
     ) {
         if (seeds.isEmpty()) {
-            EmptyHint("暂无种子，点击右上角添加")
+            EmptyHint(s.peer.seedsEmpty)
         } else {
-            seeds.forEach { s ->
+            seeds.forEach { seed ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                 ) {
-                    StatusText(active = s.active)
+                    StatusText(active = seed.active)
                     Column(modifier = Modifier.weight(1f).padding(start = 8.dp)) {
                         MonoText(
-                            text = "${s.address}:${s.port}",
+                            text = "${seed.address}:${seed.port}",
                             fontSize = 12,
                             color = TextPrimary,
                             maxLines = 1,
                         )
                         Text(
-                            text = protocolLabel(s.protocol) + if (s.lastSeen.isNotEmpty()) " · 最后活跃 ${s.lastSeen}" else "",
+                            text = when (seed.protocol) {
+                                "inner" -> s.server.privateNet
+                                "external" -> s.server.publicNet
+                                "ipv6" -> "IPv6"
+                                else -> seed.protocol
+                            } + if (seed.lastSeen.isNotEmpty()) s.peer.lastActive.format(seed.lastSeen) else "",
                             fontSize = 10.sp,
                             color = TextMuted,
                         )
                     }
                     Text(
-                        text = "删除",
+                        text = s.common.delete,
                         fontSize = 12.sp,
                         color = TextSecondary,
                         modifier = Modifier
-                            .clickable { deleteTarget = s }
+                            .clickable { deleteTarget = seed }
                             .padding(start = 8.dp, end = 2.dp, top = 6.dp, bottom = 6.dp),
                     )
                 }
@@ -1485,39 +1509,40 @@ private fun SeedsCard(seeds: List<SeedRow>, onChanged: () -> Unit) {
     deleteTarget?.let { target ->
         AlertDialog(
             onDismissRequest = { deleteTarget = null },
-            title = { Text("删除种子") },
-            text = { Text("确定删除 ${target.address}:${target.port} ？") },
+            title = { Text(s.peer.deleteSeed) },
+            text = { Text(s.peer.deleteSeedConfirm.format(target.address, target.port)) },
             confirmButton = {
                 TextButton(onClick = {
                     val t = target
                     deleteTarget = null
                     scope.launch { FwmcApi.deleteSeed(t.address, t.port); onChanged() }
-                }) { Text("删除", color = MaterialTheme.colorScheme.error) }
+                }) { Text(s.common.delete, color = MaterialTheme.colorScheme.error) }
             },
-            dismissButton = { TextButton(onClick = { deleteTarget = null }) { Text("取消") } },
+            dismissButton = { TextButton(onClick = { deleteTarget = null }) { Text(s.common.cancel) } },
         )
     }
 }
 
 @Composable
 private fun SeedAddDialog(onDismiss: () -> Unit, onConfirm: (String, Int) -> Unit) {
+    val s = LocalAppStrings.current
     var ip by remember { mutableStateOf("") }
     var port by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("添加种子服务器") },
+        title = { Text(s.peer.addSeedServer) },
         text = {
             Column {
                 OutlinedTextField(
                     value = ip,
                     onValueChange = { ip = it.trim() },
-                    label = { Text("IP 地址") },
+                    label = { Text(s.common.ipAddress) },
                     singleLine = true,
                 )
                 OutlinedTextField(
                     value = port,
                     onValueChange = { port = it.filter { c -> c.isDigit() }.take(5) },
-                    label = { Text("端口") },
+                    label = { Text(s.peer.port) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                 )
@@ -1527,17 +1552,18 @@ private fun SeedAddDialog(onDismiss: () -> Unit, onConfirm: (String, Int) -> Uni
             TextButton(onClick = {
                 val p = port.toIntOrNull() ?: return@TextButton
                 if (ip.isNotBlank() && p > 0) onConfirm(ip, p)
-            }) { Text("确定", color = MaterialTheme.colorScheme.primary) }
+            }) { Text(s.common.ok, color = MaterialTheme.colorScheme.primary) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(s.common.cancel) } },
     )
 }
 
 @Composable
 private fun StatusDotBig(active: Boolean) {
+    val common = LocalAppStrings.current.common
     Surface(shape = RoundedCornerShape(4.dp), color = if (active) OnlineGreen.copy(alpha = 0.15f) else Color(0xFFE0E0E0)) {
         Text(
-            text = if (active) "在线" else "离线",
+            text = if (active) common.online else common.offline,
             fontSize = 9.sp,
             color = if (active) OnlineGreen else TextMuted,
             modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
@@ -1547,6 +1573,7 @@ private fun StatusDotBig(active: Boolean) {
 
 @Composable
 private fun WeightsCard() {
+    val s = LocalAppStrings.current
     var resourcesJson by remember { mutableStateOf<JSONObject?>(null) }
     var innerIps by remember { mutableStateOf<List<String>>(emptyList()) }
     var externalIps by remember { mutableStateOf<List<String>>(emptyList()) }
@@ -1563,42 +1590,42 @@ private fun WeightsCard() {
     }
 
     val r = resourcesJson
-    SectionCard(title = "资源权重") {
+    SectionCard(title = s.peer.resourceWeight) {
         if (r == null) {
-            EmptyHint("暂无权重数据")
+            EmptyHint(s.peer.noWeightData)
         } else {
             InfoGrid(
                 listOf(
-                    "公网 IPv4" to r.optString("public_ip_count"),
-                    "内网 IPv4" to r.optString("private_ip_count"),
-                    "公网 IPv6" to r.optString("public_ipv6_count"),
+                    s.peer.publicIpCount to r.optString("public_ip_count"),
+                    s.peer.privateIpCount to r.optString("private_ip_count"),
+                    s.peer.publicIpv6 to r.optString("public_ipv6_count"),
                 )
             )
             Divider()
             InfoGrid(
                 listOf(
-                    "公网权重" to r.optString("public_ip_weight"),
-                    "内网权重" to r.optString("private_ip_weight"),
-                    "IPv6 权重" to r.optString("public_ipv6_weight"),
+                    s.peer.publicWeight to r.optString("public_ip_weight"),
+                    s.peer.privateWeight to r.optString("private_ip_weight"),
+                    s.peer.ipv6Weight to r.optString("public_ipv6_weight"),
                 )
             )
             Divider()
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "见证资格",
+                    text = s.peer.witnessEligibility,
                     fontSize = 12.sp,
                     color = TextSecondary,
                     modifier = Modifier.weight(1f),
                 )
                 StatusText(
                     active = r.optBoolean("witness_participation", false),
-                    activeLabel = "有资格",
-                    inactiveLabel = "无公网出口",
+                    activeLabel = s.peer.eligible,
+                    inactiveLabel = s.peer.noPublicEgress,
                 )
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "综合权重",
+                    text = s.peer.compositeWeight,
                     fontSize = 12.sp,
                     color = TextSecondary,
                     modifier = Modifier.weight(1f),
@@ -1612,7 +1639,7 @@ private fun WeightsCard() {
             }
             if (innerIps.isNotEmpty() || externalIps.isNotEmpty()) {
                 Divider()
-                Text("本机服务地址", fontSize = 12.sp, color = TextSecondary)
+                Text(s.server.localServiceAddr, fontSize = 12.sp, color = TextSecondary)
                 (externalIps + innerIps).forEach { ip ->
                     MonoText(text = "http://$ip/", fontSize = 10, color = TextSecondary, maxLines = 1)
                 }
@@ -1635,6 +1662,7 @@ private fun SectionHeader(title: String) {
 /** ④ 区块浏览：地址余额 + 交易记录（getAddressInfo）。 */
 @Composable
 private fun ExplorerCard(myAddress: String) {
+    val s = LocalAppStrings.current
     var query by remember(myAddress) { mutableStateOf(myAddress) }
     var result by remember { mutableStateOf<JSONObject?>(null) }
     var err by remember { mutableStateOf("") }
@@ -1650,17 +1678,17 @@ private fun ExplorerCard(myAddress: String) {
             r.onSuccess { obj ->
                 // ok_json 不含 success 字段；err_json 才有 success=false
                 if (obj.optBoolean("success", true) && !obj.has("error")) result = obj
-                else err = obj.optString("error", "查询失败")
-            }.onFailure { err = it.message ?: "查询失败" }
+                else err = obj.optString("error", s.common.queryFailed)
+            }.onFailure { err = it.message ?: s.common.queryFailed }
         }
     }
 
-    SectionCard(title = "区块浏览") {
+    SectionCard(title = s.peer.blockBrowser) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             OutlinedTextField(
                 value = query,
                 onValueChange = { query = it },
-                placeholder = { Text("输入地址查询", fontSize = 12.sp) },
+                placeholder = { Text(s.peer.inputAddrQuery, fontSize = 12.sp) },
                 singleLine = true,
                 textStyle = androidx.compose.ui.text.TextStyle(fontSize = 12.sp),
                 modifier = Modifier.weight(1f),
@@ -1671,12 +1699,12 @@ private fun ExplorerCard(myAddress: String) {
                 enabled = !loading && query.isNotBlank(),
                 shape = RoundedCornerShape(10.dp),
             ) {
-                Text(if (loading) "查询中" else "查询")
+                Text(if (loading) s.peer.querying else s.appContent.query)
             }
         }
         if (myAddress.isNotEmpty() && query != myAddress) {
             Text(
-                text = "查我的地址",
+                text = s.peer.queryAddr,
                 fontSize = 11.sp,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(top = 4.dp).clickable { doQuery(myAddress) },
@@ -1690,14 +1718,14 @@ private fun ExplorerCard(myAddress: String) {
             Divider()
             InfoGrid(
                 listOf(
-                    "地址余额" to formatAmount(r.optLong("balance", 0)),
-                    "交易数" to (r.optJSONArray("transactions")?.length() ?: 0).toString(),
+                    s.peer.addrBalance to formatAmount(r.optLong("balance", 0)),
+                    s.peer.totalTxs to (r.optJSONArray("transactions")?.length() ?: 0).toString(),
                 )
             )
             val txs = r.optJSONArray("transactions")
             if (txs != null && txs.length() > 0) {
                 Divider()
-                Text("交易记录", fontSize = 12.sp, color = TextSecondary)
+                Text(s.peer.txsCount, fontSize = 12.sp, color = TextSecondary)
                 (0 until txs.length()).forEach { i ->
                     val t = txs.getJSONObject(i)
                     val amount = t.optString("amount")
@@ -1706,7 +1734,7 @@ private fun ExplorerCard(myAddress: String) {
                     Column(modifier = Modifier.padding(vertical = 5.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = "\$dir\${formatAmount(amtLong)}",
+                                text = "$dir${formatAmount(amtLong)}",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = if (dir == "+") OnlineGreen else MaterialTheme.colorScheme.error,
@@ -1724,8 +1752,8 @@ private fun ExplorerCard(myAddress: String) {
                                 )
                             }
                         }
-                        Text("自 ${t.optString("from_address")}", fontSize = 9.sp, color = TextMuted, maxLines = 1)
-                        Text("至 ${t.optString("to_address")}", fontSize = 9.sp, color = TextMuted, maxLines = 1)
+                        Text(s.peer.txFromLine.format(t.optString("from_address")), fontSize = 9.sp, color = TextMuted, maxLines = 1)
+                        Text(s.peer.txToLine.format(t.optString("to_address")), fontSize = 9.sp, color = TextMuted, maxLines = 1)
                         val ts = t.optLong("timestamp", 0)
                         if (ts > 0) {
                             Text(
@@ -1738,7 +1766,7 @@ private fun ExplorerCard(myAddress: String) {
                         val hash = t.optString("hash")
                         if (hash.isNotEmpty()) {
                             SelectionContainer {
-                                MonoText(text = "hash \${hash.take(24)}…", fontSize = 9, color = TextMuted, maxLines = 1)
+                                MonoText(text = "hash ${hash.take(24)}…", fontSize = 9, color = TextMuted, maxLines = 1)
                             }
                         }
                     }
@@ -1746,7 +1774,7 @@ private fun ExplorerCard(myAddress: String) {
                 }
             } else {
                 Divider()
-                EmptyHint("该地址暂无交易记录")
+                EmptyHint(s.peer.noTxForAddr)
             }
         }
     }
@@ -1841,11 +1869,4 @@ private fun parseWitness(obj: JSONObject): WitnessData {
 private fun toStringList(arr: JSONArray?): List<String> {
     arr ?: return emptyList()
     return (0 until arr.length()).mapNotNull { i -> runCatching { arr.getString(i) }.getOrNull() }
-}
-
-private fun protocolLabel(p: String): String = when (p) {
-    "inner" -> "内网"
-    "external" -> "外网"
-    "ipv6" -> "IPv6"
-    else -> p
 }

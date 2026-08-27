@@ -48,16 +48,16 @@ fun MineTopBar(
     stacked: ContentType,
     updater: (page: PageType, value: ContentType) -> Unit
 ) {
+    val s = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
     var showDropDownMenu by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val app = MainApplication.getApp()
     val port = app.fwmc?.port ?: app.settings.network.port
     val uri = IPList.getPublicUri(port)
     val localUri = IPList.getLocalUri(port)
-    val shareServerString = stringResource(R.string.share_server)
-    val shareApkString = stringResource(R.string.share_app_apk)
-//    val shareNoPublicIPString = stringResource(R.string.share_app_apk_no_public_ip)
-    val noIpStr = stringResource(R.string.share_app_apk_no_public_ip)
+    val shareServerString = s.mine.shareServer
+    val shareApkString = s.mine.shareApk
+    val noIpStr = s.mine.noPublicIp
 //    val i = Intent(Intent.ACTION_SEND)
 //    if (uri != "") {
 //        i.setType("text/plain")
@@ -80,7 +80,7 @@ fun MineTopBar(
 
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.back)
+                        contentDescription = s.common.back
                     )
                 }
             }
@@ -91,7 +91,7 @@ fun MineTopBar(
             }) {
                 Icon(
                     imageVector = Icons.Filled.MoreVert,
-                    contentDescription = stringResource(R.string.menu)
+                    contentDescription = s.common.menu
                 )
             }
             DropdownMenu(
@@ -103,7 +103,7 @@ fun MineTopBar(
                     leadingIcon = {
                         Icon(
                             Icons.Filled.Share,
-                            stringResource(R.string.share_server)
+                            shareServerString
                         )
                     },
                     onClick = {

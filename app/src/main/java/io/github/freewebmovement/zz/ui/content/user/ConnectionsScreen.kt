@@ -66,6 +66,7 @@ private const val PAGE_SIZE = 20
 
 @Composable
 fun ConnectionsScreen(onBack: () -> Unit = {}) {
+    val s = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
     var rows by remember { mutableStateOf<List<ConnRow>>(emptyList()) }
     var currentPage by remember { mutableIntStateOf(0) }
     var errMsg by remember { mutableStateOf("") }
@@ -80,7 +81,7 @@ fun ConnectionsScreen(onBack: () -> Unit = {}) {
                     val outbound = parsePeers(obj.optJSONArray("outbound"))
                     rows = buildRows(inbound, outbound)
                 } else {
-                    errMsg = obj.optString("error", "加载失败")
+                    errMsg = obj.optString("error", s.connections.loadFailed)
                 }
             }
             if (rows.isEmpty()) rows = demoRows()
@@ -105,30 +106,30 @@ fun ConnectionsScreen(onBack: () -> Unit = {}) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = s.common.back)
             }
-            Text("节点连接情况", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+            Text(s.connections.title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
         }
 
         val okCount = rows.count { it.bidirectional }
         val failCount = rows.size - okCount
-        SectionCard(title = "P2P 连接 (${rows.size})") {
+        SectionCard(title = s.connections.p2pConnections.format(rows.size)) {
             Row(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("连出", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = TextMuted)
-                    Text("本地:连出 → 远程:侦听", fontSize = 9.sp, color = TextMuted)
+                    Text(s.connections.outbound, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = TextMuted)
+                    Text(s.connections.localOutbound, fontSize = 9.sp, color = TextMuted)
                 }
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("连入", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = TextMuted)
-                    Text("本地:侦听 ← 远程:连出", fontSize = 9.sp, color = TextMuted)
+                    Text(s.connections.inbound, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = TextMuted)
+                    Text(s.connections.localListen, fontSize = 9.sp, color = TextMuted)
                 }
-                Text("状态", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = TextMuted)
+                Text(s.connections.status, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = TextMuted)
             }
             Divider()
 
             if (pageItems.isEmpty()) {
                 Text(
-                    if (errMsg.isNotEmpty()) errMsg else "暂无连接",
+                    if (errMsg.isNotEmpty()) errMsg else s.connections.none,
                     fontSize = 13.sp,
                     color = TextMuted,
                     modifier = Modifier.padding(vertical = 16.dp),
@@ -156,7 +157,7 @@ fun ConnectionsScreen(onBack: () -> Unit = {}) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             StatusDot(active = row.bidirectional)
                             Text(
-                                if (row.bidirectional) "双向" else "单向",
+                                if (row.bidirectional) s.connections.bidirectional else s.connections.unidirectional,
                                 fontSize = 10.sp,
                                 color = if (row.bidirectional) OnlineGreen else TextMuted,
                                 modifier = Modifier.padding(start = 4.dp),
@@ -177,8 +178,8 @@ fun ConnectionsScreen(onBack: () -> Unit = {}) {
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Text("✓ 双向 $okCount", fontSize = 12.sp, color = OnlineGreen)
-                    Text("✗ 单向 $failCount", fontSize = 12.sp, color = TextMuted)
+                    Text(s.connections.okCount.format(okCount), fontSize = 12.sp, color = OnlineGreen)
+                    Text(s.connections.failCount.format(failCount), fontSize = 12.sp, color = TextMuted)
                 }
             }
 
@@ -189,14 +190,14 @@ fun ConnectionsScreen(onBack: () -> Unit = {}) {
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = if (safePage > 0) "< 上一页" else "          ",
+                        text = if (safePage > 0) s.connections.prev else "          ",
                         fontSize = 13.sp,
                         color = if (safePage > 0) MaterialTheme.colorScheme.primary else TextMuted,
                         modifier = Modifier.clickable(enabled = safePage > 0) { currentPage = safePage - 1 },
                     )
                     Text("  ${safePage + 1} / $totalPages  ", fontSize = 12.sp, color = TextMuted)
                     Text(
-                        text = if (safePage < totalPages - 1) "下一页 >" else "          ",
+                        text = if (safePage < totalPages - 1) s.connections.next else "          ",
                         fontSize = 13.sp,
                         color = if (safePage < totalPages - 1) MaterialTheme.colorScheme.primary else TextMuted,
                         modifier = Modifier.clickable(enabled = safePage < totalPages - 1) { currentPage = safePage + 1 },

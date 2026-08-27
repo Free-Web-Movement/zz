@@ -42,6 +42,7 @@ import rs.zz.coin.FwmcApi
  */
 @Composable
 fun PeerIdShareDialog(peerId: String, onDismiss: () -> Unit) {
+    val s = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
     var qr by remember { mutableStateOf<Pair<Int, String>?>(null) }
 
     androidx.compose.runtime.LaunchedEffect(peerId) {
@@ -60,7 +61,7 @@ fun PeerIdShareDialog(peerId: String, onDismiss: () -> Unit) {
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("我的身份 · Peer ID") },
+        title = { Text(s.peerIdDialog.title) },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 if (qr != null && qr!!.first > 0) {
@@ -91,7 +92,7 @@ fun PeerIdShareDialog(peerId: String, onDismiss: () -> Unit) {
                         }
                     }
                 } else {
-                    Text("正在生成…", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(s.peerIdDialog.generating, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Spacer(Modifier.height(12.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -105,21 +106,21 @@ fun PeerIdShareDialog(peerId: String, onDismiss: () -> Unit) {
                     )
                     Icon(
                         painter = painterResource(R.drawable.ic_copy),
-                        contentDescription = "copy",
+                        contentDescription = s.common.copy,
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .padding(start = 8.dp)
                             .size(16.dp)
                             .clickable {
                                 clip.setText(androidx.compose.ui.text.AnnotatedString(peerId))
-                                android.widget.Toast.makeText(ctx, ctx.getString(R.string.copied), android.widget.Toast.LENGTH_SHORT).show()
+                                android.widget.Toast.makeText(ctx, s.common.copied, android.widget.Toast.LENGTH_SHORT).show()
                             },
                     )
                 }
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("关闭") }
+            TextButton(onClick = onDismiss) { Text(s.peerIdDialog.close) }
         },
     )
 }

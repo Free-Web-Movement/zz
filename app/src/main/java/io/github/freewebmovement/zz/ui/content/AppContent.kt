@@ -84,6 +84,7 @@ private fun parseTxs(raw: String, addr: String): List<TxRow> = runCatching {
  */
 @Composable
 fun WalletScreen() {
+    val s = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
     val node = rememberFwmcNodeSnapshot()
     val running = node.running
 
@@ -109,7 +110,7 @@ fun WalletScreen() {
         }
         SectionCard {
             if (!running) {
-                Text("fwmc 节点未运行，请在「网络」页启动节点", color = TextSecondary)
+                Text(s.appContent.nodeNotRunning, color = TextSecondary)
             }
         }
         WalletTabs(running = running, myAddress = myAddress, onBalanceChanged = { /* refreshed by polling */ })
@@ -118,6 +119,7 @@ fun WalletScreen() {
 
 @Composable
 private fun BalanceHero(balance: Long, address: String) {
+    val s = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -130,7 +132,7 @@ private fun BalanceHero(balance: Long, address: String) {
                 .background(Brush.horizontalGradient(listOf(AppTheme.preset.primary, AppTheme.preset.primaryDark)))
                 .padding(horizontal = 18.dp, vertical = 20.dp),
         ) {
-            Text(text = "总余额（ZZ）", fontSize = 12.sp, color = Color.White.copy(alpha = 0.85f))
+            Text(text = s.appContent.totalBalance, fontSize = 12.sp, color = Color.White.copy(alpha = 0.85f))
             Text(
                 text = formatAmount(balance),
                 fontSize = 34.sp,
@@ -153,8 +155,9 @@ private fun BalanceHero(balance: Long, address: String) {
 
 @Composable
 private fun WalletTabs(running: Boolean, myAddress: String, onBalanceChanged: () -> Unit) {
+    val s = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
     var tab by remember { mutableStateOf(0) }
-    SubTabs(tabs = listOf("转账", "交易记录", "地址浏览器"), selected = tab, onSelect = { tab = it })
+    SubTabs(tabs = listOf(s.appContent.transfer, s.appContent.txRecord, s.appContent.addressExplorer), selected = tab, onSelect = { tab = it })
     when (tab) {
         0 -> TransferSection(running = running)
         1 -> HistorySection(running = running, myAddress = myAddress)
@@ -166,6 +169,7 @@ private fun WalletTabs(running: Boolean, myAddress: String, onBalanceChanged: ()
 
 @Composable
 private fun TransferSection(running: Boolean) {
+    val s = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var toAddr by remember { mutableStateOf("") }
@@ -174,17 +178,17 @@ private fun TransferSection(running: Boolean) {
     var resultMsg by remember { mutableStateOf("") }
     var resultOk by remember { mutableStateOf(false) }
 
-    SectionCard(title = "转账") {
+    SectionCard(title = s.appContent.transfer) {
         OutlinedTextField(
             value = toAddr,
             onValueChange = { toAddr = it },
-            label = { Text("接收地址") },
+            label = { Text(s.appContent.receiveAddress) },
             modifier = Modifier.fillMaxWidth(),
         )
         OutlinedTextField(
             value = amountText,
             onValueChange = { amountText = it.filter { c -> c.isDigit() } },
-            label = { Text("金额（分）") },
+            label = { Text(s.appContent.amountCents) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier
                 .fillMaxWidth()
@@ -202,13 +206,13 @@ private fun TransferSection(running: Boolean) {
                     val obj = runCatching { JSONObject(raw) }.getOrNull()
                     val ok = obj?.optBoolean("success", false) == true
                     if (ok) {
-                        resultMsg = "转账成功！交易：${obj?.optString("tx_hash")}"
+                        resultMsg = s.appContent.transferSuccessTemplate.format(obj?.optString("tx_hash"))
                         resultOk = true
                         toAddr = ""
                         amountText = ""
-                        Toast.makeText(context, "转账成功", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, s.appContent.transferSuccess, Toast.LENGTH_SHORT).show()
                     } else {
-                        resultMsg = "错误：${obj?.optString("error", "请求失败")}"
+                        resultMsg = s.appContent.errorTemplate.format(obj?.optString("error", s.appContent.requestFailed))
                         resultOk = false
                     }
                 }
@@ -216,7 +220,7 @@ private fun TransferSection(running: Boolean) {
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             shape = RoundedCornerShape(10.dp),
         ) {
-            Text(if (sending) "发送中…" else "发送")
+            Text(if (sending) s.appContent.sending else s.appContent.send)
         }
         if (resultMsg.isNotEmpty()) {
             Text(
@@ -233,6 +237,7 @@ private fun TransferSection(running: Boolean) {
 
 @Composable
 private fun HistorySection(running: Boolean, myAddress: String) {
+    val s = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
     var txs by remember { mutableStateOf<List<TxRow>>(emptyList()) }
     var loaded by remember { mutableStateOf(false) }
 
@@ -242,10 +247,10 @@ private fun HistorySection(running: Boolean, myAddress: String) {
         loaded = true
     }
 
-    SectionCard(title = "交易记录") {
+    SectionCard(title = s.appContent.txRecord) {
         when {
-            !running -> Text("节点未运行", color = TextSecondary, fontSize = 13.sp)
-            loaded && txs.isEmpty() -> EmptyHint("暂无交易")
+            !running -> Text(s.appContent.nodeOffline, color = TextSecondary, fontSize = 13.sp)
+            loaded && txs.isEmpty() -> EmptyHint(s.appContent.noTxs)
             else -> txs.forEach { tx ->
                 val incoming = tx.to == myAddress
                 Row(
@@ -257,9 +262,9 @@ private fun HistorySection(running: Boolean, myAddress: String) {
                         Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                             Text(
                                 text = when (tx.txType) {
-                                    "mint" -> "铸造"
-                                    "burn" -> "销毁"
-                                    else -> if (incoming) "转入" else "转出"
+                                    "mint" -> s.appContent.mint
+                                    "burn" -> s.appContent.burn
+                                    else -> if (incoming) s.appContent.incomingLabel else s.appContent.outgoingLabel
                                 },
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium,
@@ -268,7 +273,7 @@ private fun HistorySection(running: Boolean, myAddress: String) {
                             Spacer(modifier = Modifier.height(0.dp))
                         }
                         MonoText(
-                            text = if (incoming) "来自 ${tx.from.take(16)}.." else "发往 ${tx.to.take(16)}..",
+                            text = if (incoming) s.appContent.txFrom.format(tx.from.take(16)) else s.appContent.txTo.format(tx.to.take(16)),
                             fontSize = 11,
                             color = TextSecondary,
                         )
@@ -295,18 +300,19 @@ private fun HistorySection(running: Boolean, myAddress: String) {
 
 @Composable
 private fun ExplorerSection(running: Boolean) {
+    val s = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
     val scope = rememberCoroutineScope()
     var query by remember { mutableStateOf("") }
     var resultBalance by remember { mutableStateOf<Long?>(null) }
     var txs by remember { mutableStateOf<List<TxRow>>(emptyList()) }
     var err by remember { mutableStateOf("") }
 
-    SectionCard(title = "地址浏览器") {
+    SectionCard(title = s.appContent.addressExplorer) {
         Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
             OutlinedTextField(
                 value = query,
                 onValueChange = { query = it },
-                label = { Text("输入 FWMC 地址") },
+                label = { Text(s.appContent.inputFwmcAddress) },
                 modifier = Modifier.weight(1f),
                 singleLine = true,
             )
@@ -326,19 +332,19 @@ private fun ExplorerSection(running: Boolean) {
                                 resultBalance = obj.optLong("balance", 0)
                                 txs = parseTxs(raw, query.trim())
                             } else {
-                                err = obj.optString("error", "查询失败")
+                                err = obj.optString("error", s.appContent.queryFailed)
                             }
-                        }.onFailure { err = it.message ?: "解析失败" }
+                        }.onFailure { err = it.message ?: s.appContent.parseFailed }
                     }
                 },
                 modifier = Modifier.padding(start = 8.dp),
-            ) { Text("查询") }
+            ) { Text(s.appContent.query) }
         }
         err.ifEmpty { null }?.let { Text(it, color = MaterialTheme.colorScheme.error, fontSize = 12.sp) }
         resultBalance?.let { bal ->
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "余额 ${formatAmount(bal)} ZZ",
+                text = s.appContent.balanceTemplate.format(formatAmount(bal)),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = AppTheme.preset.primaryDark,
@@ -346,7 +352,7 @@ private fun ExplorerSection(running: Boolean) {
         }
         if (txs.isNotEmpty()) {
             Text(
-                text = "最近 ${txs.size} 笔交易",
+                text = s.appContent.recentTxs.format(txs.size),
                 fontSize = 12.sp,
                 color = TextSecondary,
                 modifier = Modifier.padding(vertical = 4.dp),

@@ -53,6 +53,8 @@ import io.github.freewebmovement.zz.R
 import io.github.freewebmovement.zz.ui.common.MonoText
 import io.github.freewebmovement.zz.ui.common.PageType
 import io.github.freewebmovement.zz.ui.common.RowItem
+import io.github.freewebmovement.zz.ui.i18n.AppLang
+import io.github.freewebmovement.zz.ui.i18n.LocalAppStrings
 import io.github.freewebmovement.zz.ui.common.avatarColor
 import io.github.freewebmovement.zz.ui.common.formatAmount
 import io.github.freewebmovement.zz.ui.theme.CardBg
@@ -74,6 +76,7 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
     Column(modifier = Modifier.background(WxBg).verticalScroll(rememberScrollState())) {
         val app = MainApplication.getApp()
         val settings = app.settings
+        val s = LocalAppStrings.current
         with(settings) {
             val acctId = io.github.freewebmovement.zz.ui.content.FwmcSession.current?.first ?: ""
             val acctName = io.github.freewebmovement.zz.ui.content.FwmcSession.current?.second ?: ""
@@ -111,7 +114,7 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
             }
 
             // ── 一、账号与钱包 ──
-            SectionTitle("账号与钱包")
+            SectionTitle(s.mine.accountRow)
 
             // 头像/昵称/签名
             ProfileCard(acctId, nickname, intro, imageUri, updatePage)
@@ -120,19 +123,22 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
             PeerIdCard()
 
             // 帐号管理
-            RowItem2(label = "帐号管理", icon = R.drawable.ic_account, trailing = {
+            RowItem2(label = s.mine.accountMgmt, icon = R.drawable.ic_account, trailing = {
                 val cur = io.github.freewebmovement.zz.ui.content.FwmcSession.current
-                Text(cur?.second?.ifEmpty { "未命名" } ?: "未命名", fontSize = 13.sp, color = TextSecondary)
+                Text(cur?.second?.ifEmpty { s.mine.unnamed } ?: s.mine.unnamed, fontSize = 13.sp, color = TextSecondary)
                 Text("  ›", color = TextMuted)
             }, onClick = { updatePage(PageType.MineAccounts) })
 
             // 钱包管理
-            RowItem2(label = "钱包管理", icon = R.drawable.ic_wallet, trailing = {
-                Text("多钱包  ›", fontSize = 13.sp, color = TextSecondary)
+            RowItem2(label = s.wallets.title, icon = R.drawable.ic_wallet, trailing = {
+                Text(s.mine.multiWallet + "  ›", fontSize = 13.sp, color = TextSecondary)
             }, onClick = { updatePage(PageType.MineWallet) })
 
             // ── 二、节点信息（资源与服务） ──
-            SectionTitle("节点信息（资源与服务）")
+            SectionTitle(s.mine.currentNodeWeight)
+
+            // 节点配置
+            FwmcConfigRow(updatePage)
 
             // 服务器
             ServerRow(updatePage)
@@ -150,15 +156,16 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
             ConnectionsRow(updatePage)
 
             // ── 三、设置 ──
-            SectionTitle("设置")
+            SectionTitle(s.settings.title)
 
-            // fwmc 配置
-            FwmcConfigRow(updatePage)
+            // 语言设置
+            LanguageRow()
 
             // 主题设置
             ThemeRow()
 
             ThemeDialogHost()
+            LanguageDialogHost()
         }
     }
 }
@@ -192,6 +199,7 @@ private fun ProfileCard(
             .clickable(onClick = { updatePage(PageType.MineProfile) })
             .padding(horizontal = 16.dp, vertical = 18.dp),
     ) {
+        val s = LocalAppStrings.current
         val ctx = LocalContext.current
         val scope = androidx.compose.runtime.rememberCoroutineScope()
         val avatarPicker = androidx.activity.compose.rememberLauncherForActivityResult(
@@ -208,7 +216,7 @@ private fun ProfileCard(
                         io.github.freewebmovement.zz.ui.content.user.AvatarLocalStore.saveJpeg(ctx, acctId, bytes)
                         mineRefreshSignal++
                     } else {
-                        android.widget.Toast.makeText(ctx, "头像上传失败", android.widget.Toast.LENGTH_SHORT).show()
+                        android.widget.Toast.makeText(ctx, s.profile.avatarUploadFailed, android.widget.Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -220,7 +228,7 @@ private fun ProfileCard(
             if (!imageUri?.toString().isNullOrEmpty()) {
                 AsyncImage(
                     model = ImageRequest.Builder(ctx).data(imageUri).build(),
-                    contentDescription = stringResource(id = R.string.tab_mine_avatar),
+                    contentDescription = s.profile.avatar,
                     contentScale = ContentScale.Crop,
                     placeholder = painterResource(id = R.drawable.ic_default_avatar),
                     error = painterResource(id = R.drawable.ic_default_avatar),
@@ -233,7 +241,7 @@ private fun ProfileCard(
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_default_avatar),
-                        contentDescription = stringResource(id = R.string.tab_mine_avatar),
+                        contentDescription = s.profile.avatar,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.size(60.dp).clip(CircleShape),
                     )
@@ -242,13 +250,13 @@ private fun ProfileCard(
         }
         Column(modifier = Modifier.weight(1f).padding(start = 14.dp)) {
             Text(
-                text = nickname.ifEmpty { "未命名" },
+                text = nickname.ifEmpty { s.mine.unnamed },
                 fontSize = 20.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = TextPrimary,
             )
             Text(
-                text = intro.ifEmpty { "编辑签名…" },
+                text = intro.ifEmpty { s.mine.editSignature },
                 fontSize = 12.sp,
                 color = if (intro.isEmpty()) TextMuted else TextSecondary,
                 maxLines = 2,
@@ -257,7 +265,7 @@ private fun ProfileCard(
         }
         Icon(
             painter = painterResource(id = R.drawable.ic_chevron_right),
-            contentDescription = stringResource(R.string.tab_mine_profile),
+            contentDescription = s.fwmcProfile.title,
             tint = Color(0xFFC8C8C8),
         )
     }
@@ -266,6 +274,7 @@ private fun ProfileCard(
 /** 身份号展示框（Peer ID = 钱包地址/节点号/身份号）：完整地址多行显示，支持复制与二维码。 */
 @Composable
 private fun PeerIdCard() {
+    val s = LocalAppStrings.current
     val peerId = io.github.freewebmovement.zz.ui.content.FwmcSession.current?.first ?: ""
     if (peerId.isEmpty()) return
     var showQr by remember { mutableStateOf(false) }
@@ -279,22 +288,22 @@ private fun PeerIdCard() {
     ) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("钱包地址 / 节点号 / 身份号", fontSize = 12.sp, color = TextSecondary, modifier = Modifier.weight(1f))
+                Text(s.mine.walletAddrHint, fontSize = 12.sp, color = TextSecondary, modifier = Modifier.weight(1f))
                 val clip = androidx.compose.ui.platform.LocalClipboardManager.current
                 Icon(
                     painter = painterResource(id = R.drawable.ic_copy),
-                    contentDescription = "copy",
+                    contentDescription = s.common.copy,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .size(18.dp)
                         .clickable {
                             clip.setText(androidx.compose.ui.text.AnnotatedString(peerId))
-                            android.widget.Toast.makeText(ctx, ctx.getString(R.string.copied), android.widget.Toast.LENGTH_SHORT).show()
+                            android.widget.Toast.makeText(ctx, s.common.copied, android.widget.Toast.LENGTH_SHORT).show()
                         },
                 )
                 Icon(
                     painter = painterResource(id = R.drawable.ic_scan_qrcode),
-                    contentDescription = "二维码",
+                    contentDescription = s.mine.qrCode,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .padding(start = 10.dp)
@@ -316,10 +325,11 @@ private fun PeerIdCard() {
 /** 服务器入口。 */
 @Composable
 private fun ServerRow(updatePage: (value: PageType) -> Unit) {
+    val s = LocalAppStrings.current
     val node = rememberFwmcNodeSnapshot()
-    RowItem2(label = "服务器", icon = R.drawable.ic_server, trailing = {
+    RowItem2(label = s.mine.serverRow, icon = R.drawable.ic_server, trailing = {
         Text(
-            text = if (node.running) "运行中 · ${node.port}" else "未运行",
+            text = if (node.running) s.mine.runningTemplate.format(node.port) else s.mine.notRunning,
             fontSize = 13.sp,
             color = if (node.running) OnlineGreen else TextSecondary,
         )
@@ -330,10 +340,11 @@ private fun ServerRow(updatePage: (value: PageType) -> Unit) {
 /** 静态服务器配置入口。 */
 @Composable
 private fun StaticFileRow(updatePage: (value: PageType) -> Unit) {
+    val s = LocalAppStrings.current
     val app = MainApplication.getApp()
     val enabled = app.settings.network.staticFileEnabled
-    RowItem2(label = "静态服务器配置", icon = R.drawable.ic_mine_local_server_share, trailing = {
-        Text(if (enabled) "已启用" else "未启用", fontSize = 13.sp, color = TextSecondary)
+    RowItem2(label = s.mine.staticFileRow, icon = R.drawable.ic_mine_local_server_share, trailing = {
+        Text(if (enabled) s.common.enabled else s.common.disabled, fontSize = 13.sp, color = TextSecondary)
         Text("  ›", color = TextMuted)
     }, onClick = { updatePage(PageType.MineStaticFile) })
 }
@@ -341,6 +352,7 @@ private fun StaticFileRow(updatePage: (value: PageType) -> Unit) {
 /** 资源与权重配置入口。首页此处实时显示节点权重，点击进入详情。 */
 @Composable
 private fun WeightsRow(updatePage: (value: PageType) -> Unit) {
+    val s = LocalAppStrings.current
     val node = rememberFwmcNodeSnapshot()
     var totalWeight by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(node.running) {
@@ -356,11 +368,11 @@ private fun WeightsRow(updatePage: (value: PageType) -> Unit) {
             delay(5000)
         }
     }
-    RowItem2(label = "资源与权重配置", icon = R.drawable.ic_briefcase, trailing = {
+    RowItem2(label = s.mine.weightsRow, icon = R.drawable.ic_briefcase, trailing = {
         Text(
             text = when {
-                !node.running -> "未运行"
-                totalWeight != null -> "权重 $totalWeight"
+                !node.running -> s.mine.notRunning
+                totalWeight != null -> s.mine.weightTemplate.format(totalWeight)
                 else -> ""
             },
             fontSize = 13.sp,
@@ -373,7 +385,8 @@ private fun WeightsRow(updatePage: (value: PageType) -> Unit) {
 /** 节点连接情况入口。 */
 @Composable
 private fun ConnectionsRow(updatePage: (value: PageType) -> Unit) {
-    RowItem2(label = "节点连接情况", icon = R.drawable.ic_server, trailing = {
+    val s = LocalAppStrings.current
+    RowItem2(label = s.mine.connectionRow, icon = R.drawable.ic_server, trailing = {
         Text("  ›", color = TextMuted)
     }, onClick = { updatePage(PageType.MineConnections) })
 }
@@ -381,7 +394,8 @@ private fun ConnectionsRow(updatePage: (value: PageType) -> Unit) {
 /** fwmc 配置入口。 */
 @Composable
 private fun FwmcConfigRow(updatePage: (value: PageType) -> Unit) {
-    RowItem2(label = "节点配置", icon = R.drawable.ic_settings, trailing = {
+    val s = LocalAppStrings.current
+    RowItem2(label = s.settings.nodeStatusAndConfig, icon = R.drawable.ic_settings, trailing = {
         Text("  ›", color = TextMuted)
     }, onClick = { updatePage(PageType.MineSettings) })
 }
@@ -389,8 +403,9 @@ private fun FwmcConfigRow(updatePage: (value: PageType) -> Unit) {
 /** 主题设置入口。 */
 @Composable
 private fun ThemeRow() {
-    RowItem2(label = "主题设置", icon = R.drawable.ic_settings, trailing = {
-        Text(AppTheme.preset.label, fontSize = 13.sp, color = TextSecondary)
+    val s = LocalAppStrings.current
+    RowItem2(label = s.mine.themeRow, icon = R.drawable.ic_settings, trailing = {
+        Text(io.github.freewebmovement.zz.ui.theme.localizedPresetLabel(io.github.freewebmovement.zz.ui.theme.AppTheme.index), fontSize = 13.sp, color = TextSecondary)
         Text("  ›", color = TextMuted)
     }, onClick = { showThemeDialog.value = true })
 }
@@ -407,9 +422,10 @@ private fun ThemeDialogHost() {
 @Composable
 fun ThemeDialog(onDismiss: () -> Unit) {
     val app = MainApplication.getApp()
+    val s = LocalAppStrings.current
     androidx.compose.material3.AlertDialog(
             onDismissRequest = onDismiss,
-            title = { Text("主题配色") },
+            title = { Text(s.settings.theme) },
             text = {
                 Column {
                     io.github.freewebmovement.zz.ui.theme.THEMES.forEachIndexed { i, t ->
@@ -436,7 +452,7 @@ fun ThemeDialog(onDismiss: () -> Unit) {
                                     ),
                             )
                             Text(
-                                t.label,
+                                io.github.freewebmovement.zz.ui.theme.localizedPresetLabel(i),
                                 fontSize = 15.sp,
                                 color = TextPrimary,
                                 modifier = Modifier.padding(start = 12.dp).weight(1f),
@@ -447,9 +463,71 @@ fun ThemeDialog(onDismiss: () -> Unit) {
                 }
             },
             confirmButton = {
-                androidx.compose.material3.TextButton(onClick = onDismiss) { Text("关闭") }
+                androidx.compose.material3.TextButton(onClick = onDismiss) { Text(s.common.close) }
             },
         )
+}
+
+private val showLanguageDialog = mutableStateOf(false)
+
+/** 语言设置入口。 */
+@Composable
+private fun LanguageRow() {
+    val s = LocalAppStrings.current
+    RowItem2(label = s.settings.language, icon = R.drawable.ic_settings, trailing = {
+        Text(languageLabel(s.settings), fontSize = 13.sp, color = TextSecondary)
+        Text("  ›", color = TextMuted)
+    }, onClick = { showLanguageDialog.value = true })
+}
+
+/** 语言切换弹窗。 */
+@Composable
+private fun LanguageDialogHost() {
+    if (!showLanguageDialog.value) return
+    LanguageDialog(onDismiss = { showLanguageDialog.value = false })
+}
+
+@Composable
+fun LanguageDialog(onDismiss: () -> Unit) {
+    val app = MainApplication.getApp()
+    val s = LocalAppStrings.current
+    val options = listOf(
+        Triple(0, s.settings.languageFollowSystem, "System"),
+        Triple(1, s.settings.languageZh, "简体中文"),
+        Triple(2, s.settings.languageEn, "English"),
+    )
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(s.settings.language) },
+        text = {
+            Column {
+                options.forEach { (mode, label, _) ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                AppLang.select(mode, app.preference)
+                                onDismiss()
+                            }
+                            .padding(vertical = 10.dp),
+                    ) {
+                        Text(label, fontSize = 15.sp, color = TextPrimary, modifier = Modifier.weight(1f))
+                        if (AppLang.mode == mode) Text("✓", color = TextSecondary)
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            androidx.compose.material3.TextButton(onClick = onDismiss) { Text(s.common.close) }
+        },
+    )
+}
+
+private fun languageLabel(st: io.github.freewebmovement.zz.ui.i18n.SettingsStrings): String = when (AppLang.mode) {
+    1 -> st.languageZh
+    2 -> st.languageEn
+    else -> st.languageFollowSystem
 }
 
 /** 简化行（label + 自定义尾部 + 点击），供主题行使用。 */
@@ -484,6 +562,7 @@ private fun RowItem2(
 /** 钱包入口卡片：多钱包管理入口，显示钱包数量与绑定主钱包余额。 */
 @Composable
 private fun WalletEntryCard(onClick: () -> Unit) {
+    val s = LocalAppStrings.current
     var balance by remember { mutableLongStateOf(0L) }
     var walletCount by remember { mutableStateOf(0) }
     val node = io.github.freewebmovement.zz.ui.common.rememberFwmcNodeSnapshot()
@@ -525,7 +604,7 @@ private fun WalletEntryCard(onClick: () -> Unit) {
                 modifier = Modifier.size(30.dp),
             )
             Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
-                Text(text = "我的钱包 · $walletCount 个", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+                Text(text = s.mine.walletRow.format(walletCount), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
                 Text(
                     text = "${formatAmount(balance)} ZZ",
                     fontSize = 22.sp,
@@ -534,7 +613,7 @@ private fun WalletEntryCard(onClick: () -> Unit) {
                     modifier = Modifier.padding(top = 2.dp),
                 )
             }
-            Text(text = "管理 · 创建  ›", fontSize = 11.sp, color = Color.White.copy(alpha = 0.85f))
+            Text(text = s.mine.manageCreate + "  ›", fontSize = 11.sp, color = Color.White.copy(alpha = 0.85f))
         }
     }
 }
@@ -542,7 +621,8 @@ private fun WalletEntryCard(onClick: () -> Unit) {
 /** 权重对照表导航行。 */
 @Composable
 private fun WeightTableRow(updatePage: (value: PageType) -> Unit) {
-    RowItem2(label = "资源权重对照表", icon = R.drawable.ic_briefcase, trailing = {
+    val s = LocalAppStrings.current
+    RowItem2(label = s.mine.weightTableRow, icon = R.drawable.ic_briefcase, trailing = {
         Text("  ›", color = TextMuted)
     }, onClick = { updatePage(PageType.MineWeightTable) })
 }
@@ -550,16 +630,18 @@ private fun WeightTableRow(updatePage: (value: PageType) -> Unit) {
 /** 权重对照表子页。 */
 @Composable
 fun WeightTableScreen(onBack: () -> Unit = {}) {
+    val s = LocalAppStrings.current
+    val m = s.mine
     val rows = listOf(
-        Triple("公网 IPv4", "1,000 /个", "公网上行可达的 IPv4 地址（核心资源）"),
-        Triple("内网 IPv4", "0", "NAT 内网地址不计入权重"),
-        Triple("公网 IPv6", "100 /个", "公网 IPv6 地址（弱于 IPv4）"),
-        Triple("存储（24h 实测）", "1 TB ≈ 1 权重", "数据目录实测占用，低于 1T 为 0"),
-        Triple("带宽（24h 实测）", "1 G ≈ 1 权重", "实测收发字节累计，低于 1G 为 0"),
-        Triple("CPU（24h 实测）", "1 GHz·天 ≈ 1 权重", "实测进程 CPU 时间，低于一天为 0"),
-        Triple("内存（24h 实测）", "1 G ≈ 1 权重", "实测进程占用，低于 1G 为 0"),
-        Triple("API（24h 实测）", "1000 次/小时 ≈ 1 权重", "累计 2.4 万次 ≈ 1 权重"),
-        Triple("节点权重兜底", "最低为 1", "所有资源为 0 时节点仍为 1"),
+        Triple(m.wtPublicIpv4, m.wtPublicIpv4Formula, m.wtPublicIpv4Desc),
+        Triple(m.wtPrivateIpv4, m.wtPrivateIpv4Formula, m.wtPrivateIpv4Desc),
+        Triple(m.wtPublicIpv6, m.wtPublicIpv6Formula, m.wtPublicIpv6Desc),
+        Triple(m.wtStorage, m.wtStorageFormula, m.wtStorageDesc),
+        Triple(m.wtBandwidth, m.wtBandwidthFormula, m.wtBandwidthDesc),
+        Triple(m.wtCpu, m.wtCpuFormula, m.wtCpuDesc),
+        Triple(m.wtMemory, m.wtMemoryFormula, m.wtMemoryDesc),
+        Triple(m.wtApi, m.wtApiFormula, m.wtApiDesc),
+        Triple(m.wtFloor, m.wtFloorFormula, m.wtFloorDesc),
     )
     Column(
         modifier = Modifier
@@ -574,12 +656,12 @@ fun WeightTableScreen(onBack: () -> Unit = {}) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = s.common.back)
             }
-            Text("资源权重对照表", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+            Text(s.mine.weightTableRow, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
         }
 
-        io.github.freewebmovement.zz.ui.common.SectionCard(title = "权重公式") {
+        io.github.freewebmovement.zz.ui.common.SectionCard(title = s.mine.weightFormula) {
             rows.forEachIndexed { i, (name, formula, desc) ->
                 Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {

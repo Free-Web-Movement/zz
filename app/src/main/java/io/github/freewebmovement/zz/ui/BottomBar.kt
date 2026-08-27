@@ -8,7 +8,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import io.github.freewebmovement.zz.R
 import io.github.freewebmovement.zz.ui.common.TabType
 import io.github.freewebmovement.zz.ui.theme.black
@@ -26,11 +25,12 @@ private fun getIcon(tab: TabType, selected: TabType): Int {
 
 @Composable
 fun getTitle(tab: TabType): String {
+    val s = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
     return when(tab) {
-        TabType.Sessions -> stringResource(R.string.title_session)
-        TabType.Contacts -> stringResource(R.string.title_contacts)
-        TabType.Peers -> stringResource(R.string.title_peer)
-        TabType.Mine -> stringResource(R.string.title_mine)
+        TabType.Sessions -> s.tabs.sessions
+        TabType.Contacts -> s.tabs.contacts
+        TabType.Peers -> s.tabs.peer
+        TabType.Mine -> s.tabs.mine
     }
 }
 

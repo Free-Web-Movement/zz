@@ -32,6 +32,20 @@ val THEMES = listOf(
     ThemePreset("orange", "活力橙", Color(0xFFF57C00), Color(0xFFE65100), Color(0xFFFFE3BF)),
 )
 
+/** 主题名的本地化显示。 */
+@androidx.compose.runtime.Composable
+fun localizedPresetLabel(index: Int): String {
+    val s = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
+    return when (index.coerceIn(THEMES.indices)) {
+        0 -> s.settings.themeClassicPurple
+        1 -> s.settings.themeGreen
+        2 -> s.settings.themeBlue
+        3 -> s.settings.themePink
+        4 -> s.settings.themeRomanticPurple
+        else -> s.settings.themeOrange
+    }
+}
+
 // 兼容旧引用
 val green = THEMES[0].primary
 val black = TextPrimary

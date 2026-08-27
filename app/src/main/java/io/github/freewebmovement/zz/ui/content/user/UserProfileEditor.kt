@@ -73,6 +73,7 @@ import rs.zz.coin.FwmcApi
  */
 @Composable
 fun UserProfileEditor(updatePage: (value: PageType) -> Unit) {
+    val s = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
     val scope = rememberCoroutineScope()
     val ctx = LocalContext.current
     val target = remember { editAccount }
@@ -145,13 +146,13 @@ fun UserProfileEditor(updatePage: (value: PageType) -> Unit) {
     ) { uri: android.net.Uri? ->
         if (uri == null) return@rememberLauncherForActivityResult
         if (targetId.isEmpty()) {
-            android.widget.Toast.makeText(ctx, "会话未就绪，请稍后再试", android.widget.Toast.LENGTH_SHORT).show()
+            android.widget.Toast.makeText(ctx, s.profile.sessionNotReady, android.widget.Toast.LENGTH_SHORT).show()
             return@rememberLauncherForActivityResult
         }
         val bytes = readJpegBytes(ctx, uri, maxDim = 512)
         android.util.Log.d("AvatarUpload", "userEditor bytes=${bytes?.size ?: -1} uid=$targetId")
         if (bytes == null) {
-            android.widget.Toast.makeText(ctx, "图片读取失败，请换一张试试", android.widget.Toast.LENGTH_SHORT).show()
+            android.widget.Toast.makeText(ctx, s.profile.imageLoadFailed, android.widget.Toast.LENGTH_SHORT).show()
             return@rememberLauncherForActivityResult
         }
         scope.launch {
@@ -162,7 +163,7 @@ fun UserProfileEditor(updatePage: (value: PageType) -> Unit) {
                 // 先落安卓侧本地文件保证可显示，fwmc 目录已同步写入
                 imageUri = AvatarLocalStore.saveJpeg(ctx, targetId, bytes)
             } else {
-                android.widget.Toast.makeText(ctx, "头像上传失败", android.widget.Toast.LENGTH_SHORT).show()
+                android.widget.Toast.makeText(ctx, s.profile.avatarUploadFailed, android.widget.Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -222,7 +223,7 @@ fun UserProfileEditor(updatePage: (value: PageType) -> Unit) {
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
                 )
-                Text("昵称", fontSize = 13.sp, color = TextSecondary, modifier = Modifier.padding(top = 12.dp))
+                Text(s.profile.nickname, fontSize = 13.sp, color = TextSecondary, modifier = Modifier.padding(top = 12.dp))
                 TextField(
                     value = nickname,
                     onValueChange = { nickname = it },
@@ -232,7 +233,7 @@ fun UserProfileEditor(updatePage: (value: PageType) -> Unit) {
                     singleLine = true,
                 )
                 HorizontalDivider(color = LineColor)
-                Text("签名", fontSize = 13.sp, color = TextSecondary, modifier = Modifier.padding(top = 12.dp))
+                Text(s.mine.signature, fontSize = 13.sp, color = TextSecondary, modifier = Modifier.padding(top = 12.dp))
                 TextField(
                     value = intro,
                     onValueChange = { intro = it },
@@ -256,7 +257,7 @@ fun UserProfileEditor(updatePage: (value: PageType) -> Unit) {
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
                 )
-                Text("详细信息", fontSize = 13.sp, color = TextSecondary, modifier = Modifier.padding(top = 12.dp))
+                Text(s.profile.detailInfo, fontSize = 13.sp, color = TextSecondary, modifier = Modifier.padding(top = 12.dp))
                 Spacer(Modifier.height(4.dp))
 
                 @Composable fun RowScope.ExtField(
@@ -275,7 +276,7 @@ fun UserProfileEditor(updatePage: (value: PageType) -> Unit) {
                                 .border(1.dp, LineColor, RoundedCornerShape(8.dp))
                                 .clickable {
                                     when (picker) {
-                                        "国家" -> showCountryPicker = true
+                                        "country" -> showCountryPicker = true
                                         else -> pickerTarget = picker
                                     }
                                 }
@@ -285,7 +286,7 @@ fun UserProfileEditor(updatePage: (value: PageType) -> Unit) {
                             Spacer(Modifier.height(6.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    value.ifEmpty { "请选择" },
+                                    value.ifEmpty { s.profile.choose },
                                     fontSize = 14.sp,
                                     color = if (value.isEmpty()) TextSecondary else MaterialTheme.colorScheme.onSurface,
                                     maxLines = 1,
@@ -310,24 +311,24 @@ fun UserProfileEditor(updatePage: (value: PageType) -> Unit) {
                 }
 
                 Row(Modifier.fillMaxWidth()) {
-                    ExtField("性别", gender, { gender = it }, picker = "性别")
+                    ExtField(s.profile.gender, gender, { gender = it }, picker = "gender")
                     Spacer(Modifier.width(10.dp))
-                    ExtField("血型", bloodType, { bloodType = it }, picker = "血型")
+                    ExtField(s.profile.bloodType, bloodType, { bloodType = it }, picker = "bloodType")
                 }
                 Row(Modifier.fillMaxWidth()) {
-                    ExtField("年龄", age, { age = it.filter { c -> c.isDigit() }.take(3) }, number = true)
+                    ExtField(s.profile.age, age, { age = it.filter { c -> c.isDigit() }.take(3) }, number = true)
                     Spacer(Modifier.width(10.dp))
-                    ExtField("身高 (cm)", heightCm, { heightCm = it.filter { c -> c.isDigit() }.take(3) }, number = true)
+                    ExtField(s.profile.height, heightCm, { heightCm = it.filter { c -> c.isDigit() }.take(3) }, number = true)
                 }
                 Row(Modifier.fillMaxWidth()) {
-                    ExtField("体重 (kg)", weightKg, { weightKg = it.filter { c -> c.isDigit() }.take(3) }, number = true)
+                    ExtField(s.profile.weight, weightKg, { weightKg = it.filter { c -> c.isDigit() }.take(3) }, number = true)
                     Spacer(Modifier.width(10.dp))
-                    ExtField("民族", ethnicity, { ethnicity = it })
+                    ExtField(s.profile.ethnicity, ethnicity, { ethnicity = it })
                 }
                 Row(Modifier.fillMaxWidth()) {
-                    ExtField("学历", education, { education = it }, picker = "学历")
+                    ExtField(s.profile.education, education, { education = it }, picker = "education")
                     Spacer(Modifier.width(10.dp))
-                    ExtField("国家 / 地区", country, { country = it }, picker = "国家")
+                    ExtField(s.profile.countryRegion, country, { country = it }, picker = "country")
                 }
             }
         }
@@ -343,7 +344,7 @@ fun UserProfileEditor(updatePage: (value: PageType) -> Unit) {
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
                 )
-                Text("所在地区", fontSize = 13.sp, color = TextSecondary, modifier = Modifier.padding(top = 12.dp))
+                Text(s.profile.region, fontSize = 13.sp, color = TextSecondary, modifier = Modifier.padding(top = 12.dp))
                 Spacer(Modifier.height(4.dp))
 
                 @Composable fun RowScope.RegField(label: String, value: String, onValue: (String) -> Unit) {
@@ -359,19 +360,19 @@ fun UserProfileEditor(updatePage: (value: PageType) -> Unit) {
                 }
 
                 Row(Modifier.fillMaxWidth()) {
-                    RegField("省 / 州", province, { province = it })
+                    RegField(s.profile.provinceState, province, { province = it })
                     Spacer(Modifier.width(10.dp))
-                    RegField("市", city, { city = it })
+                    RegField(s.profile.city, city, { city = it })
                 }
                 Row(Modifier.fillMaxWidth()) {
-                    RegField("区 / 县", county, { county = it })
+                    RegField(s.profile.districtCounty, county, { county = it })
                     Spacer(Modifier.width(10.dp))
-                    RegField("镇 / 乡", town, { town = it })
+                    RegField(s.profile.townTownship, town, { town = it })
                 }
                 Row(Modifier.fillMaxWidth()) {
-                    RegField("村 / 社区", village, { village = it })
+                    RegField(s.profile.villageCommunity, village, { village = it })
                     Spacer(Modifier.width(10.dp))
-                    RegField("详细地址", homeAddress, { homeAddress = it })
+                    RegField(s.profile.detailAddress, homeAddress, { homeAddress = it })
                 }
             }
         }
@@ -387,7 +388,7 @@ fun UserProfileEditor(updatePage: (value: PageType) -> Unit) {
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
                 )
-                Text("更多", fontSize = 13.sp, color = TextSecondary, modifier = Modifier.padding(top = 12.dp))
+                Text(s.profile.more, fontSize = 13.sp, color = TextSecondary, modifier = Modifier.padding(top = 12.dp))
                 Spacer(Modifier.height(4.dp))
 
                 @Composable fun RowScope.ZodiacField() {
@@ -397,18 +398,18 @@ fun UserProfileEditor(updatePage: (value: PageType) -> Unit) {
                             .padding(vertical = 4.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .border(1.dp, LineColor, RoundedCornerShape(8.dp))
-                            .clickable { pickerTarget = "星座" }
+                            .clickable { pickerTarget = "zodiac" }
                             .padding(horizontal = 12.dp, vertical = 10.dp),
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(painter = painterResource(R.drawable.ic_zodiac), contentDescription = null, tint = TextSecondary, modifier = Modifier.size(13.dp))
                             Spacer(Modifier.width(3.dp))
-                            Text("星座", fontSize = 12.sp, color = TextSecondary)
+                            Text(s.profile.zodiac, fontSize = 12.sp, color = TextSecondary)
                         }
                         Spacer(Modifier.height(6.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                zodiac.ifEmpty { "请选择" },
+                                zodiac.ifEmpty { s.profile.choose },
                                 fontSize = 14.sp,
                                 color = if (zodiac.isEmpty()) TextSecondary else MaterialTheme.colorScheme.onSurface,
                                 maxLines = 1,
@@ -430,7 +431,7 @@ fun UserProfileEditor(updatePage: (value: PageType) -> Unit) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(painter = painterResource(R.drawable.ic_briefcase), contentDescription = null, tint = TextSecondary, modifier = Modifier.size(13.dp))
                                 Spacer(Modifier.width(3.dp))
-                                Text("职业", fontSize = 12.sp, color = TextSecondary)
+                                Text(s.profile.occupation, fontSize = 12.sp, color = TextSecondary)
                             }
                         },
                         singleLine = true,
@@ -487,40 +488,58 @@ fun UserProfileEditor(updatePage: (value: PageType) -> Unit) {
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
         ) {
-            Text(ctx.getString(R.string.action_save))
+            Text(s.common.save)
         }
         Spacer(Modifier.height(24.dp))
     }
 
     // ---- 单选弹窗 ----
     val options: Map<String, List<String>> = mapOf(
-        "性别" to listOf("男", "女", "保密"),
-        "血型" to listOf("A", "B", "AB", "O"),
-        "学历" to listOf("小学", "初中", "高中", "大专", "本科", "硕士", "博士"),
-        "星座" to listOf("白羊座", "金牛座", "双子座", "巨蟹座", "狮子座", "处女座", "天秤座", "天蝎座", "射手座", "摩羯座", "水瓶座", "双鱼座"),
+        "gender" to listOf(s.profile.male, s.profile.female, s.profile.confidential),
+        "bloodType" to listOf("A", "B", "AB", "O"),
+        "education" to listOf(
+            s.profile.educationPrimary,
+            s.profile.educationJunior,
+            s.profile.educationSenior,
+            s.profile.educationCollege,
+            s.profile.educationBachelor,
+            s.profile.educationMaster,
+            s.profile.educationDoctor,
+        ),
+        "zodiac" to listOf(
+            s.profile.zodiacAries, s.profile.zodiacTaurus, s.profile.zodiacGemini, s.profile.zodiacCancer,
+            s.profile.zodiacLeo, s.profile.zodiacVirgo, s.profile.zodiacLibra, s.profile.zodiacScorpio,
+            s.profile.zodiacSagittarius, s.profile.zodiacCapricorn, s.profile.zodiacAquarius, s.profile.zodiacPisces,
+        ),
     )
-    pickerTarget?.let { targetName ->
-        val opts = options[targetName].orEmpty()
-        val current = when (targetName) {
-            "性别" -> gender
-            "血型" -> bloodType
-            "星座" -> zodiac
+    pickerTarget?.let { target ->
+        val opts = options[target].orEmpty()
+        val current = when (target) {
+            "gender" -> gender
+            "bloodType" -> bloodType
+            "zodiac" -> zodiac
             else -> education
+        }
+        val pickerTitle = when (target) {
+            "gender" -> s.profile.gender
+            "bloodType" -> s.profile.bloodType
+            "zodiac" -> s.profile.zodiac
+            else -> s.profile.education
         }
         AlertDialog(
             onDismissRequest = { pickerTarget = null },
-            title = { Text(targetName) },
+            title = { Text(pickerTitle) },
             text = {
                 Column {
                     opts.forEach { opt ->
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth().clickable {
-                                when (targetName) {
-                                    "性别" -> gender = opt
-                                    "血型" -> bloodType = opt
-                                    "星座" -> zodiac = opt
-                                    "学历" -> education = opt
+                                when (target) {
+                                    "gender" -> gender = opt
+                                    "bloodType" -> bloodType = opt
+                                    "zodiac" -> zodiac = opt
+                                    "education" -> education = opt
                                 }
                                 pickerTarget = null
                             },
@@ -553,13 +572,13 @@ fun UserProfileEditor(updatePage: (value: PageType) -> Unit) {
         }
         AlertDialog(
             onDismissRequest = { showCountryPicker = false },
-            title = { Text("国家 / 地区") },
+            title = { Text(s.profile.countryRegion) },
             text = {
                 Column {
                     OutlinedTextField(
                         value = query,
                         onValueChange = { query = it },
-                        placeholder = { Text("搜索国家…", fontSize = 13.sp) },
+                        placeholder = { Text(s.profile.searchCountry, fontSize = 13.sp) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                     )

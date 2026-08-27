@@ -28,6 +28,7 @@ object FwmcSession {
 /** 登录/注册页：无帐号时直接进入创建流程（临时数字ID，密码可选）。 */
 @Composable
 fun LoginScreen() {
+    val s = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
     val scope = rememberCoroutineScope()
     var mode by remember { mutableStateOf("create") }
     var idOrName by remember { mutableStateOf("") }
@@ -52,19 +53,19 @@ fun LoginScreen() {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text("FWMC", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-        Text("帐号 · 钱包", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(s.login.title, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(28.dp))
         Card(shape = RoundedCornerShape(16.dp)) {
             Column(Modifier.padding(20.dp)) {
                 if (mode == "create") {
-                    OutlinedTextField(idOrName, { idOrName = it }, label = { Text("帐号名称") }, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(idOrName, { idOrName = it }, label = { Text(s.login.accountName) }, modifier = Modifier.fillMaxWidth())
                 } else {
                     var expanded by remember { mutableStateOf(false) }
                     Box {
                         OutlinedTextField(
                             value = idOrName,
                             onValueChange = { idOrName = it },
-                            label = { Text("选择帐号") },
+                            label = { Text(s.login.selectAccount) },
                             readOnly = true,
                             trailingIcon = { TextButton(onClick = { expanded = !expanded }) { Text(if (expanded) "▲" else "▼") } },
                             modifier = Modifier.fillMaxWidth(),
@@ -77,7 +78,7 @@ fun LoginScreen() {
                     }
                 }
                 Spacer(Modifier.height(12.dp))
-                OutlinedTextField(password, { password = it }, label = { Text("密码（无密码帐号可留空）") }, visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(password, { password = it }, label = { Text(s.login.passwordHint) }, visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(16.dp))
                 Button(
                     onClick = {
@@ -88,22 +89,22 @@ fun LoginScreen() {
                             if (r.optBoolean("success")) {
                                 FwmcSession.refresh()
                             } else {
-                                msg = r.optString("error", "操作失败")
+                                msg = r.optString("error", s.login.operationFailed)
                             }
                         }
                     },
                     enabled = idOrName.isNotBlank(),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text(if (mode == "create") "创建帐号" else "登录", fontSize = 15.sp) }
+                ) { Text(if (mode == "create") s.login.createAccount else s.login.submit, fontSize = 15.sp) }
                 Spacer(Modifier.height(8.dp))
                 TextButton(onClick = { mode = if (mode == "create") "login" else "create"; msg = "" }) {
-                    Text(if (mode == "create") "已有帐号？去登录" else "没有帐号？去注册")
+                    Text(if (mode == "create") s.login.toLogin else s.login.toRegister)
                 }
                 if (msg.isNotEmpty()) Text(msg, color = MaterialTheme.colorScheme.error, fontSize = 13.sp, textAlign = TextAlign.Center)
             }
         }
         Spacer(Modifier.height(16.dp))
-        Text("帐号为本地临时数字ID，可随时删除；\n钱包独立保存，删除帐号不影响钱包。", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+        Text(s.login.accountHint, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
     }
 }

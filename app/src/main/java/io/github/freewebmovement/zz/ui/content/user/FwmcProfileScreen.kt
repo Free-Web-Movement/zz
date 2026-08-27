@@ -71,11 +71,13 @@ private data class FwmcProfile(
  */
 @Composable
 fun FwmcProfileScreen() {
+    val s = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var profile by remember { mutableStateOf(FwmcProfile()) }
     var loaded by remember { mutableStateOf(false) }
     var statusMsg by remember { mutableStateOf("") }
+    var statusError by remember { mutableStateOf(false) }
     var saving by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -113,14 +115,17 @@ fun FwmcProfileScreen() {
         scope.launch {
             val bytes = readJpegBytes(context, uri, maxDim = 512)
             if (bytes == null) {
-                statusMsg = "读取图片失败"
+                statusError = true
+                statusMsg = s.fwmcProfile.loadImageError
                 return@launch
             }
-            statusMsg = "上传中..."
+            statusError = false
+            statusMsg = s.fwmcProfile.uploading
             val raw = FwmcApi.setAvatar(bytes)
             val ok = runCatching { JSONObject(raw).optBoolean("success", false) }.getOrDefault(false)
             if (ok) {
-                statusMsg = "头像已更新！"
+                statusError = false
+                statusMsg = s.fwmcProfile.avatarUploaded
                 // refresh embedded avatar
                 runCatching {
                     val obj = JSONObject(FwmcApi.getProfile())
@@ -128,7 +133,8 @@ fun FwmcProfileScreen() {
                     profile = profile.copy(avatarDataUri = p?.optString("avatar_path")?.ifEmpty { null })
                 }
             } else {
-                statusMsg = "头像上传失败"
+                statusError = true
+                statusMsg = s.profile.avatarUploadFailed
             }
         }
     }
@@ -139,12 +145,12 @@ fun FwmcProfileScreen() {
             .background(WxBg)
             .verticalScroll(rememberScrollState()),
     ) {
-        SectionCard(title = "我的资料") {
+        SectionCard(title = s.fwmcProfile.title) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(modifier = Modifier.clickable {
                     avatarPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                 }) {
-                    Avatar(name = profile.nickname.ifEmpty { "我" }, dataUri = profile.avatarDataUri, size = 64.dp)
+                    Avatar(name = profile.nickname.ifEmpty { s.mine.unnamed }, dataUri = profile.avatarDataUri, size = 64.dp)
                     Box(
                         modifier = Modifier
                             .size(22.dp)
@@ -157,7 +163,7 @@ fun FwmcProfileScreen() {
                     }
                 }
                 Text(
-                    text = "点击头像更换",
+                    text = s.fwmcProfile.clickAvatarToChange,
                     fontSize = 12.sp,
                     color = TextMuted,
                     modifier = Modifier.padding(start = 14.dp),
@@ -165,18 +171,18 @@ fun FwmcProfileScreen() {
             }
         }
 
-        SectionCard(title = "基本信息") {
-            ProfileField("昵称", profile.nickname) { profile = profile.copy(nickname = it) }
-            ProfileField("性别", profile.gender) { profile = profile.copy(gender = it) }
-            ProfileField("年龄", profile.age, number = true) { profile = profile.copy(age = it) }
-            ProfileField("国家", profile.country) { profile = profile.copy(country = it) }
-            ProfileField("民族", profile.ethnicity) { profile = profile.copy(ethnicity = it) }
-            ProfileField("血型", profile.bloodType) { profile = profile.copy(bloodType = it) }
-            ProfileField("身高 (cm)", profile.heightCm, number = true) { profile = profile.copy(heightCm = it) }
-            ProfileField("体重 (kg)", profile.weightKg, number = true) { profile = profile.copy(weightKg = it) }
-            ProfileField("学历", profile.education) { profile = profile.copy(education = it) }
-            ProfileField("家庭住址", profile.homeAddress) { profile = profile.copy(homeAddress = it) }
-            ProfileField("个人简介", profile.bio, singleLine = false) { profile = profile.copy(bio = it) }
+        SectionCard(title = s.fwmcProfile.basicInfo) {
+            ProfileField(s.fwmcProfile.nickname, profile.nickname) { profile = profile.copy(nickname = it) }
+            ProfileField(s.fwmcProfile.gender, profile.gender) { profile = profile.copy(gender = it) }
+            ProfileField(s.fwmcProfile.age, profile.age, number = true) { profile = profile.copy(age = it) }
+            ProfileField(s.fwmcProfile.country, profile.country) { profile = profile.copy(country = it) }
+            ProfileField(s.fwmcProfile.ethnicity, profile.ethnicity) { profile = profile.copy(ethnicity = it) }
+            ProfileField(s.fwmcProfile.bloodType, profile.bloodType) { profile = profile.copy(bloodType = it) }
+            ProfileField(s.fwmcProfile.height, profile.heightCm, number = true) { profile = profile.copy(heightCm = it) }
+            ProfileField(s.fwmcProfile.weight, profile.weightKg, number = true) { profile = profile.copy(weightKg = it) }
+            ProfileField(s.fwmcProfile.education, profile.education) { profile = profile.copy(education = it) }
+            ProfileField(s.fwmcProfile.homeAddress, profile.homeAddress) { profile = profile.copy(homeAddress = it) }
+            ProfileField(s.fwmcProfile.bio, profile.bio, singleLine = false) { profile = profile.copy(bio = it) }
         }
 
         Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
@@ -184,7 +190,8 @@ fun FwmcProfileScreen() {
                 enabled = !saving && loaded,
                 onClick = {
                     saving = true
-                    statusMsg = "保存中..."
+                    statusError = false
+                    statusMsg = s.fwmcProfile.saving
                     scope.launch {
                         val json = JSONObject().apply {
                             put("nickname", profile.nickname.trim().ifEmpty { JSONObject.NULL })
@@ -202,18 +209,19 @@ fun FwmcProfileScreen() {
                         val raw = FwmcApi.saveProfile(json.toString())
                         saving = false
                         val ok = runCatching { JSONObject(raw).optBoolean("success", false) }.getOrDefault(false)
-                        statusMsg = if (ok) "已保存！" else "错误：保存失败"
+                        statusError = !ok
+                        statusMsg = if (ok) s.fwmcProfile.saved else s.fwmcProfile.saveError
                     }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
             ) {
-                Text(if (saving) "保存中…" else "保存资料")
+                Text(if (saving) s.fwmcProfile.saving else s.fwmcProfile.saveProfile)
             }
             Text(
                 text = statusMsg,
                 fontSize = 12.sp,
-                color = if (statusMsg.startsWith("错误")) Color.Red else MaterialTheme.colorScheme.primary,
+                color = if (statusError) Color.Red else MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(start = 14.dp),
             )
         }

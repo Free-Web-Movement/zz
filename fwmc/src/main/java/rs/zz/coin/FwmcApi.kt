@@ -90,6 +90,8 @@ object FwmcApi {
     /** Set fwmc config values (JSON body). */
     suspend fun setConfig(jsonBody: String): String = io { apiSetConfig(jsonBody) }
 
+    suspend fun setLang(code: String): String = io { apiSetLang(code) }
+
     /** Add a seed server (ip, port); persists and connects immediately. */
     suspend fun addSeed(ip: String, port: Int): String =
         io { apiAddSeed(ip, port) }
@@ -168,6 +170,7 @@ object FwmcApi {
     private external fun apiGetGenesis(): String
     private external fun apiGetConfig(): String
     private external fun apiSetConfig(jsonBody: String): String
+    private external fun apiSetLang(code: String): String
     private external fun apiAddSeed(ip: String, port: Int): String
     private external fun apiDeleteSeed(ip: String, port: Int): String
     private external fun apiSetAvatar(image: ByteArray): String

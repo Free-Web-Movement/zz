@@ -62,6 +62,7 @@ fun ContactsContent() {
 
 @Composable
 private fun ContactList(onOpenChat: (String, String) -> Unit) {
+    val s = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
     val node = rememberFwmcNodeSnapshot()
     val running = node.running
     val scope = rememberCoroutineScope()
@@ -80,10 +81,10 @@ private fun ContactList(onOpenChat: (String, String) -> Unit) {
             modifier = Modifier.fillMaxWidth().background(CardBg).padding(horizontal = 14.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(text = "联系人", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary,
+            Text(text = s.contacts.title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary,
                 modifier = Modifier.weight(1f))
             Text(
-                text = "+ 添加",
+                text = "+ ${s.common.add}",
                 fontSize = 13.sp,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Medium,
@@ -92,9 +93,9 @@ private fun ContactList(onOpenChat: (String, String) -> Unit) {
         }
         when {
             !running -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("fwmc 节点未运行，请在「网络」页启动节点", color = TextSecondary)
+                Text(s.contacts.nodeNotRunning, color = TextSecondary)
             }
-            contacts.isEmpty() -> EmptyHint("暂无联系人，点击右上角添加")
+            contacts.isEmpty() -> EmptyHint(s.contacts.noContacts)
             else -> LazyColumn(modifier = Modifier.fillMaxSize()) {
                 items(contacts, key = { it.address }) { c ->
                     Row(
@@ -108,7 +109,7 @@ private fun ContactList(onOpenChat: (String, String) -> Unit) {
                         Avatar(name = c.name.ifEmpty { c.address }, dataUri = null, size = 42.dp)
                         Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
                             Text(
-                                text = c.name.ifEmpty { "节点 ${c.address.take(8)}.." },
+                                text = c.name.ifEmpty { s.contacts.nodeTemplate.format(c.address.take(8)) },
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = TextPrimary,
@@ -118,7 +119,7 @@ private fun ContactList(onOpenChat: (String, String) -> Unit) {
                         }
                         UnreadBadge(c.unread)
                         Text(
-                            text = "删除",
+                            text = s.common.delete,
                             fontSize = 12.sp,
                             color = TextSecondary,
                             modifier = Modifier
@@ -148,8 +149,8 @@ private fun ContactList(onOpenChat: (String, String) -> Unit) {
     deleteTarget?.let { target ->
         AlertDialog(
             onDismissRequest = { deleteTarget = null },
-            title = { Text("删除联系人") },
-            text = { Text("确定删除 ${target.name.ifEmpty { target.address.take(12) + ".." }} ？") },
+            title = { Text(s.contacts.deleteContact) },
+            text = { Text(s.contacts.deleteConfirm.format(target.name.ifEmpty { target.address.take(12) + ".." })) },
             confirmButton = {
                 TextButton(onClick = {
                     deleteTarget = null
@@ -157,10 +158,10 @@ private fun ContactList(onOpenChat: (String, String) -> Unit) {
                         FwmcApi.deleteContact(target.address)
                         refresh++
                     }
-                }) { Text("删除", color = androidx.compose.material3.MaterialTheme.colorScheme.error) }
+                }) { Text(s.common.delete, color = androidx.compose.material3.MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
-                TextButton(onClick = { deleteTarget = null }) { Text("取消") }
+                TextButton(onClick = { deleteTarget = null }) { Text(s.common.cancel) }
             },
         )
     }

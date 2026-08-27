@@ -25,6 +25,7 @@ fun SessionTopBar(
     selectedTab: TabType,
     stacked: ContentType,
 ) {
+    val s = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
     CenterAlignedTopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = io.github.freewebmovement.zz.ui.theme.CardBg,
@@ -40,7 +41,7 @@ fun SessionTopBar(
                 if (stacked == ContentType.Stacked) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.back)
+                        contentDescription = s.common.back
                     )
                 }
             }
@@ -49,13 +50,13 @@ fun SessionTopBar(
             IconButton(onClick = { /* do something */ }) {
                 Icon(
                     imageVector = Icons.Filled.Search,
-                    contentDescription = stringResource(R.string.search)
+                    contentDescription = s.common.search
                 )
             }
             IconButton(onClick = { /* do something */ }) {
                 Icon(
                     imageVector = Icons.Filled.AddCircle,
-                    contentDescription = stringResource(R.string.add)
+                    contentDescription = s.common.add
                 )
             }
         }

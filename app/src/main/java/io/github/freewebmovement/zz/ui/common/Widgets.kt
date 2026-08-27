@@ -143,11 +143,15 @@ fun StatusDot(active: Boolean, size: Dp = 8.dp) {
 }
 
 @Composable
-fun StatusText(active: Boolean, activeLabel: String = "活跃", inactiveLabel: String = "离线") {
+fun StatusText(active: Boolean, activeLabel: String? = null, inactiveLabel: String? = null) {
+    val s = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
     Row(verticalAlignment = Alignment.CenterVertically) {
         StatusDot(active)
         Text(
-            text = if (active) activeLabel else inactiveLabel,
+            text = when {
+                active -> activeLabel ?: s.common.active
+                else -> inactiveLabel ?: s.common.offline
+            },
             fontSize = 12.sp,
             color = if (active) OnlineGreen else TextMuted,
             modifier = Modifier.padding(start = 4.dp),
