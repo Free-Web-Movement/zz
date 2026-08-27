@@ -527,13 +527,14 @@ private fun WeightTableRow(updatePage: (value: PageType) -> Unit) {
 @Composable
 fun WeightTableScreen(onBack: () -> Unit = {}) {
     val rows = listOf(
-        Triple("公网 IPv4", "10,000 /个", "公网上行可达的 IPv4 地址"),
+        Triple("公网 IPv4", "5,000 /个", "公网上行可达的 IPv4 地址（核心资源）"),
         Triple("内网 IPv4", "0", "NAT 内网地址不计入权重"),
-        Triple("公网 IPv6", "100 /个", "公网 IPv6 地址"),
-        Triple("存储 (TB)", "1 + TB × 100", "1 TB ≈ 101 权重"),
-        Triple("带宽 (Gbps)", "1 + Gbps × 10", "1 Gbps ≈ 11 权重"),
-        Triple("CPU (核×GHz)", "1 + 核×50 + GHz×10", "4核2GHz ≈ 221 权重"),
-        Triple("API 请求数/天", "1 + 千次×10", "1000次/天 ≈ 11 权重"),
+        Triple("公网 IPv6", "500 /个", "公网 IPv6 地址（弱于 IPv4）"),
+        Triple("存储 (TB)", "1 + TB × 200", "1 TB ≈ 201 权重"),
+        Triple("带宽 (Gbps)", "1 + Gbps × 50", "1 Gbps ≈ 51 权重"),
+        Triple("CPU（实际消耗）", "1 分钟 ≈ 1 权重", "读 /proc 实测进程 CPU 时间"),
+        Triple("内存（实际占用）", "1 GB ≈ 100 权重", "读 /proc 实测进程物理内存"),
+        Triple("API 请求数/天", "1 + 千次×20", "1000次/天 ≈ 21 权重"),
     )
     Column(
         modifier = Modifier

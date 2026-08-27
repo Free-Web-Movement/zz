@@ -569,12 +569,16 @@ fun WeightsScreen(onBack: () -> Unit = {}) {
                     Text(totalWeight, fontSize = 18.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                 }
                 Divider()
-                WeightDetailRow("公网 IP", wr.optString("public_ip_count", "0"), wr.optString("public_ip_weight", "0"))
+                WeightDetailRow("公网 IPv4", wr.optString("public_ip_count", "0"), wr.optString("public_ip_weight", "0"))
                 WeightDetailRow("私网 IP", wr.optString("private_ip_count", "0"), wr.optString("private_ip_weight", "0"))
                 WeightDetailRow("公网 IPv6", wr.optString("public_ipv6_count", "0"), wr.optString("public_ipv6_weight", "0"))
                 WeightDetailRow("存储", "${wr.optDouble("storage_tb", 0.0)} TB", wr.optString("storage_weight", "0"))
                 WeightDetailRow("带宽", "${wr.optDouble("bandwidth_gbps", 0.0)} Gbps", wr.optString("bandwidth_weight", "0"))
-                WeightDetailRow("CPU", "${wr.optLong("cpu_cores", 0)}核 ${wr.optDouble("cpu_ghz", 0.0)}GHz", wr.optString("cpu_weight", "0"))
+                val cpuTicks = wr.optLong("cpu_time_ticks", 0)
+                val cpuMin = cpuTicks / 6000
+                WeightDetailRow("CPU 时间", "$cpuMin 分钟", wr.optString("cpu_weight", "0"))
+                val memKb = wr.optLong("memory_kb", 0)
+                WeightDetailRow("内存", "${memKb / 1024} MB", wr.optString("memory_weight", "0"))
                 WeightDetailRow("API", "${wr.optLong("api_requests", 0)} 次/天", wr.optString("api_weight", "0"))
                 Divider()
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
