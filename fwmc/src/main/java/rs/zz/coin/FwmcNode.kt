@@ -42,7 +42,7 @@ class FwmcNode {
 
     companion object {
         init {
-            System.loadLibrary("zz_rs")
+            System.loadLibrary("fwmc")
         }
     }
 }

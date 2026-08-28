@@ -192,6 +192,6 @@ object FwmcApi {
     private external fun apiBindWallet(name: String): String
 
     init {
-        System.loadLibrary("zz_rs")
+        System.loadLibrary("fwmc")
     }
 }

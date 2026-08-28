@@ -22,7 +22,7 @@ class Address() : IAddress {
 
     companion object {
         init {
-            System.loadLibrary("zz_rs") // Load your native library
+            System.loadLibrary("fwmc") // Load your native library
         }
     }
 
