@@ -7,9 +7,11 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
 import androidx.core.app.NotificationCompat
+import io.github.freewebmovement.fwmc.R
 import io.github.freewebmovement.peer.system.KVSettings
 import io.github.freewebmovement.peer.system.Preference
 import com.russhwolf.settings.Settings
@@ -45,6 +47,7 @@ class FwmcService : Service() {
 
     private fun startNode() {
         acquireWakeLock()
+        ensureBatteryOptimizationExempt()
         startForeground(NOTIFICATION_ID, buildNotification("FWMC 节点运行中"))
 
         val dataDir = MyApp.getStoragePath(applicationContext)
@@ -52,9 +55,38 @@ class FwmcService : Service() {
         val port = if (settings.network.port > 1024) settings.network.port else (1025..65535).random()
 
         val ctrl = FwmcNodeController(dataDir)
-        ctrl.start(port)
+        val bound = ctrl.start(port)
         controller = ctrl
         MyApp.getApp().setFwmc(ctrl)
+        if (bound > 0) {
+            notifyText("FWMC 节点运行中 · 端口 $bound")
+        } else {
+            notifyText("FWMC 节点启动失败")
+        }
+    }
+
+    /**
+     * 确保本 app 在「忽略电池优化」白名单内，避免 Doze 模式下节点被挂起。
+     * 若未豁免，尝试通过系统弹窗请求（需用户确认；部分厂商会直接拒绝后台拉起）。
+     */
+    private fun ensureBatteryOptimizationExempt() {
+        val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+        val pkg = packageName
+        if (pm.isIgnoringBatteryOptimizations(pkg)) return
+        try {
+            val intent = Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                data = android.net.Uri.parse("package:$pkg")
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(intent)
+        } catch (e: Exception) {
+            // 部分 ROM 禁止后台弹窗，忽略
+        }
+    }
+
+    private fun notifyText(text: String) {
+        val nm = getSystemService(NotificationManager::class.java)
+        nm.notify(NOTIFICATION_ID, buildNotification(text))
     }
 
     private fun stopNode() {
@@ -87,9 +119,11 @@ class FwmcService : Service() {
         val channel = NotificationChannel(
             CHANNEL_ID,
             "FWMC 节点",
-            NotificationManager.IMPORTANCE_LOW
+            NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
             description = "FWMC 节点后台运行通知"
+            setSound(null, null)
+            enableVibration(false)
         }
         val nm = getSystemService(NotificationManager::class.java)
         nm.createNotificationChannel(channel)
@@ -107,14 +141,17 @@ class FwmcService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("FreeWebMovement")
             .setContentText(text)
-            .setSmallIcon(android.R.drawable.ic_menu_manage)
+            .setSmallIcon(R.drawable.ic_stat_fwmc)
+            .setColor(0xFF1E88E5.toInt())
             .setOngoing(true)
+            .setShowWhen(true)
             .addAction(android.R.drawable.ic_media_pause, "停止", stopPending)
             .build()
     }
 
     companion object {
-        private const val CHANNEL_ID = "fwmc_service"
+        // v2：提高通道重要性到 DEFAULT 以在状态栏显示图标（旧 fwmc_service 通道保留 LOW，无法覆盖）
+        private const val CHANNEL_ID = "fwmc_service_v2"
         private const val NOTIFICATION_ID = 1
         private const val ACTION_STOP = "io.github.freewebmovement.fwmc.STOP"
 

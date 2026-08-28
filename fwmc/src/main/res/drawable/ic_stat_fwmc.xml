@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- 通知/状态栏小图标：白色剪影（仅 alpha 通道，系统着色）。
+         状态栏显示白色剪影；通知面板由 setColor() 提供彩色芯片背景。 -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12,2a10,10 0 1,0 0,20a10,10 0 1,0 0,-20zM12,4.5a7.5,7.5 0 1,1 0,15a7.5,7.5 0 1,1 0,-15z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12,8.5a3.5,3.5 0 1,0 0,7a3.5,3.5 0 1,0 0,-7z" />
+</vector>
