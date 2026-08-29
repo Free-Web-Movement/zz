@@ -334,6 +334,11 @@ val StringsEn = AppStrings(
         status = "Status",
         localListen = "local:listen ← remote:connect",
         localOutbound = "local:connect → remote:listen",
+        chat = "Chat",
+        nodes = "Other nodes (%d)",
+        nodesNone = "No other nodes",
+        connected = "Connected",
+        disconnected = "Disconnected",
     ),
     fwmcProfile = FwmcProfileStrings(
         title = "My profile",

@@ -335,6 +335,11 @@ val StringsZh = AppStrings(
         status = "状态",
         localListen = "本地:侦听 ← 远程:连出",
         localOutbound = "本地:连出 → 远程:侦听",
+        chat = "聊天",
+        nodes = "其它节点 (%d)",
+        nodesNone = "暂无其它节点",
+        connected = "已连接",
+        disconnected = "未连接",
     ),
     fwmcProfile = FwmcProfileStrings(
         title = "我的资料",

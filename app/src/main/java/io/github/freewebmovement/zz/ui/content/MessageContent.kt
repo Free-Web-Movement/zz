@@ -205,8 +205,8 @@ private fun formatListTime(epochSec: Long, yesterdayLabel: String, listDatePatte
 // ============================================================
 
 @Composable
-fun MessageContent() {
-    var selected by remember { mutableStateOf<Pair<String, String>?>(null) }
+fun MessageContent(initialChat: Pair<String, String>? = null) {
+    var selected by remember { mutableStateOf(initialChat) }
     if (selected == null) {
         SessionList(onOpen = { addr, name -> selected = addr to name })
     } else {

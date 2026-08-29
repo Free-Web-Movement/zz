@@ -20,6 +20,7 @@ fun TabView() {
     var selectedTab by remember { mutableStateOf(TabType.Sessions) }
     var stacked by remember { mutableStateOf(ContentType.NonStacked) }
     var page by remember { mutableStateOf(PageType.MineMain) }
+    var chatRequest by remember { mutableStateOf<Pair<String, String>?>(null) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         TopBar(
@@ -34,6 +35,11 @@ fun TabView() {
             selectedTab = selectedTab,
             modifier = Modifier.weight(1f),
             page = page,
+            pendingChat = chatRequest,
+            onOpenChat = { addr, name ->
+                chatRequest = addr to name
+                selectedTab = TabType.Sessions
+            },
             updater = { vPage, vStacked ->
                 stacked = vStacked
                 page = vPage
@@ -43,6 +49,7 @@ fun TabView() {
             selectedTab = selectedTab,
             onClickTab = {
                 selectedTab = it
+                chatRequest = null
                 stacked = ContentType.NonStacked
                 page = when(selectedTab) {
                     TabType.Mine -> PageType.MineMain

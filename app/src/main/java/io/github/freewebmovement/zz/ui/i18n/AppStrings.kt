@@ -376,6 +376,11 @@ data class ConnectionsStrings(
     val status: String,
     val localListen: String,
     val localOutbound: String,
+    val chat: String,
+    val nodes: String,
+    val nodesNone: String,
+    val connected: String,
+    val disconnected: String,
 )
 
 /** fwmc 个人资料 */

@@ -14,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,15 +47,30 @@ import org.json.JSONObject
 import rs.zz.coin.FwmcApi
 
 private data class PeerConn(
-    val direction: String,
-    val localAddr: String,
-    val remoteAddr: String,
     val nodeId: String,
+    val ip: String,
+    val allIps: List<String>,
+    val inboundRemotePort: Int,
+    val inboundLocalPort: Int,
+    val outboundRemotePort: Int,
+    val outboundLocalPort: Int,
+    val connected: Boolean,
+) {
+    val bidirectional: Boolean get() = connected
+}
+
+/** 一个已知（发现到的）节点，来源 `getNodes()`；address 可作为聊天对象 contact。 */
+private data class NodeRow(
+    val address: String,
+    val ip: String,
+    val isConnected: Boolean,
 )
 
-/** 按 node_id 聚合后的一条连接记录。 */
+/** 按对端节点聚合后的一条连接记录。 */
 private data class ConnRow(
     val nodeId: String,
+    val ip: String,
+    val allIps: List<String>,
     val outboundLocal: String,
     val outboundRemote: String,
     val inboundLocal: String,
@@ -65,9 +81,10 @@ private data class ConnRow(
 private const val PAGE_SIZE = 20
 
 @Composable
-fun ConnectionsScreen(onBack: () -> Unit = {}) {
+fun ConnectionsScreen(onBack: () -> Unit = {}, onChat: (String, String) -> Unit = { _, _ -> }) {
     val s = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
     var rows by remember { mutableStateOf<List<ConnRow>>(emptyList()) }
+    var nodes by remember { mutableStateOf<List<NodeRow>>(emptyList()) }
     var currentPage by remember { mutableIntStateOf(0) }
     var errMsg by remember { mutableStateOf("") }
 
@@ -77,16 +94,25 @@ fun ConnectionsScreen(onBack: () -> Unit = {}) {
                 val obj = JSONObject(FwmcApi.getConnections())
                 if (obj.optBoolean("success", false)) {
                     errMsg = ""
-                    val inbound = parsePeers(obj.optJSONArray("inbound"))
-                    val outbound = parsePeers(obj.optJSONArray("outbound"))
-                    rows = buildRows(inbound, outbound)
+                    val peers = parsePeers(obj.optJSONArray("peers"))
+                    rows = peers.map { it.toConnRow() }
                 } else {
                     errMsg = obj.optString("error", s.connections.loadFailed)
+                }
+            }
+            runCatching {
+                val no = JSONObject(FwmcApi.getNodes())
+                if (no.optBoolean("success", false)) {
+                    nodes = parseNodes(no.optJSONArray("nodes"))
                 }
             }
             if (rows.isEmpty()) rows = demoRows()
             delay(5000)
         }
+    }
+
+    val chatAll = { addr: String ->
+        if (addr.isNotEmpty()) onChat(addr, shortName(addr))
     }
 
     val totalPages = maxOf(1, (rows.size + PAGE_SIZE - 1) / PAGE_SIZE)
@@ -162,6 +188,15 @@ fun ConnectionsScreen(onBack: () -> Unit = {}) {
                                 color = if (row.bidirectional) OnlineGreen else TextMuted,
                                 modifier = Modifier.padding(start = 4.dp),
                             )
+                            if (row.nodeId.isNotEmpty()) {
+                                IconButton(onClick = { chatAll(row.nodeId) }) {
+                                    Icon(
+                                        Icons.Filled.Send,
+                                        contentDescription = s.connections.chat,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                    )
+                                }
+                            }
                         }
                     }
                     Text(
@@ -170,6 +205,14 @@ fun ConnectionsScreen(onBack: () -> Unit = {}) {
                         color = TextMuted,
                         modifier = Modifier.padding(bottom = 4.dp),
                     )
+                    if (row.ip.isNotEmpty()) {
+                        Text(
+                            text = row.ip,
+                            fontSize = 9.sp,
+                            color = TextSecondary,
+                            modifier = Modifier.padding(bottom = 2.dp),
+                        )
+                    }
                 }
             }
 
@@ -205,6 +248,47 @@ fun ConnectionsScreen(onBack: () -> Unit = {}) {
                 }
             }
         }
+        SectionCard(title = s.connections.nodes.format(nodes.size)) {
+            if (nodes.isEmpty()) {
+                Text(
+                    s.connections.nodesNone,
+                    fontSize = 13.sp,
+                    color = TextMuted,
+                    modifier = Modifier.padding(vertical = 16.dp),
+                )
+            } else {
+                nodes.forEach { n ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            MonoText(text = shortAddr(n.address), fontSize = 10, color = TextPrimary)
+                            Text(
+                                text = n.ip.ifEmpty { "—" },
+                                fontSize = 9.sp,
+                                color = TextMuted,
+                            )
+                        }
+                        StatusDot(active = n.isConnected)
+                        Text(
+                            text = if (n.isConnected) s.connections.connected else s.connections.disconnected,
+                            fontSize = 10.sp,
+                            color = if (n.isConnected) OnlineGreen else TextMuted,
+                            modifier = Modifier.padding(start = 4.dp, end = 4.dp),
+                        )
+                        IconButton(onClick = { chatAll(n.address) }) {
+                            Icon(
+                                Icons.Filled.Send,
+                                contentDescription = s.connections.chat,
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                    }
+                    Divider()
+                }
+            }
+        }
         Spacer(modifier = Modifier.height(24.dp))
     }
 }
@@ -214,83 +298,102 @@ private fun parsePeers(arr: JSONArray?): List<PeerConn> {
     val list = mutableListOf<PeerConn>()
     for (i in 0 until arr.length()) {
         val o = arr.getJSONObject(i)
+        val nodeId = o.optString("node_id", "")
+        if (nodeId.isEmpty()) continue
+        val allIps = mutableListOf<String>()
+        o.optJSONArray("all_ips")?.let { a ->
+            for (j in 0 until a.length()) allIps.add(a.getString(j))
+        }
+        val inbound = o.optJSONObject("inbound")
+        val outbound = o.optJSONObject("outbound")
         list.add(
             PeerConn(
-                direction = o.optString("direction", ""),
-                localAddr = o.optString("local_addr", ""),
-                remoteAddr = o.optString("addr", ""),
-                nodeId = o.optString("node_id", ""),
+                nodeId = nodeId,
+                ip = o.optString("ip", ""),
+                allIps = allIps,
+                inboundRemotePort = inbound?.optInt("remotePort", 0) ?: 0,
+                inboundLocalPort = inbound?.optInt("localPort", 0) ?: 0,
+                outboundRemotePort = outbound?.optInt("remotePort", 0) ?: 0,
+                outboundLocalPort = outbound?.optInt("localPort", 0) ?: 0,
+                connected = o.optBoolean("connected", false),
             ),
         )
     }
     return list
 }
 
-/**
- * 按 node_id 聚合连入/连出，判断双向连接是否成立。
- *
- * 连出: 本地IP:连出端口 → 远程IP:侦听端口  (local_addr = 本地连出, addr = 远程侦听)
- * 连入: 本地IP:侦听端口 ← 远程IP:连出端口  (local_addr = 本地侦听, addr = 远程连出)
- *
- * 双向 = 同一 node_id 同时有连出和连入。
- */
-private fun buildRows(inbound: List<PeerConn>, outbound: List<PeerConn>): List<ConnRow> {
-    val byNode = mutableMapOf<String, ConnRow>()
-    for (p in outbound) {
-        if (p.nodeId.isEmpty()) continue
-        val cur = byNode.getOrPut(p.nodeId) {
-            ConnRow(p.nodeId, "", "", "", "", false)
-        }
-        byNode[p.nodeId] = cur.copy(
-            outboundLocal = p.localAddr,
-            outboundRemote = p.remoteAddr,
-        )
-    }
-    for (p in inbound) {
-        if (p.nodeId.isEmpty()) continue
-        val cur = byNode.getOrPut(p.nodeId) {
-            ConnRow(p.nodeId, "", "", "", "", false)
-        }
-        byNode[p.nodeId] = cur.copy(
-            inboundLocal = p.localAddr,
-            inboundRemote = p.remoteAddr,
-        )
-    }
-    return byNode.values
-        .map { it.copy(bidirectional = it.outboundRemote.isNotEmpty() && it.inboundRemote.isNotEmpty()) }
-        .sortedBy { extractIp(it.outboundRemote.ifEmpty { it.inboundRemote }) }
-}
-
-private fun extractIp(addr: String): String {
-    val idx = addr.lastIndexOf(':')
-    return if (idx > 0) addr.substring(0, idx) else addr
-}
+/** 把统一 `peers` 记录转为展示行：端口对 + ip + connected 状态。 */
+private fun PeerConn.toConnRow(): ConnRow = ConnRow(
+    nodeId = nodeId,
+    ip = ip,
+    allIps = allIps,
+    outboundLocal = if (outboundLocalPort > 0) outboundLocalPort.toString() else "",
+    outboundRemote = if (outboundRemotePort > 0) outboundRemotePort.toString() else "",
+    inboundLocal = if (inboundLocalPort > 0) inboundLocalPort.toString() else "",
+    inboundRemote = if (inboundRemotePort > 0) inboundRemotePort.toString() else "",
+    bidirectional = connected,
+)
 
 private fun shortAddr(addr: String, keep: Int = 14): String =
     if (addr.length <= keep * 2) addr else addr.take(keep) + ".." + addr.takeLast(6)
+
+/** 短地址作为聊天会话显示名。 */
+private fun shortName(addr: String): String = shortAddr(addr, 8)
+
+/** 解析 `getNodes()` 返回的其它节点列表；address 为 FWMC 节点地址，可作聊天对象。 */
+private fun parseNodes(arr: JSONArray?): List<NodeRow> {
+    arr ?: return emptyList()
+    val list = mutableListOf<NodeRow>()
+    for (i in 0 until arr.length()) {
+        val o = arr.getJSONObject(i)
+        val address = o.optString("address", "")
+        if (address.isEmpty()) continue
+        val ips = mutableListOf<String>()
+        o.optJSONArray("intranet_ips").let { a ->
+            if (a != null) for (j in 0 until a.length()) ips.add(a.getString(j))
+        }
+        o.optJSONArray("wan_ips").let { a ->
+            if (a != null) for (j in 0 until a.length()) ips.add(a.getString(j))
+        }
+        list.add(
+            NodeRow(
+                address = address,
+                ip = ips.joinToString(" "),
+                isConnected = o.optBoolean("is_connected", false),
+            ),
+        )
+    }
+    return list
+}
 
 /** 演示数据：模拟 3 个远程节点，2 个双向成功、1 个单向失败。 */
 private fun demoRows(): List<ConnRow> = listOf(
     ConnRow(
         nodeId = "FWMC:Zz:6Hk3Qp9Tf2VxLmRbNc1JdXa4ZsE8Wy0uIgKvOe5Tn",
-        outboundLocal = "192.168.3.27:54321",
-        outboundRemote = "10.0.0.5:20260",
-        inboundLocal = "192.168.3.27:20260",
-        inboundRemote = "10.0.0.5:51234",
+        ip = "10.0.0.5:20260",
+        allIps = listOf("10.0.0.5:20260", "192.168.1.5:20260"),
+        outboundLocal = "54321",
+        outboundRemote = "20260",
+        inboundLocal = "20260",
+        inboundRemote = "51234",
         bidirectional = true,
     ),
     ConnRow(
         nodeId = "FWMC:Zz:7AbC8dEfGhIjKlMnOpQrStUvWxYz1234567890AbCdEfGh",
-        outboundLocal = "192.168.3.27:55678",
-        outboundRemote = "10.0.0.8:20260",
-        inboundLocal = "192.168.3.27:20260",
-        inboundRemote = "10.0.0.8:50001",
+        ip = "10.0.0.8:20260",
+        allIps = listOf("10.0.0.8:20260"),
+        outboundLocal = "55678",
+        outboundRemote = "20260",
+        inboundLocal = "20260",
+        inboundRemote = "50001",
         bidirectional = true,
     ),
     ConnRow(
         nodeId = "FWMC:Zz:3MnBvCxZaLkQwErTyUiOpAsDfGhJkLzxCvBnM1234567890",
-        outboundLocal = "192.168.3.27:60123",
-        outboundRemote = "172.16.5.9:20260",
+        ip = "172.16.5.9:20260",
+        allIps = listOf("172.16.5.9:20260"),
+        outboundLocal = "60123",
+        outboundRemote = "20260",
         inboundLocal = "",
         inboundRemote = "",
         bidirectional = false,

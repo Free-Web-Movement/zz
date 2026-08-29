@@ -14,7 +14,11 @@ import io.github.freewebmovement.zz.ui.content.user.ProfileEditor
 import io.github.freewebmovement.zz.ui.content.user.UserProfileEditor
 
 @Composable
-fun MinContent(page: PageType, updater: (page: PageType, value: ContentType) -> Unit) {
+fun MinContent(
+    page: PageType,
+    updater: (page: PageType, value: ContentType) -> Unit,
+    onOpenChat: (String, String) -> Unit = { _, _ -> },
+) {
     when (page) {
         PageType.MineMain -> MineMain {
             updater(it, ContentType.Stacked)
@@ -50,6 +54,7 @@ fun MinContent(page: PageType, updater: (page: PageType, value: ContentType) -> 
         )
         PageType.MineConnections -> ConnectionsScreen(
             onBack = { updater(PageType.MineMain, ContentType.NonStacked) },
+            onChat = onOpenChat,
         )
         else -> {
         }
@@ -59,13 +64,11 @@ fun MinContent(page: PageType, updater: (page: PageType, value: ContentType) -> 
 @Preview
 @Composable
 private fun Preview() {
-    MinContent(PageType.MineMain) {_,_ ->
-    }
+    MinContent(PageType.MineMain, { _, _ -> })
 }
 
 @Preview(locale = "en")
 @Composable
 private fun Preview_en() {
-    MinContent(PageType.MineMain) {_,_ ->
-    }
+    MinContent(PageType.MineMain, { _, _ -> })
 }

@@ -14,14 +14,16 @@ fun Tabs(
     modifier: Modifier = Modifier,
     selectedTab: TabType,
     page: PageType,
+    pendingChat: Pair<String, String>? = null,
+    onOpenChat: (String, String) -> Unit = { _, _ -> },
     updater:(page: PageType, value: ContentType) -> Unit
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         when (selectedTab) {
-            TabType.Sessions -> MessageContent()
+            TabType.Sessions -> MessageContent(initialChat = pendingChat)
             TabType.Contacts -> ContactsContent()
             TabType.Peers -> PeerContent()
-            TabType.Mine -> MinContent(page, updater)
+            TabType.Mine -> MinContent(page, updater, onOpenChat)
         }
     }
 }
