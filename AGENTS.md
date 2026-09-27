@@ -15,6 +15,30 @@ Rust Core（`zz-rust-mod-crypto-currency`）通过 JNI（`rs.zz.coin.FwmcApi`）
   aex 只做通用 P2P 传输。Android 只通过 `FwmcApi` JNI 调用 fwmc，不得绕过后端逻辑。
 - 详见 Rust 仓库 `AGENTS.md` 与 `docs/P2P_NETWORK_LAYERING.md`（`zz-rust-mod-crypto-currency/`）。
 
+## epoch 切换逻辑（与 Rust 仓库同步约定）
+
+权威定义在 Rust 仓库 `zz-rust-mod-crypto-currency/AGENTS.md` → `### epoch 切换逻辑`，
+细则见其 `docs/EPOCH_VS_TICK_WITNESS.md` 与 `docs/EPOCH_DISTRIBUTION_CONSENSUS.md`。
+**改动任一侧都必须同步另一侧。**
+
+要点（Android 侧不得违背）：
+
+1. **`epoch` = 已成功结算次数**。`0` = 从未结算；结算 1 次后为 `1`，依此类推。
+   它是**节点本地计数器**，**不参与节点间同步**——手机与服务器的 epoch 各自独立推进，
+   只要各自满足切换条件就会各自 +1，**不要**把两端 epoch 不一致当成 bug，
+   也不要在 Android 侧做任何 epoch 补偿/对齐逻辑。
+2. **正在收集证据的 epoch = `epoch + 1`**（待结算 epoch）。`tick_rings` 快照、
+   `witness_tick_record`、进行中的活动环都用这个编号。
+3. **生产 tick = 15 分钟 / 96 tick 每天**，只在 **00:00（UTC+8）** 切换，
+   墙上时间与 epoch 编号无关，禁止用 slot 推导 epoch。
+4. **切换需三条同时满足**：有见证者 ≥1、覆盖 ≥23 小时（≥92 个 tick 环）、
+   每个 tick 都有完整见证环。任一不满足则 epoch 不变、不分币。
+5. **每 tick 轮转**：活动环 → 静态环，候选环 → 活动环，并记录该 tick 的静态环快照。
+6. **零点执行序列（不可跳步/换序）**：保存静态环到 witness rings 列表 →
+   **币的分发（同步区块链生成 + 全网互验，通过才保存）** → 删除 witness rings 记录。
+7. **分币不是本地写库**：要求全网相互校验后才落库（当前 Rust 侧尚未实现，
+   见差距清单）。Android 侧展示的 epoch/分币结果以 fwmc 返回为准，不得本地推算。
+
 ## 连接列表数据结构（`FwmcApi.getConnections()` → `peers`）
 
 服务端 `/api/connections` 返回统一对端连接数组 `peers`，每个对端节点一条记录：
