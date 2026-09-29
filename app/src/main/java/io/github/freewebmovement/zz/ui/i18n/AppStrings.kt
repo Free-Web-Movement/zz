@@ -381,6 +381,7 @@ data class ConnectionsStrings(
     val nodesNone: String,
     val connected: String,
     val disconnected: String,
+    val allIps: String,
 )
 
 /** fwmc 个人资料 */

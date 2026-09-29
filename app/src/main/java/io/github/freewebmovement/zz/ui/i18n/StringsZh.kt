@@ -340,6 +340,7 @@ val StringsZh = AppStrings(
         nodesNone = "暂无其它节点",
         connected = "已连接",
         disconnected = "未连接",
+        allIps = "全部 IP",
     ),
     fwmcProfile = FwmcProfileStrings(
         title = "我的资料",

@@ -339,6 +339,7 @@ val StringsEn = AppStrings(
         nodesNone = "No other nodes",
         connected = "Connected",
         disconnected = "Disconnected",
+        allIps = "All IPs",
     ),
     fwmcProfile = FwmcProfileStrings(
         title = "My profile",

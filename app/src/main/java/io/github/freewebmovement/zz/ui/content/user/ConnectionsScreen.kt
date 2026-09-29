@@ -14,7 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -48,6 +48,7 @@ import rs.zz.coin.FwmcApi
 
 private data class PeerConn(
     val nodeId: String,
+    val walletAddr: String,
     val ip: String,
     val allIps: List<String>,
     val inboundRemotePort: Int,
@@ -69,6 +70,7 @@ private data class NodeRow(
 /** 按对端节点聚合后的一条连接记录。 */
 private data class ConnRow(
     val nodeId: String,
+    val walletAddr: String,
     val ip: String,
     val allIps: List<String>,
     val outboundLocal: String,
@@ -86,7 +88,11 @@ fun ConnectionsScreen(onBack: () -> Unit = {}, onChat: (String, String) -> Unit 
     var rows by remember { mutableStateOf<List<ConnRow>>(emptyList()) }
     var nodes by remember { mutableStateOf<List<NodeRow>>(emptyList()) }
     var currentPage by remember { mutableIntStateOf(0) }
+    var expandedIds by remember { mutableStateOf<Set<String>>(emptySet()) }
     var errMsg by remember { mutableStateOf("") }
+    val toggleExpand = { id: String ->
+        expandedIds = if (id in expandedIds) expandedIds - id else expandedIds + id
+    }
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -95,7 +101,7 @@ fun ConnectionsScreen(onBack: () -> Unit = {}, onChat: (String, String) -> Unit 
                 if (obj.optBoolean("success", false)) {
                     errMsg = ""
                     val peers = parsePeers(obj.optJSONArray("peers"))
-                    rows = peers.map { it.toConnRow() }
+                    rows = mergeByNode(peers)
                 } else {
                     errMsg = obj.optString("error", s.connections.loadFailed)
                 }
@@ -106,7 +112,6 @@ fun ConnectionsScreen(onBack: () -> Unit = {}, onChat: (String, String) -> Unit 
                     nodes = parseNodes(no.optJSONArray("nodes"))
                 }
             }
-            if (rows.isEmpty()) rows = demoRows()
             delay(5000)
         }
     }
@@ -162,56 +167,84 @@ fun ConnectionsScreen(onBack: () -> Unit = {}, onChat: (String, String) -> Unit 
                 )
             } else {
                 pageItems.forEach { row ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+                    val expanded = expandedIds.contains(row.nodeId)
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 5.dp)
+                            .clickable { toggleExpand(row.nodeId) },
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            if (row.outboundRemote.isNotEmpty()) {
-                                MonoText(text = "${row.outboundLocal} → ${row.outboundRemote}", fontSize = 9, color = TextPrimary)
-                            } else {
-                                MonoText(text = "—", fontSize = 9, color = TextMuted)
-                            }
-                        }
-                        Column(modifier = Modifier.weight(1f)) {
-                            if (row.inboundRemote.isNotEmpty()) {
-                                MonoText(text = "${row.inboundLocal} ← ${row.inboundRemote}", fontSize = 9, color = TextPrimary)
-                            } else {
-                                MonoText(text = "—", fontSize = 9, color = TextMuted)
-                            }
-                        }
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            StatusDot(active = row.bidirectional)
-                            Text(
-                                if (row.bidirectional) s.connections.bidirectional else s.connections.unidirectional,
-                                fontSize = 10.sp,
-                                color = if (row.bidirectional) OnlineGreen else TextMuted,
-                                modifier = Modifier.padding(start = 4.dp),
-                            )
-                            if (row.nodeId.isNotEmpty()) {
-                                IconButton(onClick = { chatAll(row.nodeId) }) {
-                                    Icon(
-                                        Icons.Filled.Send,
-                                        contentDescription = s.connections.chat,
-                                        tint = MaterialTheme.colorScheme.primary,
-                                    )
+                            Column(modifier = Modifier.weight(1f)) {
+                                if (row.outboundRemote.isNotEmpty()) {
+                                    MonoText(text = "${row.outboundLocal} → ${row.outboundRemote}", fontSize = 9, color = TextPrimary)
+                                } else {
+                                    MonoText(text = "—", fontSize = 9, color = TextMuted)
+                                }
+                            }
+                            Column(modifier = Modifier.weight(1f)) {
+                                if (row.inboundRemote.isNotEmpty()) {
+                                    MonoText(text = "${row.inboundLocal} ← ${row.inboundRemote}", fontSize = 9, color = TextPrimary)
+                                } else {
+                                    MonoText(text = "—", fontSize = 9, color = TextMuted)
+                                }
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                StatusDot(active = row.bidirectional)
+                                Text(
+                                    if (row.bidirectional) s.connections.bidirectional else s.connections.unidirectional,
+                                    fontSize = 10.sp,
+                                    color = if (row.bidirectional) OnlineGreen else TextMuted,
+                                    modifier = Modifier.padding(start = 4.dp),
+                                )
+                                if (row.nodeId.isNotEmpty()) {
+                                    IconButton(onClick = { chatAll(row.walletAddr) }) {
+                                        Icon(
+                                            Icons.AutoMirrored.Filled.Send,
+                                            contentDescription = s.connections.chat,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                        )
+                                    }
                                 }
                             }
                         }
-                    }
-                    Text(
-                        text = shortAddr(row.nodeId),
-                        fontSize = 9.sp,
-                        color = TextMuted,
-                        modifier = Modifier.padding(bottom = 4.dp),
-                    )
-                    if (row.ip.isNotEmpty()) {
                         Text(
-                            text = row.ip,
+                            text = shortAddr(row.nodeId),
                             fontSize = 9.sp,
-                            color = TextSecondary,
-                            modifier = Modifier.padding(bottom = 2.dp),
+                            color = TextMuted,
+                            modifier = Modifier.padding(bottom = 4.dp),
                         )
+                        if (row.ip.isNotEmpty()) {
+                            Text(
+                                text = row.ip,
+                                fontSize = 9.sp,
+                                color = TextSecondary,
+                                modifier = Modifier.padding(bottom = 2.dp),
+                            )
+                        }
+                        if (expanded && row.allIps.size > 1) {
+                            Text(
+                                text = s.connections.allIps,
+                                fontSize = 9.sp,
+                                color = TextMuted,
+                                modifier = Modifier.padding(bottom = 2.dp),
+                            )
+                            row.allIps.forEach { addr ->
+                                Text(
+                                    text = addr,
+                                    fontSize = 9.sp,
+                                    color = TextSecondary,
+                                    modifier = Modifier.padding(start = 8.dp, bottom = 1.dp),
+                                )
+                            }
+                        } else if (row.allIps.size > 1) {
+                            Text(
+                                text = "${s.connections.allIps} (${row.allIps.size})",
+                                fontSize = 9.sp,
+                                color = TextMuted,
+                                modifier = Modifier.padding(bottom = 2.dp),
+                            )
+                        }
                     }
                 }
             }
@@ -279,7 +312,7 @@ fun ConnectionsScreen(onBack: () -> Unit = {}, onChat: (String, String) -> Unit 
                         )
                         IconButton(onClick = { chatAll(n.address) }) {
                             Icon(
-                                Icons.Filled.Send,
+                                Icons.AutoMirrored.Filled.Send,
                                 contentDescription = s.connections.chat,
                                 tint = MaterialTheme.colorScheme.primary,
                             )
@@ -300,6 +333,7 @@ private fun parsePeers(arr: JSONArray?): List<PeerConn> {
         val o = arr.getJSONObject(i)
         val nodeId = o.optString("node_id", "")
         if (nodeId.isEmpty()) continue
+        val walletAddr = o.optString("wallet_addr", "").ifEmpty { nodeId }
         val allIps = mutableListOf<String>()
         o.optJSONArray("all_ips")?.let { a ->
             for (j in 0 until a.length()) allIps.add(a.getString(j))
@@ -309,6 +343,7 @@ private fun parsePeers(arr: JSONArray?): List<PeerConn> {
         list.add(
             PeerConn(
                 nodeId = nodeId,
+                walletAddr = walletAddr,
                 ip = o.optString("ip", ""),
                 allIps = allIps,
                 inboundRemotePort = inbound?.optInt("remotePort", 0) ?: 0,
@@ -322,9 +357,43 @@ private fun parsePeers(arr: JSONArray?): List<PeerConn> {
     return list
 }
 
+/**
+ * 按 `node_id` 合并为一行：相同 id 的记录视为同一个节点。
+ *
+ * 节点身份是 `node_id`（服务对服务），IP 只是到达该节点的传输路径，
+ * 因此同一个 id 的多条记录（多个 IP / 多条端口对）必须收敛成一行，
+ * IP 汇总进 [ConnRow.allIps] 供详情展开显示。
+ * `connected` 取或（任一方向端口对存在即该方向已建立）。
+ */
+private fun mergeByNode(peers: List<PeerConn>): List<ConnRow> {
+    val merged = linkedMapOf<String, ConnRow>()
+    val acc = linkedMapOf<String, MutableList<String>>()
+    for (p in peers) {
+        val existing = merged[p.nodeId]
+        val ips = acc.getOrPut(p.nodeId) { mutableListOf() }
+        // ip 优先（fwmc 已按公网优先排序），随后补齐 all_ips 其余地址
+        if (p.ip.isNotEmpty() && !ips.contains(p.ip)) ips.add(p.ip)
+        for (a in p.allIps) if (a.isNotEmpty() && !ips.contains(a)) ips.add(a)
+        merged[p.nodeId] = if (existing == null) {
+            p.toConnRow()
+        } else {
+            existing.copy(
+                ip = p.ip.ifEmpty { existing.ip },
+                outboundLocal = existing.outboundLocal.ifEmpty { p.outboundLocalPort.takeIf { it > 0 }?.toString().orEmpty() },
+                outboundRemote = existing.outboundRemote.ifEmpty { p.outboundRemotePort.takeIf { it > 0 }?.toString().orEmpty() },
+                inboundLocal = existing.inboundLocal.ifEmpty { p.inboundLocalPort.takeIf { it > 0 }?.toString().orEmpty() },
+                inboundRemote = existing.inboundRemote.ifEmpty { p.inboundRemotePort.takeIf { it > 0 }?.toString().orEmpty() },
+                bidirectional = existing.bidirectional || p.connected,
+            )
+        }
+    }
+    return merged.map { (id, row) -> row.copy(allIps = acc.getValue(id)) }
+}
+
 /** 把统一 `peers` 记录转为展示行：端口对 + ip + connected 状态。 */
 private fun PeerConn.toConnRow(): ConnRow = ConnRow(
     nodeId = nodeId,
+    walletAddr = walletAddr,
     ip = ip,
     allIps = allIps,
     outboundLocal = if (outboundLocalPort > 0) outboundLocalPort.toString() else "",
@@ -365,37 +434,3 @@ private fun parseNodes(arr: JSONArray?): List<NodeRow> {
     }
     return list
 }
-
-/** 演示数据：模拟 3 个远程节点，2 个双向成功、1 个单向失败。 */
-private fun demoRows(): List<ConnRow> = listOf(
-    ConnRow(
-        nodeId = "FWMC:Zz:6Hk3Qp9Tf2VxLmRbNc1JdXa4ZsE8Wy0uIgKvOe5Tn",
-        ip = "10.0.0.5:20260",
-        allIps = listOf("10.0.0.5:20260", "192.168.1.5:20260"),
-        outboundLocal = "54321",
-        outboundRemote = "20260",
-        inboundLocal = "20260",
-        inboundRemote = "51234",
-        bidirectional = true,
-    ),
-    ConnRow(
-        nodeId = "FWMC:Zz:7AbC8dEfGhIjKlMnOpQrStUvWxYz1234567890AbCdEfGh",
-        ip = "10.0.0.8:20260",
-        allIps = listOf("10.0.0.8:20260"),
-        outboundLocal = "55678",
-        outboundRemote = "20260",
-        inboundLocal = "20260",
-        inboundRemote = "50001",
-        bidirectional = true,
-    ),
-    ConnRow(
-        nodeId = "FWMC:Zz:3MnBvCxZaLkQwErTyUiOpAsDfGhJkLzxCvBnM1234567890",
-        ip = "172.16.5.9:20260",
-        allIps = listOf("172.16.5.9:20260"),
-        outboundLocal = "60123",
-        outboundRemote = "20260",
-        inboundLocal = "",
-        inboundRemote = "",
-        bidirectional = false,
-    ),
-)

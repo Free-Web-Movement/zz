@@ -1,0 +1,3 @@
+[submodule "rust/crypto_currency"]
+	path = rust/crypto_currency
+	url = https://github.com/Free-Web-Movement/zz-rust-mod-crypto-currency.git
