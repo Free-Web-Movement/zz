@@ -7,10 +7,10 @@ plugins {
 
 android {
     namespace = "io.github.freewebmovement.fwmc"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
-        minSdk = 16
+        minSdk = 23
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
@@ -37,7 +37,7 @@ kotlin {
 }
 
 dependencies {
-    implementation(libs.bcpkix.jdk15on)
+    implementation(libs.bcpkix.jdk18on)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kmp.setting)
     implementation(libs.androidx.core.ktx)

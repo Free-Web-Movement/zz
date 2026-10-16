@@ -1,34 +1,34 @@
 [versions]
-activity = "1.9.3"
-activityKtx = "1.9.3"
-agp = "8.13.0"
-bcpkixJdk15on = "1.56"
-coilCompose = "3.0.4"
-coilNetworkOkhttp = "3.0.4"
-core = "1.6.1"
-kotlin = "2.1.0"
-coreKtx = "1.13.1"
+activity = "1.13.0"
+activityKtx = "1.13.0"
+agp = "8.13.2"
+bcpkixJdk18on = "1.86"
+coilCompose = "3.5.0"
+coilNetworkOkhttp = "3.5.0"
+core = "1.7.0"
+kotlin = "2.3.21"
+coreKtx = "1.18.0"
 junit = "4.13.2"
-junitVersion = "1.2.1"
-kotlinTest = "2.0.21"
-kotlinxCoroutinesAndroid = "1.10.1"
-kotlinxCoroutinesCoreVersion = "1.10.1"
-kotlinxSerializationJson = "1.7.3"
-lifecycleRuntimeKtx = "2.8.7"
-activityCompose = "1.9.3"
-composeBom = "2024.04.01"
-junitKtx = "1.2.1"
-lifecycleViewmodelCompose = "2.8.7"
-roomRuntime = "2.7.0-alpha12"
-roomKtx = "2.7.0-alpha12"
-jetbrainsKotlinJvm = "2.1.0"
-sqliteBundledAndroid = "2.5.0-alpha13"
-kmpSettingVersion="1.2.0"
-espressoCore = "3.5.1"
-appcompat = "1.6.1"
-material = "1.10.0"
-ksp = "2.1.0-1.0.29"
-kover = "0.5.0"
+junitVersion = "1.3.0"
+kotlinTest = "2.3.21"
+kotlinxCoroutinesAndroid = "1.11.0"
+kotlinxCoroutinesCoreVersion = "1.11.0"
+kotlinxSerializationJson = "1.11.0"
+lifecycleRuntimeKtx = "2.10.0"
+activityCompose = "1.13.0"
+composeBom = "2026.06.01"
+junitKtx = "1.3.0"
+lifecycleViewmodelCompose = "2.10.0"
+roomRuntime = "2.8.5"
+roomKtx = "2.8.5"
+jetbrainsKotlinJvm = "2.3.21"
+sqliteBundledAndroid = "2.7.1"
+kmpSettingVersion="1.3.0"
+espressoCore = "3.7.0"
+appcompat = "1.7.1"
+material = "1.12.0"
+ksp = "2.3.12"
+kover = "0.9.9"
 
 [libraries]
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
@@ -39,7 +39,7 @@ androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomKtx" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
-bcpkix-jdk15on = { module = "org.bouncycastle:bcpkix-jdk15on", version.ref = "bcpkixJdk15on" }
+bcpkix-jdk18on = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bcpkixJdk18on" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coilNetworkOkhttp" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
 jetbrains-kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCoreVersion" }
@@ -52,6 +52,7 @@ androidx-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-material-icons-core = { group = "androidx.compose.material", name = "material-icons-core" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlinTest" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
