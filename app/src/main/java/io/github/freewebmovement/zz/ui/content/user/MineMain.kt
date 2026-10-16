@@ -164,6 +164,9 @@ fun MineMain(updatePage: (value: PageType) -> Unit) {
             // 主题设置
             ThemeRow()
 
+            // 纪元设置（测试模式 / 生产模式）
+            EpochRow(updatePage)
+
             ThemeDialogHost()
             LanguageDialogHost()
         }
@@ -398,6 +401,26 @@ private fun FwmcConfigRow(updatePage: (value: PageType) -> Unit) {
     RowItem2(label = s.settings.nodeStatusAndConfig, icon = R.drawable.ic_settings, trailing = {
         Text("  ›", color = TextMuted)
     }, onClick = { updatePage(PageType.MineSettings) })
+}
+
+/** 纪元设置入口：显示当前运行模式（生产/测试）。 */
+@Composable
+private fun EpochRow(updatePage: (value: PageType) -> Unit) {
+    val s = LocalAppStrings.current
+    val app = MainApplication.getApp()
+    val testMode = app.settings.debug.epochTestMode
+    RowItem2(label = s.epoch.rowTitle, icon = R.drawable.ic_settings, trailing = {
+        Text(
+            text = if (testMode) {
+                s.epoch.testModeTemplate.format(app.settings.debug.epochTickSeconds)
+            } else {
+                s.epoch.production
+            },
+            fontSize = 13.sp,
+            color = TextSecondary,
+        )
+        Text("  ›", color = TextMuted)
+    }, onClick = { updatePage(PageType.MineEpoch) })
 }
 
 /** 主题设置入口。 */

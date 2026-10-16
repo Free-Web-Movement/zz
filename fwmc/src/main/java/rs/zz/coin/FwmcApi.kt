@@ -90,6 +90,25 @@ object FwmcApi {
     /** Set fwmc config values (JSON body). */
     suspend fun setConfig(jsonBody: String): String = io { apiSetConfig(jsonBody) }
 
+    /**
+     * 纪元运行模式：`tickMs > 0` 启用测试模式（每 tick 的真实毫秒数），
+     * `tickMs <= 0` 为生产模式（真实 15 分钟/tick）。**必须在启动/重启节点前调用**。
+     */
+    fun setTimeSim(tickMs: Long) {
+        apiSetTimeSim(tickMs)
+    }
+
+    /** 查询当前时间仿真状态：`{ success, enabled, tick_ms }`。 */
+    suspend fun getTimeSim(): String = io { apiGetTimeSim() }
+
+    /**
+     * 测试模式下 TICK 的初始值（0..96-1），达到 96 时发 EPOCH_NEW。
+     * **必须在启动/重启节点前调用**；生产模式忽略。
+     */
+    fun setStartTick(tick: Long) {
+        apiSetStartTick(tick)
+    }
+
     suspend fun setLang(code: String): String = io { apiSetLang(code) }
 
     /** Add a seed server (ip, port); persists and connects immediately. */
@@ -170,6 +189,9 @@ object FwmcApi {
     private external fun apiGetGenesis(): String
     private external fun apiGetConfig(): String
     private external fun apiSetConfig(jsonBody: String): String
+    private external fun apiSetTimeSim(tickMs: Long): String
+    private external fun apiGetTimeSim(): String
+    private external fun apiSetStartTick(tick: Long): String
     private external fun apiSetLang(code: String): String
     private external fun apiAddSeed(ip: String, port: Int): String
     private external fun apiDeleteSeed(ip: String, port: Int): String

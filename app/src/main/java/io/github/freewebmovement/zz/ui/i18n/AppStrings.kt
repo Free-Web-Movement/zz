@@ -18,6 +18,7 @@ data class AppStrings(
     val peerIdDialog: PeerIdDialogStrings,
     val appContent: AppContentStrings,
     val peer: PeerStrings,
+    val epoch: EpochStrings,
 )
 
 /** 通用文本 */
@@ -357,6 +358,27 @@ data class ServerStrings(
     val serviceProvided: String,
     val copyIp: String,
     val copied: String,
+)
+
+/** 纪元设置（我的 → 纪元设置） */
+data class EpochStrings(
+    val title: String,
+    val rowTitle: String,
+    val mode: String,
+    val production: String,
+    val test: String,
+    val testModeTemplate: String,
+    val productionNote: String,
+    val testNote: String,
+    val testTickSeconds: String,
+    val testTickSecondsHint: String,
+    val tickSecondsInvalid: String,
+    val startTick: String,
+    val startTickHint: String,
+    val startTickInvalid: String,
+    val restartHint: String,
+    val applyAndRestart: String,
+    val saveRestartSuccess: String,
 )
 
 /** 节点连接情况 */

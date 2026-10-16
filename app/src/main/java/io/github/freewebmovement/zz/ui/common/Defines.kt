@@ -27,7 +27,8 @@ enum class PageType(i: Int) {
     MineFwmcProfile(0x47),
     MineWallet(0x48), MineAccounts(0x49), MineSettings(0x4A), MineServer(0x4B),
     MineStaticFile(0x4C), MineWeights(0x4D), MineWeightTable(0x4E),
-    MineConnections(0x4F)
+    MineConnections(0x4F),
+    MineEpoch(0x50)
 }
 
 val rainbowColors: List<Color> = listOf(

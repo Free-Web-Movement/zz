@@ -182,7 +182,8 @@ fun PeerContent() {
                     }
                 } ?: emptyList()
             }
-            delay(5000)
+            // 测试模式下 tick 加速，缩短轮询以便 UI 及时反映当前 tick。
+            delay(if (MainApplication.getApp().settings.debug.epochTestMode) 1000L else 5000L)
         }
     }
 

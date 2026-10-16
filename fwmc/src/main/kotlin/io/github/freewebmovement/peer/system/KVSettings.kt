@@ -40,6 +40,10 @@ private const val MINE_PROFILE_IMAGE_URI = "MINE_PROFILE_IMAGE_URI"
 private const val MINE_PROFILE_NICKNAME = "MINE_PROFILE_NICKNAME"
 private const val MINE_PROFILE_INTRO = "MINE_PROFILE_INTRO"
 
+private const val EPOCH_TEST_MODE = "EPOCH_TEST_MODE"
+private const val EPOCH_TEST_TICK_SECONDS = "EPOCH_TEST_TICK_SECONDS"
+private const val EPOCH_TEST_START_TICK = "EPOCH_TEST_START_TICK"
+
 
 class PreferenceAccessor<T>(
     private val preference: IPreference,
@@ -151,9 +155,44 @@ data class NetworkSetting(
 }
 
 
+/**
+ * 纪元运行模式设置（我的 → 纪元设置）：
+ *
+ * - **生产模式**（默认）：真实墙钟，每 15 分钟一个 tick，96 tick = 1 天。
+ * - **测试模式**：虚拟时钟加速，每个 tick 可自定义真实时长（秒），
+ *   96 tick = 1 个 epoch，便于验证 epoch 切换。
+ *
+ * **「24h = 96 tick」比例不变**，被压缩的只是等待这些虚拟时间所需的真实时间。
+ * 修改后需**重启节点**生效。
+ */
+data class DebugSetting(
+    private val preference: IPreference
+) {
+    companion object {
+        /** 测试模式默认每 tick 真实秒数（96 tick = 96 秒/epoch）。 */
+        const val DEFAULT_TEST_TICK_SECONDS = 1
+    }
+
+    /** true = 测试模式（加速），false = 生产模式（15 分钟/tick）。 */
+    var epochTestMode: Boolean by PreferenceAccessor(
+        preference, EPOCH_TEST_MODE, field = false
+    )
+
+    /** 测试模式下每个 tick 的真实秒数（生产模式下无效）。 */
+    var epochTickSeconds: Int by PreferenceAccessor(
+        preference, EPOCH_TEST_TICK_SECONDS, field = DEFAULT_TEST_TICK_SECONDS
+    )
+
+    /** 测试模式下 TICK 的初始值（0..96-1）；达到 96 时发 EPOCH_NEW。生产模式无效。 */
+    var epochStartTick: Int by PreferenceAccessor(
+        preference, EPOCH_TEST_START_TICK, field = 0
+    )
+}
+
 class KVSettings(preference: IPreference) {
     // Message Persistence Period
 //    val message = MessageSetting(preference)
     val profile = ProfileSetting(preference)
     val network = NetworkSetting(preference)
+    val debug = DebugSetting(preference)
 }

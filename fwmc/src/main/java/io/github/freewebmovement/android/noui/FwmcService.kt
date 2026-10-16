@@ -53,9 +53,20 @@ class FwmcService : Service() {
         val dataDir = MyApp.getStoragePath(applicationContext)
         val settings = KVSettings(Preference(Settings()))
         val port = if (settings.network.port > 1024) settings.network.port else (1025..65535).random()
+        // 纪元运行模式：测试模式按配置的每 tick 秒数加速；生产模式 15 分钟/tick。
+        val tickMs = if (settings.debug.epochTestMode) {
+            settings.debug.epochTickSeconds.coerceAtLeast(1).toLong() * 1000L
+        } else {
+            0L
+        }
+        val startTick = if (settings.debug.epochTestMode) {
+            settings.debug.epochStartTick.coerceIn(0, 95).toLong()
+        } else {
+            0L
+        }
 
         val ctrl = FwmcNodeController(dataDir)
-        val bound = ctrl.start(port)
+        val bound = ctrl.start(port, tickMs, startTick)
         controller = ctrl
         MyApp.getApp().setFwmc(ctrl)
         if (bound > 0) {

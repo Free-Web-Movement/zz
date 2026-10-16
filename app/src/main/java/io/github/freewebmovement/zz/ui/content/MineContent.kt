@@ -10,6 +10,7 @@ import io.github.freewebmovement.zz.ui.content.user.FwmcProfileScreen
 import io.github.freewebmovement.zz.ui.content.user.MineMain
 import io.github.freewebmovement.zz.ui.content.user.WeightTableScreen
 import io.github.freewebmovement.zz.ui.content.user.ConnectionsScreen
+import io.github.freewebmovement.zz.ui.content.user.EpochSettingsScreen
 import io.github.freewebmovement.zz.ui.content.user.ProfileEditor
 import io.github.freewebmovement.zz.ui.content.user.UserProfileEditor
 
@@ -55,6 +56,9 @@ fun MinContent(
         PageType.MineConnections -> ConnectionsScreen(
             onBack = { updater(PageType.MineMain, ContentType.NonStacked) },
             onChat = onOpenChat,
+        )
+        PageType.MineEpoch -> EpochSettingsScreen(
+            onBack = { updater(PageType.MineMain, ContentType.NonStacked) },
         )
         else -> {
         }

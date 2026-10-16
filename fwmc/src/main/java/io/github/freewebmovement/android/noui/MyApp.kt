@@ -56,8 +56,18 @@ class MyApp(private var context: Context) : IApp {
         fwmc?.destroy()
         val dataDir = nodeDataDir()
         val effective = if (port > 1024) port else (1025..65535).random()
+        val tickMs = if (settings.debug.epochTestMode) {
+            settings.debug.epochTickSeconds.coerceAtLeast(1).toLong() * 1000L
+        } else {
+            0L
+        }
+        val startTick = if (settings.debug.epochTestMode) {
+            settings.debug.epochStartTick.coerceIn(0, 95).toLong()
+        } else {
+            0L
+        }
         val controller = FwmcNodeController(dataDir)
-        controller.start(effective)
+        controller.start(effective, tickMs, startTick)
         fwmc = controller
     }
 
