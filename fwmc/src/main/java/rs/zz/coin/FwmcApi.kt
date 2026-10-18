@@ -84,6 +84,44 @@ object FwmcApi {
     /** Genesis allocation data (total supply, initial allocations, etc.). */
     suspend fun getGenesis(): String = io { apiGetGenesis() }
 
+    // ---- 账本浏览（与网页 `/api/ledger/*` 同一份 JSON 契约）----
+
+    /** 账本概览：交易/发币/见证环计数、最新 epoch / 区块、本人余额。 */
+    suspend fun getLedgerSummary(address: String = ""): String =
+        io { apiGetLedgerSummary(address) }
+
+    /** 交易分页；`address` 非空时只看该地址相关的交易。 */
+    suspend fun getLedgerTransactions(address: String = "", page: Int = 1, perPage: Int = 20): String =
+        io { apiGetLedgerTransactions(address, page, perPage) }
+
+    /** epoch 列表（按 day 倒序）。 */
+    suspend fun getLedgerEpochs(limit: Int = 50): String =
+        io { apiGetLedgerEpochs(limit) }
+
+    /** 发币明细；`epoch <= 0` 表示全部。 */
+    suspend fun getLedgerRewards(epoch: Long = 0, limit: Int = 50): String =
+        io { apiGetLedgerRewards(epoch, limit) }
+
+    /** 分配明细（含权重与链式 hash）；`epoch <= 0` 表示全部。 */
+    suspend fun getLedgerAllocations(epoch: Long = 0, limit: Int = 50): String =
+        io { apiGetLedgerAllocations(epoch, limit) }
+
+    /** 全网地址币量排名（标记本人 `is_me`）。 */
+    suspend fun getLedgerBalances(limit: Int = 50): String =
+        io { apiGetLedgerBalances(limit) }
+
+    /** 区块链（一个 epoch 一个区块）。 */
+    suspend fun getLedgerBlocks(limit: Int = 50): String =
+        io { apiGetLedgerBlocks(limit) }
+
+    /** tick 记录；`epoch <= 0` 表示全部。 */
+    suspend fun getLedgerTicks(epoch: Long = 0, limit: Int = 100): String =
+        io { apiGetLedgerTicks(epoch, limit) }
+
+    /** 见证环：活动/锁定环 + 历史静态环 + 逐 tick 见证记录。 */
+    suspend fun getLedgerRings(epoch: Long = 0, limit: Int = 50): String =
+        io { apiGetLedgerRings(epoch, limit) }
+
     /** Get all fwmc config values. */
     suspend fun getConfig(): String = io { apiGetConfig() }
 
@@ -187,6 +225,15 @@ object FwmcApi {
     private external fun apiGetSeeds(): String
     private external fun apiGetWeights(): String
     private external fun apiGetGenesis(): String
+    private external fun apiGetLedgerSummary(address: String): String
+    private external fun apiGetLedgerTransactions(address: String, page: Int, perPage: Int): String
+    private external fun apiGetLedgerEpochs(limit: Int): String
+    private external fun apiGetLedgerRewards(epoch: Long, limit: Int): String
+    private external fun apiGetLedgerAllocations(epoch: Long, limit: Int): String
+    private external fun apiGetLedgerBalances(limit: Int): String
+    private external fun apiGetLedgerBlocks(limit: Int): String
+    private external fun apiGetLedgerTicks(epoch: Long, limit: Int): String
+    private external fun apiGetLedgerRings(epoch: Long, limit: Int): String
     private external fun apiGetConfig(): String
     private external fun apiSetConfig(jsonBody: String): String
     private external fun apiSetTimeSim(tickMs: Long): String

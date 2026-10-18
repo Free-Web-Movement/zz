@@ -23,6 +23,7 @@ fun Tabs(
             TabType.Sessions -> MessageContent(initialChat = pendingChat)
             TabType.Contacts -> ContactsContent()
             TabType.Peers -> PeerContent()
+            TabType.Data -> DataContent()
             TabType.Mine -> MinContent(page, updater, onOpenChat)
         }
     }

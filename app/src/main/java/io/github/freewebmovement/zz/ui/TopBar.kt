@@ -6,6 +6,7 @@ import io.github.freewebmovement.zz.ui.common.ContentType
 import io.github.freewebmovement.zz.ui.common.PageType
 import io.github.freewebmovement.zz.ui.common.TabType
 import io.github.freewebmovement.zz.ui.topbar.AppTopBar
+import io.github.freewebmovement.zz.ui.topbar.DataTopBar
 import io.github.freewebmovement.zz.ui.topbar.MineTopBar
 import io.github.freewebmovement.zz.ui.topbar.PeerTopBar
 import io.github.freewebmovement.zz.ui.topbar.SessionTopBar
@@ -21,6 +22,7 @@ fun TopBar(
         TabType.Sessions -> SessionTopBar(selectedTab, stacked)
         TabType.Contacts -> SessionTopBar(selectedTab, stacked)
         TabType.Peers -> PeerTopBar(selectedTab, stacked, updater)
+        TabType.Data -> DataTopBar(selectedTab)
         TabType.Mine -> MineTopBar(selectedTab, stacked, updater)
     }
 }

@@ -85,3 +85,10 @@ Android 侧按 `connected` 如实展示，不做补偿逻辑。
 - Android 真机：serial `RFCN205LJWM`；adb `/disk2vm/Android/Sdk/platform-tools/adb`；
   APK 用 `./gradlew :app:assembleDebug` + `adb install -r` 部署。
 - 编译检查：`./gradlew :app:compileDebugKotlin`。
+- **JNI 底层库 `libfwmc.so` 重建**（Rust 侧改动后必须重做，否则 APK 里的 native 代码仍是旧的）：
+  在 Rust 仓库 `zz-rust-mod-crypto-currency/` 下执行
+  ```bash
+  export ANDROID_NDK_HOME=/disk2vm/Android/Sdk/ndk/29.0.13599879
+  cargo ndk -t arm64-v8a -t armeabi-v7a -t x86 -t x86_64 -o <本仓库>/fwmc/src/main/jniLibs build --release --lib
+  ```
+  即 4 个 ABI 的 `fwmc/src/main/jniLibs/<abi>/libfwmc.so` 由该命令生成。

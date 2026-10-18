@@ -56,6 +56,7 @@ fun TabView() {
                     TabType.Sessions -> PageType.SessionMain
                     TabType.Contacts -> PageType.ContactMain
                     TabType.Peers -> PageType.PeerMain
+                    TabType.Data -> PageType.DataMain
                 }
             },
         )

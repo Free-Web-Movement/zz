@@ -18,6 +18,7 @@ private fun getIcon(tab: TabType, selected: TabType): Int {
         TabType.Sessions -> if (selected == tab) R.drawable.ic_chat_bubble_selected else R.drawable.ic_chat_bubble
         TabType.Contacts -> if (selected == tab) R.drawable.ic_account_selected else R.drawable.ic_account
         TabType.Peers -> if (selected == tab) R.drawable.ic_server_selected else R.drawable.ic_server
+        TabType.Data -> R.drawable.ic_data
         TabType.Mine -> if (selected == tab) R.drawable.ic_mine_selected else R.drawable.ic_mine
     }
 }
@@ -30,6 +31,7 @@ fun getTitle(tab: TabType): String {
         TabType.Sessions -> s.tabs.sessions
         TabType.Contacts -> s.tabs.contacts
         TabType.Peers -> s.tabs.peer
+        TabType.Data -> s.tabs.data
         TabType.Mine -> s.tabs.mine
     }
 }
