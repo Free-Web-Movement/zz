@@ -15,6 +15,8 @@ fun Tabs(
     selectedTab: TabType,
     page: PageType,
     pendingChat: Pair<String, String>? = null,
+    dataTab: Int = 0,
+    onDataTabChange: (Int) -> Unit = {},
     onOpenChat: (String, String) -> Unit = { _, _ -> },
     updater:(page: PageType, value: ContentType) -> Unit
 ) {
@@ -23,7 +25,7 @@ fun Tabs(
             TabType.Sessions -> MessageContent(initialChat = pendingChat)
             TabType.Contacts -> ContactsContent()
             TabType.Peers -> PeerContent()
-            TabType.Data -> DataContent()
+            TabType.Data -> DataContent(tab = dataTab, onTabChange = onDataTabChange)
             TabType.Mine -> MinContent(page, updater, onOpenChat)
         }
     }

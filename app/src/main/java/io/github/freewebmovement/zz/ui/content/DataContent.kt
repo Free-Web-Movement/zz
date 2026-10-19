@@ -71,10 +71,9 @@ private fun ok(raw: String): JSONObject? =
  * 返回的是同一份 JSON 契约。
  */
 @Composable
-fun DataContent() {
+fun DataContent(tab: Int = 0, onTabChange: (Int) -> Unit = {}) {
     val s = LocalAppStrings.current.ledger
     val running = rememberFwmcNodeSnapshot().running
-    var tab by remember { mutableIntStateOf(0) }
 
     Column(
         modifier = Modifier
@@ -82,14 +81,6 @@ fun DataContent() {
             .background(WxBg)
             .verticalScroll(rememberScrollState()),
     ) {
-        SubTabs(
-            tabs = listOf(
-                s.overview, s.transactions, s.epochs, s.blocks,
-                s.rings, s.rewards, s.balances,
-            ),
-            selected = tab,
-            onSelect = { tab = it },
-        )
         if (!running) {
             SectionCard { Text(s.nodeNotRunning, color = TextSecondary) }
             return@Column
