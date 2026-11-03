@@ -71,7 +71,10 @@ class MyApp(private var context: Context) : IApp {
         fwmc = controller
     }
 
-    fun nodeDataDir(): String = File(context.filesDir, "fwmc").absolutePath
+    fun nodeDataDir(): String = File(context.filesDir, "fwmc/node").absolutePath
+
+    /** FWMC 根目录（users/ 所在）；节点数据在 node/ 子目录。 */
+    fun fwmcRootDir(): String = File(context.filesDir, "fwmc").absolutePath
 
     private lateinit var _preference: IPreference
     override var preference: IPreference
@@ -184,7 +187,9 @@ class MyApp(private var context: Context) : IApp {
 
         fun getContext(): Context = appContext!!
 
-        fun getStoragePath(context: Context): String = File(context.filesDir, "fwmc").absolutePath
+        fun getStoragePath(context: Context): String = File(context.filesDir, "fwmc/node").absolutePath
+
+        fun getRootPath(context: Context): String = File(context.filesDir, "fwmc").absolutePath
 
         fun new(context: Context): MyApp {
             appContext = context.applicationContext

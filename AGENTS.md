@@ -15,6 +15,34 @@ Rust Core（`zz-rust-mod-crypto-currency`）通过 JNI（`rs.zz.coin.FwmcApi`）
   aex 只做通用 P2P 传输。Android 只通过 `FwmcApi` JNI 调用 fwmc，不得绕过后端逻辑。
 - 详见 Rust 仓库 `AGENTS.md` 与 `docs/P2P_NETWORK_LAYERING.md`（`zz-rust-mod-crypto-currency/`）。
 
+## 数据目录布局（固定）
+
+`<FWMC_DIR>`（即 `fwmc/`）下的一级子目录固定为 **2 个**：
+
+```text
+fwmc/
+├── node/                ← 节点运行数据（--data-dir <root>/node）
+│   ├── addresses.json   ← 地址列表 + default（当前节点地址）
+│   ├── address.json     ← 当前默认地址的钱包（运行使用）
+│   ├── ledger.sqlite
+│   └── node.log
+└── users/               ← 按地址存放全部用户数据
+    └── <address>/
+        ├── wallet.json  ← 钱包
+        ├── wallet.name  ← 钱包显示名（可选）
+        ├── account.json
+        ├── profile.enc
+        ├── auth.json
+        ├── profile.json
+        ├── chat.json
+        └── images/
+```
+
+- 钱包/账号/资料/聊天/图片全部在 `users/<address>/` 内，不再有独立的
+  `wallets/`、`accounts/` 子目录。
+- 禁止 `fwmc/fwmc`、`fwmc/node/fwmc` 等重复 `fwmc` 层级。
+- Android 本地数据根为 `<filesDir>/fwmc`，其下同样遵循该布局。
+
 ## epoch 切换逻辑（与 Rust 仓库同步约定）
 
 权威定义在 Rust 仓库 `zz-rust-mod-crypto-currency/AGENTS.md` → `### epoch 切换逻辑`，
@@ -31,7 +59,7 @@ Rust Core（`zz-rust-mod-crypto-currency`）通过 JNI（`rs.zz.coin.FwmcApi`）
    `witness_tick_record`、进行中的活动环都用这个编号。
 3. **生产 tick = 15 分钟 / 96 tick 每天**，只在 **00:00（UTC+8）** 切换，
    墙上时间与 epoch 编号无关，禁止用 slot 推导 epoch。
-4. **切换需三条同时满足**：有见证者 ≥1、覆盖 ≥23 小时（≥92 个 tick 环）、
+4. **切换需三条同时满足**：有见证者 ≥1、覆盖 ≥90%（≥87 个 tick 环）、
    每个 tick 都有完整见证环。任一不满足则 epoch 不变、不分币。
 5. **每 tick 轮转**：活动环 → 静态环，候选环 → 活动环，并记录该 tick 的静态环快照。
 6. **零点执行序列（不可跳步/换序）**：保存静态环到 witness rings 列表 →
