@@ -35,7 +35,6 @@ import io.github.freewebmovement.zz.ui.common.EmptyHint
 import io.github.freewebmovement.zz.ui.common.KeyValueRow
 import io.github.freewebmovement.zz.ui.common.MonoText
 import io.github.freewebmovement.zz.ui.common.SectionCard
-import io.github.freewebmovement.zz.ui.common.SubTabs
 import io.github.freewebmovement.zz.ui.common.rememberFwmcNodeSnapshot
 import io.github.freewebmovement.zz.ui.common.shortAddr
 import io.github.freewebmovement.zz.ui.i18n.LedgerStrings

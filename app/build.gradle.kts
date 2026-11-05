@@ -82,6 +82,10 @@ dependencies {
     implementation(libs.androidx.activity.ktx)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+    implementation(libs.mlkit.barcode.scanning)
     // Feature module support for Fragments
     implementation(project(":fwmc"))
 

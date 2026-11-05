@@ -12,6 +12,7 @@ import io.github.freewebmovement.zz.ui.content.user.WeightTableScreen
 import io.github.freewebmovement.zz.ui.content.user.ConnectionsScreen
 import io.github.freewebmovement.zz.ui.content.user.EpochSettingsScreen
 import io.github.freewebmovement.zz.ui.content.user.ProfileEditor
+import io.github.freewebmovement.zz.ui.content.user.TrojanScreen
 import io.github.freewebmovement.zz.ui.content.user.UserProfileEditor
 
 @Composable
@@ -43,6 +44,7 @@ fun MinContent(
         )
         PageType.MineServer -> ServerScreen(
             onBack = { updater(PageType.MineMain, ContentType.NonStacked) },
+            onOpenTrojan = { updater(PageType.MineTrojan, ContentType.Stacked) },
         )
         PageType.MineStaticFile -> StaticFileScreen(
             onBack = { updater(PageType.MineMain, ContentType.NonStacked) },
@@ -59,6 +61,9 @@ fun MinContent(
         )
         PageType.MineEpoch -> EpochSettingsScreen(
             onBack = { updater(PageType.MineMain, ContentType.NonStacked) },
+        )
+        PageType.MineTrojan -> TrojanScreen(
+            onBack = { updater(PageType.MineServer, ContentType.Stacked) },
         )
         else -> {
         }

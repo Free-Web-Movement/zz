@@ -23,7 +23,11 @@ class MainActivity : ComponentActivity() {
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { /* result ignored – node runs regardless */ }
+    ) { granted ->
+        if (granted && !io.github.freewebmovement.android.noui.TrojanService.running) {
+            io.github.freewebmovement.android.noui.TrojanStatusNotifier.showStopped(this)
+        }
+    }
 
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,6 +35,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         requestNotificationPermission()
+        if (!io.github.freewebmovement.android.noui.TrojanService.running) {
+            io.github.freewebmovement.android.noui.TrojanStatusNotifier.showStopped(this)
+        }
 
         val preference = io.github.freewebmovement.zz.MainApplication.getApp().preference
         AppTheme.load(preference)

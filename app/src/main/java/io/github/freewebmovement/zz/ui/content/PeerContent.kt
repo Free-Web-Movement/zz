@@ -126,7 +126,7 @@ private data class TickRing(
 
 /** 子页面通用头部：返回箭头 + 标题。 */
 @Composable
-private fun SubPageHeader(title: String, onBack: () -> Unit) {
+fun SubPageHeader(title: String, onBack: () -> Unit) {
     val s = LocalAppStrings.current
     Row(
         modifier = Modifier.fillMaxWidth()
@@ -157,6 +157,7 @@ fun PeerContent() {
     var errorMsg by remember { mutableStateOf("") }
     var showTickList by remember { mutableStateOf(false) }
     var showRingDetail by remember { mutableStateOf<String?>(null) }
+    var showData by remember { mutableStateOf(false) }
 
     LaunchedEffect(running) {
         while (running) {
@@ -187,6 +188,10 @@ fun PeerContent() {
         }
     }
 
+    if (showData) {
+        NetworkDataScreen(onBack = { showData = false })
+        return
+    }
     if (showTickList) {
         TickRingListScreen(witness = witness, onBack = { showTickList = false })
         return
@@ -222,9 +227,112 @@ fun PeerContent() {
                 // ③ 种子服务器
                 SectionHeader(s.peer.seedServer)
                 SeedsCard(seeds, onChanged = { /* refreshed on next poll */ })
+
+                // ④ 账本数据（原「数据」tab，已并入网络页）
+                SectionHeader(s.tabs.data)
+                SectionCard {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showData = true }
+                            .padding(vertical = 8.dp),
+                    ) {
+                        Icon(
+                            painter = painterResource(id = io.github.freewebmovement.zz.R.drawable.ic_data),
+                            contentDescription = s.service.ledgerData,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp),
+                        )
+                        Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+                            Text(
+                                text = s.service.ledgerData,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = TextPrimary,
+                            )
+                            Text(
+                                text = s.service.ledgerDataHint,
+                                fontSize = 11.sp,
+                                color = TextSecondary,
+                                modifier = Modifier.padding(top = 2.dp),
+                            )
+                        }
+                        Text("  ›", color = TextMuted)
+                    }
+                }
             }
         }
         Spacer(modifier = Modifier.height(12.dp))
+    }
+}
+
+private data class DataEntry(val index: Int, val label: String, val icon: Int)
+
+/** 网络 tab 内的账本数据：手机端用带图标的列表，不用 tab。 */
+@Composable
+private fun NetworkDataScreen(onBack: () -> Unit) {
+    val s = LocalAppStrings.current
+    val ledger = s.ledger
+    val items = listOf(
+        DataEntry(0, ledger.overview, io.github.freewebmovement.zz.R.drawable.ic_data),
+        DataEntry(1, ledger.transactions, io.github.freewebmovement.zz.R.drawable.ic_refresh),
+        DataEntry(2, ledger.epochs, io.github.freewebmovement.zz.R.drawable.ic_zodiac),
+        DataEntry(3, ledger.blocks, io.github.freewebmovement.zz.R.drawable.ic_app),
+        DataEntry(4, ledger.rings, io.github.freewebmovement.zz.R.drawable.ic_account),
+        DataEntry(5, ledger.rewards, io.github.freewebmovement.zz.R.drawable.ic_wallet),
+        DataEntry(6, ledger.balances, io.github.freewebmovement.zz.R.drawable.ic_briefcase),
+    )
+    var selected by remember { mutableStateOf<Int?>(null) }
+
+    if (selected == null) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(io.github.freewebmovement.zz.ui.theme.WxBg)
+                .verticalScroll(rememberScrollState()),
+        ) {
+            SubPageHeader(s.tabs.data, onBack)
+            SectionCard {
+                items.forEachIndexed { i, item ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { selected = item.index }
+                            .padding(vertical = 12.dp),
+                    ) {
+                        Icon(
+                            painter = painterResource(id = item.icon),
+                            contentDescription = item.label,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp),
+                        )
+                        Text(
+                            text = item.label,
+                            fontSize = 15.sp,
+                            color = TextPrimary,
+                            modifier = Modifier.weight(1f).padding(start = 12.dp),
+                        )
+                        Text("  ›", color = TextMuted)
+                    }
+                    if (i < items.lastIndex) Divider()
+                }
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+    } else {
+        val current = selected!!
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(io.github.freewebmovement.zz.ui.theme.WxBg),
+        ) {
+            SubPageHeader(items[current].label, onBack = { selected = null })
+            Box(modifier = Modifier.weight(1f)) {
+                DataContent(tab = current, onTabChange = { selected = it })
+            }
+        }
     }
 }
 
@@ -234,7 +342,10 @@ fun PeerContent() {
 
 /** 「我的 → 服务器」：节点控制 + 网络信息 + 位置 + 服务列表。 */
 @Composable
-fun ServerScreen(onBack: () -> Unit = {}) {
+fun ServerScreen(
+    onBack: () -> Unit = {},
+    onOpenTrojan: () -> Unit = {},
+) {
     val app = MainApplication.getApp()
     val s = LocalAppStrings.current
     val ctx = LocalContext.current
@@ -345,16 +456,24 @@ fun ServerScreen(onBack: () -> Unit = {}) {
                 }
             }
 
-            // 提供的服务
-            SectionCard(title = s.server.serviceProvided) {
-                ServiceRow(s.peer.staticFileServer, app.settings.network.staticFileEnabled)
-                Divider()
-                ServiceRow("HTTP Proxy", false)
-                Divider()
-                ServiceRow("SOCKS Proxy", false)
-                Divider()
-                ServiceRow(s.peer.frpService, false)
-            }
+        }
+
+        // 提供的服务（节点未运行时也可进入并启停 Trojan）
+        SectionCard(title = s.server.serviceProvided) {
+            ServiceRow(s.peer.staticFileServer, app.settings.network.staticFileEnabled)
+            Divider()
+            ServiceEntryRow(
+                name = s.trojan.serviceName,
+                icon = io.github.freewebmovement.zz.R.drawable.ic_trojan_service,
+                enabled = io.github.freewebmovement.android.noui.TrojanService.running,
+                onClick = onOpenTrojan,
+            )
+            Divider()
+            ServiceRow("HTTP Proxy", false)
+            Divider()
+            ServiceRow("SOCKS Proxy", false)
+            Divider()
+            ServiceRow(s.peer.frpService, false)
         }
         Spacer(modifier = Modifier.height(12.dp))
     }
@@ -370,6 +489,43 @@ private fun ServiceRow(name: String, enabled: Boolean) {
             activeLabel = s.common.running,
             inactiveLabel = s.common.disabled,
         )
+    }
+}
+
+/** 可点击的服务入口：图标 + 名称 + 运行状态 + 进入服务页。 */
+@Composable
+private fun ServiceEntryRow(
+    name: String,
+    icon: Int,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    val s = LocalAppStrings.current
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 8.dp),
+    ) {
+        Icon(
+            painter = painterResource(id = icon),
+            contentDescription = name,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(22.dp),
+        )
+        Text(
+            text = name,
+            fontSize = 13.sp,
+            color = TextPrimary,
+            modifier = Modifier.weight(1f).padding(start = 10.dp),
+        )
+        StatusText(
+            active = enabled,
+            activeLabel = s.common.running,
+            inactiveLabel = s.common.disabled,
+        )
+        Text("  ›", color = TextMuted)
     }
 }
 

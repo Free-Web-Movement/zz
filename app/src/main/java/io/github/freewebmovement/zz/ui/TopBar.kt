@@ -6,7 +6,7 @@ import io.github.freewebmovement.zz.ui.common.ContentType
 import io.github.freewebmovement.zz.ui.common.PageType
 import io.github.freewebmovement.zz.ui.common.TabType
 import io.github.freewebmovement.zz.ui.topbar.AppTopBar
-import io.github.freewebmovement.zz.ui.topbar.DataTopBar
+import io.github.freewebmovement.zz.ui.topbar.ServiceTopBar
 import io.github.freewebmovement.zz.ui.topbar.MineTopBar
 import io.github.freewebmovement.zz.ui.topbar.PeerTopBar
 import io.github.freewebmovement.zz.ui.topbar.SessionTopBar
@@ -16,14 +16,13 @@ import io.github.freewebmovement.zz.ui.topbar.SessionTopBar
 fun TopBar(
     selectedTab: TabType,
     stacked: ContentType,
-    onOpenDataMenu: () -> Unit = {},
     updater: (page: PageType, value: ContentType) -> Unit
 ) {
     when (selectedTab) {
         TabType.Sessions -> SessionTopBar(selectedTab, stacked)
         TabType.Contacts -> SessionTopBar(selectedTab, stacked)
         TabType.Peers -> PeerTopBar(selectedTab, stacked, updater)
-        TabType.Data -> DataTopBar(selectedTab, onOpenDataMenu)
+        TabType.Service -> ServiceTopBar(selectedTab)
         TabType.Mine -> MineTopBar(selectedTab, stacked, updater)
     }
 }

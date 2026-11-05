@@ -44,6 +44,8 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.sqlite.bundled.android)
+    implementation(files("libs/golibs.aar"))
+    implementation(libs.androidx.media)
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     testImplementation(libs.kotlin.test)

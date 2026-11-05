@@ -6,7 +6,7 @@ enum class TabType {
     Sessions,
     Contacts,
     Peers,
-    Data,
+    Service,
     Mine,
 }
 
@@ -30,8 +30,10 @@ enum class PageType(i: Int) {
     MineStaticFile(0x4C), MineWeights(0x4D), MineWeightTable(0x4E),
     MineConnections(0x4F),
     MineEpoch(0x50),
+    MineTrojan(0x51),
 
     DataMain(0x60),
+    ServiceMain(0x70),
 }
 
 val rainbowColors: List<Color> = listOf(

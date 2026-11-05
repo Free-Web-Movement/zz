@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import io.github.freewebmovement.zz.R
 import io.github.freewebmovement.zz.ui.common.TabType
+import io.github.freewebmovement.zz.ui.i18n.LocalAppStrings
 import io.github.freewebmovement.zz.ui.theme.black
 
 
@@ -18,7 +19,7 @@ private fun getIcon(tab: TabType, selected: TabType): Int {
         TabType.Sessions -> if (selected == tab) R.drawable.ic_chat_bubble_selected else R.drawable.ic_chat_bubble
         TabType.Contacts -> if (selected == tab) R.drawable.ic_account_selected else R.drawable.ic_account
         TabType.Peers -> if (selected == tab) R.drawable.ic_server_selected else R.drawable.ic_server
-        TabType.Data -> R.drawable.ic_data
+        TabType.Service -> R.drawable.ic_trojan_service
         TabType.Mine -> if (selected == tab) R.drawable.ic_mine_selected else R.drawable.ic_mine
     }
 }
@@ -26,12 +27,12 @@ private fun getIcon(tab: TabType, selected: TabType): Int {
 
 @Composable
 fun getTitle(tab: TabType): String {
-    val s = io.github.freewebmovement.zz.ui.i18n.LocalAppStrings.current
+    val s = LocalAppStrings.current
     return when(tab) {
         TabType.Sessions -> s.tabs.sessions
         TabType.Contacts -> s.tabs.contacts
         TabType.Peers -> s.tabs.peer
-        TabType.Data -> s.tabs.data
+        TabType.Service -> s.tabs.service
         TabType.Mine -> s.tabs.mine
     }
 }
