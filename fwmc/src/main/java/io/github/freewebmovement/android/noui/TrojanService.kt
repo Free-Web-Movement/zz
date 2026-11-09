@@ -1,19 +1,15 @@
 package io.github.freewebmovement.android.noui
 
 import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.net.ConnectivityManager
 import android.net.VpnService
 import android.os.Build
 import android.os.IBinder
 import android.os.ParcelFileDescriptor
-import androidx.core.app.NotificationCompat
 import com.russhwolf.settings.Settings
-import io.github.freewebmovement.fwmc.R
 import io.github.freewebmovement.peer.system.KVSettings
 import io.github.freewebmovement.peer.system.Preference
 import io.github.freewebmovement.peer.system.TrojanSetting
@@ -22,6 +18,9 @@ import org.json.JSONObject
 import rs.zz.coin.FwmcTrojan
 import tun2socks.Tun2socks
 import tun2socks.Tun2socksStartOptions
+import java.io.File
+import java.net.Inet4Address
+import java.net.Inet6Address
 
 /**
  * Foreground VPN service that runs the embedded trojan client and routes
@@ -45,30 +44,27 @@ class TrojanService : VpnService() {
     private var vpnInterface: ParcelFileDescriptor? = null
     private var tun2socksStarted = false
     private var gateway: TrojanGateway? = null
+    private var clash: ClashConfig? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()
-        TrojanStatusNotifier.ensureChannel(this)
+        SystemStatusNotifier.ensureChannel(this)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_STOP -> {
                 stopClient()
-                stopForeground(STOP_FOREGROUND_REMOVE)
+                SystemStatusNotifier.setTrojan(this, false, "已停止")
+                stopForeground(STOP_FOREGROUND_DETACH)
                 stopSelf()
                 return START_NOT_STICKY
             }
             else -> {
-                startForegroundCompat(
-                    TrojanStatusNotifier.build(
-                        this,
-                        running = true,
-                        text = "Trojan 服务启动中…",
-                    )
-                )
+                SystemStatusNotifier.setTrojan(this, true, "启动中…")
+                startForegroundCompat()
                 startClientAsync()
             }
         }
@@ -77,13 +73,14 @@ class TrojanService : VpnService() {
 
     override fun onRevoke() {
         stopClient()
-        stopForeground(STOP_FOREGROUND_REMOVE)
+        SystemStatusNotifier.setTrojan(this, false, "已停止")
+        stopForeground(STOP_FOREGROUND_DETACH)
         stopSelf()
     }
 
     override fun onDestroy() {
         stopClient()
-        TrojanStatusNotifier.showStopped(this)
+        SystemStatusNotifier.setTrojan(this, false, "已停止")
         super.onDestroy()
     }
 
@@ -97,15 +94,27 @@ class TrojanService : VpnService() {
         val server = setting.currentServer()
         if (server == null || server.remoteAddr.isBlank() || server.password.isBlank()) {
             running = false
-            notifyText("Trojan 未配置服务器")
+            SystemStatusNotifier.setTrojan(this, false, "未配置服务器")
             stopSelf()
             return
+        }
+
+        // In Clash mode the tun traffic lands on Clash's SOCKS listener, which
+        // applies the bundled rule set (CN direct / foreign proxy), and dials
+        // the local trojan client through its own listener port.
+        val useClash = setting.clashEnabled
+        val clashPort = if (useClash) ClashConfig.findFreePort(server.localPort) else 0
+        val trojanPort = if (useClash) {
+            val preferred = if (clashPort < 65535) clashPort + 1 else clashPort - 1
+            ClashConfig.findFreePort(preferred)
+        } else {
+            server.localPort
         }
 
         val config = JSONObject().apply {
             put("run_type", "client")
             put("local_addr", server.localAddr.ifBlank { TrojanSetting.DEFAULT_LOCAL_ADDR })
-            put("local_port", server.localPort)
+            put("local_port", trojanPort)
             put("remote_addr", server.remoteAddr)
             put("remote_port", server.remotePort)
             put("password", JSONArray().put(server.password))
@@ -126,42 +135,66 @@ class TrojanService : VpnService() {
         if (!result.optBoolean("success", false)) {
             val error = result.optString("error").ifBlank { "unknown error" }
             running = false
-            notifyText("Trojan 启动失败：$error")
+            SystemStatusNotifier.setTrojan(this, false, "启动失败", error)
             stopSelf()
             return
         }
 
-        val port = result.optInt("local_port", server.localPort)
-        val gateway = TrojanGateway(
-            trojanPort = port,
-            bypassLan = setting.bypassLan,
-            cnDirect = setting.cnDirectEnabled,
-            directDomains = setting.loadDirectDomains(),
-            proxyDomains = setting.loadProxyDomains(),
-            blockedDomains = setting.loadBlockedDomains(),
-            unreachableDomains = setting.loadUnreachableDomains(),
-        )
-        val gatewayPort = runCatching { gateway.start() }.getOrElse {
-            runCatching { FwmcTrojan.stop() }
-            running = false
-            notifyText("Trojan 分流网关启动失败")
-            stopSelf()
-            return
+        val port = result.optInt("local_port", trojanPort)
+        val socksPort = if (useClash) {
+            val clashConfig = ClashConfig(this)
+            val home = File(filesDir, "fwmc/node/clash")
+            val prepared = runCatching {
+                clashConfig.prepare(home, clashPort, port, setting.allowLan, activeDnsServers())
+            }.onFailure {
+                android.util.Log.e("TrojanService", "clash prepare failed", it)
+            }.isSuccess
+            if (!prepared || !clashConfig.start(home, clashPort, port, setting.allowLan)) {
+                clashConfig.stop()
+                runCatching { FwmcTrojan.stop() }
+                running = false
+                SystemStatusNotifier.setTrojan(this, false, "Clash 启动失败")
+                stopSelf()
+                return
+            }
+            this.clash = clashConfig
+            clashPort
+        } else {
+            val gateway = TrojanGateway(
+                trojanPort = port,
+                bypassLan = setting.bypassLan,
+                cnDirect = setting.cnDirectEnabled,
+                directDomains = setting.loadDirectDomains(),
+                proxyDomains = setting.loadProxyDomains(),
+                blockedDomains = setting.loadBlockedDomains(),
+                unreachableDomains = setting.loadUnreachableDomains(),
+            )
+            val gatewayPort = runCatching { gateway.start() }.getOrElse {
+                runCatching { FwmcTrojan.stop() }
+                running = false
+                SystemStatusNotifier.setTrojan(this, false, "分流网关启动失败")
+                stopSelf()
+                return
+            }
+            this.gateway = gateway
+            gatewayPort
         }
-        this.gateway = gateway
-        if (!establishVpn(gatewayPort)) {
-            gateway.stop()
-            this.gateway = null
+        if (!establishVpn(socksPort)) {
+            gateway?.stop()
+            gateway = null
+            clash?.stop()
+            clash = null
             runCatching { FwmcTrojan.stop() }
             running = false
-            notifyText("Trojan VPN 启动失败")
+            SystemStatusNotifier.setTrojan(this, false, "VPN 启动失败")
             stopSelf()
             return
         }
 
         running = true
         startedAt = System.currentTimeMillis()
-        notifyText("Trojan 运行中 · SOCKS5 127.0.0.1:$port")
+        val label = if (useClash) "Clash 127.0.0.1:$clashPort" else "SOCKS5 127.0.0.1:$port"
+        SystemStatusNotifier.setTrojan(this, true, "运行中", label)
     }
 
     /** Build the tun interface and hand its fd to go-tun2socks. */
@@ -186,13 +219,22 @@ class TrojanService : VpnService() {
                 builder.addRoute("0.0.0.0", 0)
             }
 
+            // tun2socks answers DNS locally with fake IPs. This makes domain
+            // split-routing work (the gateway sees hostnames, not just IPs)
+            // and removes the dependency on the remote server relaying UDP.
+            builder.addRoute(FAKE_IP_ROUTE, FAKE_IP_PREFIX)
+
             if (setting.enableIpv6) {
                 builder.addAddress(VPN_IPV6, 126)
                 builder.addRoute("::", 0)
                 VPN_DNS_SERVERS_V6.forEach { builder.addDnsServer(it) }
             }
 
-            VPN_DNS_SERVERS.forEach { builder.addDnsServer(it) }
+            // Send every physical DNS server through the tunnel too, otherwise
+            // queries can bypass the fake-IP interception via the LAN route.
+            addPhysicalDnsRoutes(builder, setting.enableIpv6)
+
+            builder.addDnsServer(FAKE_DNS_SERVER)
 
             // Always exclude zz itself to avoid a routing loop.
             try {
@@ -222,7 +264,7 @@ class TrojanService : VpnService() {
                 socks5Server = "127.0.0.1:$socksPort"
                 enableIPv6 = setting.enableIpv6
                 mtu = VPN_MTU.toLong()
-                fakeIPRange = ""
+                fakeIPRange = FAKE_IP_RANGE
             }
             Tun2socks.setLoglevel("info")
             Tun2socks.start(options)
@@ -234,6 +276,34 @@ class TrojanService : VpnService() {
             vpnInterface?.let { runCatching { it.close() } }
             vpnInterface = null
             false
+        }
+    }
+
+    /** DNS servers of the underlying (non-VPN) network, IPv4 first. */
+    private fun activeDnsServers(): List<String> = runCatching {
+        val cm = getSystemService(ConnectivityManager::class.java)
+        val network = cm?.activeNetwork
+        val lp = network?.let { cm.getLinkProperties(it) }
+        lp?.dnsServers
+            ?.sortedBy { if (it is Inet4Address) 0 else 1 }
+            ?.mapNotNull { it.hostAddress?.substringBefore('%') }
+            ?.filter { it.isNotBlank() }
+            ?.distinct()
+            .orEmpty()
+    }.getOrDefault(emptyList())
+
+    /** Route the underlying network's DNS servers into the tun device. */
+    private fun addPhysicalDnsRoutes(builder: Builder, enableIpv6: Boolean) {
+        runCatching {
+            val cm = getSystemService(ConnectivityManager::class.java) ?: return
+            val network = cm.activeNetwork ?: return
+            val lp = cm.getLinkProperties(network) ?: return
+            lp.dnsServers.forEach { dns ->
+                when {
+                    dns is Inet4Address -> builder.addRoute(dns.hostAddress, 32)
+                    dns is Inet6Address && enableIpv6 -> builder.addRoute(dns.hostAddress, 128)
+                }
+            }
         }
     }
 
@@ -259,6 +329,9 @@ class TrojanService : VpnService() {
         val g = gateway
         gateway = null
         g?.stop()
+        val c = clash
+        clash = null
+        c?.stop()
         if (running) {
             runCatching { FwmcTrojan.stop() }
             running = false
@@ -266,20 +339,17 @@ class TrojanService : VpnService() {
         startedAt = 0L
     }
 
-    private fun startForegroundCompat(notification: Notification) {
+    private fun startForegroundCompat() {
+        val notification: Notification = SystemStatusNotifier.build(this)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startForeground(
-                TrojanStatusNotifier.NOTIFICATION_ID,
+                SystemStatusNotifier.NOTIFICATION_ID,
                 notification,
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED,
             )
         } else {
-            startForeground(TrojanStatusNotifier.NOTIFICATION_ID, notification)
+            startForeground(SystemStatusNotifier.NOTIFICATION_ID, notification)
         }
-    }
-
-    private fun notifyText(text: String) {
-        TrojanStatusNotifier.showRunning(this, text)
     }
 
     companion object {
@@ -289,7 +359,10 @@ class TrojanService : VpnService() {
         private const val VPN_IPV4 = "172.19.0.1"
         private const val VPN_IPV6 = "fdfe:dcba:9876::1"
         private const val VPN_MTU = 1500
-        private val VPN_DNS_SERVERS = arrayOf("223.5.5.5", "119.29.29.29", "114.114.114.114")
+        private const val FAKE_IP_RANGE = "198.18.0.1/16"
+        private const val FAKE_IP_ROUTE = "198.18.0.0"
+        private const val FAKE_IP_PREFIX = 16
+        private const val FAKE_DNS_SERVER = "198.18.0.1"
         private val VPN_DNS_SERVERS_V6 = arrayOf("2400:3200::1", "2400:3200:baba::1")
 
         @Volatile

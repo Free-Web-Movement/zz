@@ -194,7 +194,7 @@ private fun ServiceEntry(
 }
 
 @Composable
-private fun ServicePlaceholderScreen(name: String, onBack: () -> Unit) {
+fun ServicePlaceholderScreen(name: String, onBack: () -> Unit) {
     val sv = LocalAppStrings.current.service
     Column(
         modifier = Modifier

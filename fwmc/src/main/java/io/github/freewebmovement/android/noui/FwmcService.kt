@@ -1,40 +1,45 @@
 package io.github.freewebmovement.android.noui
 
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
-import androidx.core.app.NotificationCompat
-import io.github.freewebmovement.fwmc.R
 import io.github.freewebmovement.peer.system.KVSettings
 import io.github.freewebmovement.peer.system.Preference
 import com.russhwolf.settings.Settings
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import org.json.JSONObject
+import rs.zz.coin.FwmcApi
 
 class FwmcService : Service() {
 
     private var controller: FwmcNodeController? = null
     private var wakeLock: PowerManager.WakeLock? = null
+    private var statsJob: Job? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()
-        createNotificationChannel()
+        SystemStatusNotifier.ensureChannel(this)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_STOP -> {
-                stopForeground(STOP_FOREGROUND_REMOVE)
+                SystemStatusNotifier.setNode(this, false, "已停止")
+                stopForeground(STOP_FOREGROUND_DETACH)
                 stopSelf()
                 return START_NOT_STICKY
             }
+            ACTION_START -> if (controller == null) startNode()
             else -> startNode()
         }
         return START_STICKY
@@ -48,7 +53,8 @@ class FwmcService : Service() {
     private fun startNode() {
         acquireWakeLock()
         ensureBatteryOptimizationExempt()
-        startForeground(NOTIFICATION_ID, buildNotification("FWMC 节点运行中"))
+        SystemStatusNotifier.setNode(this, true, "启动中…")
+        startForeground(SystemStatusNotifier.NOTIFICATION_ID, SystemStatusNotifier.build(this))
 
         val dataDir = MyApp.getStoragePath(applicationContext)
         val settings = KVSettings(Preference(Settings()))
@@ -70,9 +76,38 @@ class FwmcService : Service() {
         controller = ctrl
         MyApp.getApp().setFwmc(ctrl)
         if (bound > 0) {
-            notifyText("FWMC 节点运行中 · 端口 $bound")
+            SystemStatusNotifier.setNode(this, true, "运行中")
+            SystemStatusNotifier.setNodeDetails(this, bound, 0, 0, 0, 0)
+            startStatsPolling(bound)
         } else {
-            notifyText("FWMC 节点启动失败")
+            SystemStatusNotifier.setNode(this, false, "启动失败")
+        }
+    }
+
+    private fun startStatsPolling(port: Int) {
+        statsJob?.cancel()
+        statsJob = CoroutineScope(Dispatchers.IO).launch {
+            val interval = if (KVSettings(Preference(Settings())).debug.epochTestMode) {
+                1000L
+            } else {
+                5000L
+            }
+            while (isActive) {
+                runCatching {
+                    val obj = JSONObject(FwmcApi.getData())
+                    if (obj.optBoolean("success", false)) {
+                        SystemStatusNotifier.setNodeDetails(
+                            applicationContext,
+                            port,
+                            obj.optLong("epoch", 0),
+                            obj.optLong("epoch_tick", 0),
+                            obj.optLong("ticks_per_epoch", 0),
+                            obj.optLong("tick_count", 0),
+                        )
+                    }
+                }
+                delay(interval)
+            }
         }
     }
 
@@ -95,12 +130,10 @@ class FwmcService : Service() {
         }
     }
 
-    private fun notifyText(text: String) {
-        val nm = getSystemService(NotificationManager::class.java)
-        nm.notify(NOTIFICATION_ID, buildNotification(text))
-    }
-
     private fun stopNode() {
+        statsJob?.cancel()
+        statsJob = null
+        SystemStatusNotifier.setNode(this, false, "已停止")
         releaseWakeLock()
         controller?.destroy()
         controller = null
@@ -126,45 +159,10 @@ class FwmcService : Service() {
         wakeLock = null
     }
 
-    private fun createNotificationChannel() {
-        val channel = NotificationChannel(
-            CHANNEL_ID,
-            "FWMC 节点",
-            NotificationManager.IMPORTANCE_DEFAULT
-        ).apply {
-            description = "FWMC 节点后台运行通知"
-            setSound(null, null)
-            enableVibration(false)
-        }
-        val nm = getSystemService(NotificationManager::class.java)
-        nm.createNotificationChannel(channel)
-    }
-
-    private fun buildNotification(text: String): Notification {
-        val stopIntent = Intent(this, FwmcService::class.java).apply {
-            action = ACTION_STOP
-        }
-        val stopPending = PendingIntent.getService(
-            this, 0, stopIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("FreeWebMovement")
-            .setContentText(text)
-            .setSmallIcon(R.drawable.ic_stat_fwmc)
-            .setColor(0xFF1E88E5.toInt())
-            .setOngoing(true)
-            .setShowWhen(true)
-            .addAction(android.R.drawable.ic_media_pause, "停止", stopPending)
-            .build()
-    }
-
     companion object {
         // v2：提高通道重要性到 DEFAULT 以在状态栏显示图标（旧 fwmc_service 通道保留 LOW，无法覆盖）
-        private const val CHANNEL_ID = "fwmc_service_v2"
-        private const val NOTIFICATION_ID = 1
-        private const val ACTION_STOP = "io.github.freewebmovement.fwmc.STOP"
+        const val ACTION_START = "io.github.freewebmovement.fwmc.START"
+        const val ACTION_STOP = "io.github.freewebmovement.fwmc.STOP"
 
         fun start(context: Context) {
             val intent = Intent(context, FwmcService::class.java)

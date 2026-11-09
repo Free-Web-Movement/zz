@@ -1,5 +1,6 @@
 package io.github.freewebmovement.android.noui
 
+import android.util.Log
 import java.io.EOFException
 import java.io.InputStream
 import java.io.OutputStream
@@ -39,6 +40,7 @@ internal class TrojanGateway(
     private enum class Decision { DIRECT, PROXY, BLOCK }
 
     private companion object {
+        const val TAG = "TrojanGateway"
         const val SOCKS5 = 0x05
         const val ATYP_IPV4 = 0x01
         const val ATYP_DOMAIN = 0x03
@@ -113,8 +115,8 @@ internal class TrojanGateway(
                     CMD_UDP_ASSOCIATE -> handleUdpAssociate(socket, inp, out)
                     else -> writeReply(out, REP_UNSUPPORTED, "0.0.0.0", 0)
                 }
-            } catch (_: Exception) {
-                // connection closed / malformed request
+            } catch (e: Exception) {
+                Log.w(TAG, "client handler failed", e)
             }
         }
     }
@@ -128,11 +130,14 @@ internal class TrojanGateway(
     ) {
         when (decide(host)) {
             Decision.BLOCK -> {
+                Log.i(TAG, "block $host:$port")
                 writeReply(out, REP_FAILURE, "0.0.0.0", 0)
             }
             Decision.DIRECT -> {
                 val target = runCatching {
                     Socket().also { it.connect(InetSocketAddress(host, port), CONNECT_TIMEOUT_MS) }
+                }.onFailure {
+                    Log.w(TAG, "direct connect $host:$port failed", it)
                 }.getOrNull()
                 if (target == null) {
                     writeReply(out, REP_FAILURE, "0.0.0.0", 0)
@@ -153,28 +158,35 @@ internal class TrojanGateway(
         }
     }
 
-    private fun connectViaTrojan(host: String, port: Int): Socket? = runCatching {
-        val socket = Socket()
-        socket.connect(InetSocketAddress("127.0.0.1", trojanPort), CONNECT_TIMEOUT_MS)
-        val inp = socket.getInputStream()
-        val out = socket.getOutputStream()
-        out.write(byteArrayOf(SOCKS5.toByte(), 1, 0))
-        out.flush()
-        val greeting = ByteArray(2)
-        readFully(inp, greeting)
-        if (greeting[0].toInt() and 0xFF != SOCKS5 || greeting[1].toInt() != 0) {
-            socket.close()
-            return null
+    private fun connectViaTrojan(host: String, port: Int): Socket? {
+        return try {
+            val socket = Socket()
+            socket.connect(InetSocketAddress("127.0.0.1", trojanPort), CONNECT_TIMEOUT_MS)
+            val inp = socket.getInputStream()
+            val out = socket.getOutputStream()
+            out.write(byteArrayOf(SOCKS5.toByte(), 1, 0))
+            out.flush()
+            val greeting = ByteArray(2)
+            readFully(inp, greeting)
+            if (greeting[0].toInt() and 0xFF != SOCKS5 || greeting[1].toInt() != 0) {
+                Log.w(TAG, "trojan $host:$port rejected SOCKS greeting")
+                socket.close()
+                return null
+            }
+            writeRequest(out, CMD_CONNECT, host, port)
+            out.flush()
+            val reply = readReply(inp)
+            if (!reply.success) {
+                Log.w(TAG, "trojan $host:$port connect rejected")
+                socket.close()
+                return null
+            }
+            socket
+        } catch (e: Exception) {
+            Log.w(TAG, "trojan connect $host:$port failed", e)
+            null
         }
-        writeRequest(out, CMD_CONNECT, host, port)
-        out.flush()
-        val reply = readReply(inp)
-        if (!reply.success) {
-            socket.close()
-            return null
-        }
-        socket
-    }.getOrNull()
+    }
 
     private fun handleUdpAssociate(
         client: Socket,

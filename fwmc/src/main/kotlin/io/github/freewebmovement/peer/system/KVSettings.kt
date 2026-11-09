@@ -61,12 +61,15 @@ private const val TROJAN_PROXY_ALL_APPS = "TROJAN_PROXY_ALL_APPS"
 private const val TROJAN_PROXIED_APPS = "TROJAN_PROXIED_APPS"
 private const val TROJAN_BYPASS_LAN = "TROJAN_BYPASS_LAN"
 private const val TROJAN_CN_DIRECT = "TROJAN_CN_DIRECT"
+private const val TROJAN_CLASH = "TROJAN_CLASH"
 private const val TROJAN_DIRECT_DOMAINS = "TROJAN_DIRECT_DOMAINS"
 private const val TROJAN_PROXY_DOMAINS = "TROJAN_PROXY_DOMAINS"
 private const val TROJAN_BLOCKED_DOMAINS = "TROJAN_BLOCKED_DOMAINS"
 private const val TROJAN_UNREACHABLE_DOMAINS = "TROJAN_UNREACHABLE_DOMAINS"
 private const val TROJAN_IPV6 = "TROJAN_IPV6"
 private const val TROJAN_AUTO_START = "TROJAN_AUTO_START"
+private const val TROJAN_AUTO_OPEN = "TROJAN_AUTO_OPEN"
+private const val TROJAN_ALLOW_LAN = "TROJAN_ALLOW_LAN"
 private const val TROJAN_APP_COUNTRIES = "TROJAN_APP_COUNTRIES"
 
 
@@ -347,6 +350,10 @@ data class TrojanSetting(
         preference, TROJAN_CN_DIRECT, field = true
     )
 
+    var clashEnabled: Boolean by PreferenceAccessor(
+        preference, TROJAN_CLASH, field = true
+    )
+
     var directDomainsRaw: String by PreferenceAccessor(
         preference, TROJAN_DIRECT_DOMAINS, field = ""
     )
@@ -401,6 +408,14 @@ data class TrojanSetting(
 
     var autoStart: Boolean by PreferenceAccessor(
         preference, TROJAN_AUTO_START, field = false
+    )
+
+    var autoOpen: Boolean by PreferenceAccessor(
+        preference, TROJAN_AUTO_OPEN, field = false
+    )
+
+    var allowLan: Boolean by PreferenceAccessor(
+        preference, TROJAN_ALLOW_LAN, field = false
     )
 
     var appCountriesRaw: String by PreferenceAccessor(

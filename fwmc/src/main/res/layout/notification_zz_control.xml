@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- Zz 服务（核心 + 非核心） -->
+    <LinearLayout
+        android:id="@+id/zz_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_zz_notification"
+        android:orientation="vertical"
+        android:paddingStart="14dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="14dp"
+        android:paddingBottom="8dp">
+
+        <TextView
+            android:id="@+id/zz_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Zz 服务"
+            android:textColor="#1A1A1A"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/zz_summary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:paddingTop="1dp"
+            android:textColor="#666666"
+            android:textSize="10sp" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="4dp"
+            android:background="#22000000" />
+
+        <TextView
+            android:id="@+id/zz_core_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="6dp"
+            android:text="核心服务"
+            android:textColor="#888888"
+            android:textSize="10sp" />
+
+        <!-- 基础节点 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingTop="6dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="基础节点"
+                    android:textColor="#1A1A1A"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/zz_node_info"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="#666666"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/zz_node_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingEnd="6dp"
+                android:textSize="11sp" />
+
+            <ImageButton
+                android:id="@+id/zz_node_settings"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/bg_zz_notification_action"
+                android:contentDescription="设置"
+                android:padding="7dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_zz_settings" />
+
+            <ImageButton
+                android:id="@+id/zz_node_action"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@drawable/bg_zz_notification_action"
+                android:contentDescription="启动节点"
+                android:padding="7dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_zz_play" />
+        </LinearLayout>
+
+        <!-- Web / HTTP -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingTop="6dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Web / HTTP"
+                    android:textColor="#1A1A1A"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/zz_web_info"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="#666666"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/zz_web_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingEnd="6dp"
+                android:textSize="11sp" />
+
+            <ImageButton
+                android:id="@+id/zz_web_settings"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/bg_zz_notification_action"
+                android:contentDescription="设置"
+                android:padding="7dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_zz_settings" />
+
+            <ImageButton
+                android:id="@+id/zz_web_action"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@drawable/bg_zz_notification_action"
+                android:contentDescription="启动 Web"
+                android:padding="7dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_zz_play" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/zz_addon_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="8dp"
+            android:text="非核心服务"
+            android:textColor="#888888"
+            android:textSize="10sp"
+            android:visibility="gone" />
+
+        <!-- SOCKS -->
+        <LinearLayout
+            android:id="@+id/zz_socks_row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingTop="5dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="SOCKS 代理"
+                    android:textColor="#1A1A1A"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/zz_socks_info"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="#666666"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/zz_socks_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingEnd="6dp"
+                android:textSize="11sp" />
+
+            <ImageButton
+                android:id="@+id/zz_socks_settings"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/bg_zz_notification_action"
+                android:contentDescription="设置"
+                android:padding="7dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_zz_settings" />
+
+            <ImageButton
+                android:id="@+id/zz_socks_action"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@drawable/bg_zz_notification_action"
+                android:contentDescription="启动 SOCKS"
+                android:padding="7dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_zz_play"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- FRP -->
+        <LinearLayout
+            android:id="@+id/zz_frp_row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingTop="5dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="FRP 服务"
+                    android:textColor="#1A1A1A"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/zz_frp_info"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="#666666"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/zz_frp_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingEnd="6dp"
+                android:textSize="11sp" />
+
+            <ImageButton
+                android:id="@+id/zz_frp_settings"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/bg_zz_notification_action"
+                android:contentDescription="设置"
+                android:padding="7dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_zz_settings" />
+
+            <ImageButton
+                android:id="@+id/zz_frp_action"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@drawable/bg_zz_notification_action"
+                android:contentDescription="启动 FRP"
+                android:padding="7dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_zz_play"
+                android:visibility="gone" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 外接服务（与 Zz 服务平级） -->
+    <LinearLayout
+        android:id="@+id/zz_external_box"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_zz_notification"
+        android:orientation="vertical"
+        android:paddingStart="14dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="14dp"
+        android:paddingBottom="8dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/zz_external_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="外接服务"
+            android:textColor="#1A1A1A"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="4dp"
+            android:background="#22000000" />
+
+        <!-- Trojan -->
+        <LinearLayout
+            android:id="@+id/zz_trojan_row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingTop="6dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Trojan"
+                    android:textColor="#1A1A1A"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/zz_trojan_info"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="#666666"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/zz_trojan_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingEnd="6dp"
+                android:textSize="11sp" />
+
+            <ImageButton
+                android:id="@+id/zz_trojan_settings"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/bg_zz_notification_action"
+                android:contentDescription="设置"
+                android:padding="7dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_zz_settings" />
+
+            <ImageButton
+                android:id="@+id/zz_trojan_action"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@drawable/bg_zz_notification_action"
+                android:contentDescription="启动 Trojan"
+                android:padding="7dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_zz_play" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

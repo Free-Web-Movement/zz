@@ -19,7 +19,7 @@ class MainApplication : Application() {
         app = MyApp.new(this)
         rs.zz.coin.FwmcApi.initDataDir(app.fwmcRootDir())
         if (!io.github.freewebmovement.android.noui.TrojanService.running) {
-            io.github.freewebmovement.android.noui.TrojanStatusNotifier.showStopped(this)
+            io.github.freewebmovement.android.noui.SystemStatusNotifier.showIdle(this)
         }
         super.onCreate()
     }

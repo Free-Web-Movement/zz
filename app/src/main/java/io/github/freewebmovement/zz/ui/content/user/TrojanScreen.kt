@@ -41,6 +41,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
@@ -50,6 +51,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -58,6 +60,7 @@ import androidx.compose.material3.TriStateCheckbox
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -94,6 +97,7 @@ import io.github.freewebmovement.android.noui.TrojanService
 import io.github.freewebmovement.peer.system.TrojanServer
 import io.github.freewebmovement.peer.system.TrojanSetting
 import io.github.freewebmovement.zz.MainApplication
+import io.github.freewebmovement.zz.ui.common.BatteryOptimization
 import io.github.freewebmovement.zz.ui.common.Divider
 import io.github.freewebmovement.zz.ui.common.EmptyHint
 import io.github.freewebmovement.zz.ui.common.KeyValueRow
@@ -145,6 +149,7 @@ fun TrojanScreen(onBack: () -> Unit = {}) {
     var selectedId by remember { mutableStateOf(setting.currentServer()?.id) }
     var adding by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<TrojanServer?>(null) }
+    var detailServer by remember { mutableStateOf<TrojanServer?>(null) }
     var deleteTarget by remember { mutableStateOf<TrojanServer?>(null) }
     var running by remember { mutableStateOf(TrojanService.running) }
     var vpnActive by remember { mutableStateOf(TrojanService.vpnActive) }
@@ -185,6 +190,7 @@ fun TrojanScreen(onBack: () -> Unit = {}) {
                 setting.upsertServer(server)
                 servers = setting.loadServers()
                 selectedId = setting.currentServer()?.id
+                if (detailServer != null) detailServer = server
                 adding = false
                 editing = null
             },
@@ -192,6 +198,15 @@ fun TrojanScreen(onBack: () -> Unit = {}) {
                 adding = false
                 editing = null
             },
+        )
+        return
+    }
+
+    detailServer?.let { server ->
+        TrojanServerDetail(
+            server = server,
+            onBack = { detailServer = null },
+            onEdit = { editing = server },
         )
         return
     }
@@ -223,6 +238,7 @@ fun TrojanScreen(onBack: () -> Unit = {}) {
 
     var tab by remember { mutableIntStateOf(0) }
     var bypassLan by remember { mutableStateOf(setting.bypassLan) }
+    var clash by remember { mutableStateOf(setting.clashEnabled) }
     var cnDirect by remember { mutableStateOf(setting.cnDirectEnabled) }
     var directDomains by remember { mutableStateOf(setting.loadDirectDomains()) }
     var proxyDomains by remember { mutableStateOf(setting.loadProxyDomains()) }
@@ -230,6 +246,21 @@ fun TrojanScreen(onBack: () -> Unit = {}) {
     var unreachableDomains by remember { mutableStateOf(setting.loadUnreachableDomains()) }
     var ipv6 by remember { mutableStateOf(setting.enableIpv6) }
     var autoStart by remember { mutableStateOf(setting.autoStart) }
+    var autoOpen by remember { mutableStateOf(setting.autoOpen) }
+    var allowLan by remember { mutableStateOf(setting.allowLan) }
+    var batteryWhitelisted by remember {
+        mutableStateOf(BatteryOptimization.isIgnoringBatteryOptimizations(ctx))
+    }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                batteryWhitelisted = BatteryOptimization.isIgnoringBatteryOptimizations(ctx)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
     var qrServer by remember { mutableStateOf<TrojanServer?>(null) }
 
     val current = servers.firstOrNull { it.id == selectedId } ?: servers.firstOrNull()
@@ -412,6 +443,7 @@ fun TrojanScreen(onBack: () -> Unit = {}) {
                                         info = ""
                                     }
                                 },
+                                onDetail = { detailServer = server },
                                 onEdit = { editing = server },
                                 onDelete = { deleteTarget = server },
                                 onTest = {
@@ -482,6 +514,11 @@ fun TrojanScreen(onBack: () -> Unit = {}) {
             ) {
                 SettingsCard(
                     running = running,
+                    clash = clash,
+                    onClashChange = {
+                        clash = it
+                        setting.clashEnabled = it
+                    },
                     ipv6 = ipv6,
                     onIpv6Change = {
                         ipv6 = it
@@ -491,6 +528,29 @@ fun TrojanScreen(onBack: () -> Unit = {}) {
                     onAutoStartChange = {
                         autoStart = it
                         setting.autoStart = it
+                    },
+                    autoOpen = autoOpen,
+                    onAutoOpenChange = {
+                        autoOpen = it
+                        setting.autoOpen = it
+                    },
+                    allowLan = allowLan,
+                    onAllowLanChange = {
+                        allowLan = it
+                        setting.allowLan = it
+                    },
+                    batteryWhitelisted = batteryWhitelisted,
+                    onBatteryTap = {
+                        if (BatteryOptimization.isIgnoringBatteryOptimizations(ctx)) {
+                            BatteryOptimization.openBatteryOptimizationSettings(ctx)
+                        } else {
+                            BatteryOptimization.requestIgnoreOptimizations(ctx)
+                        }
+                    },
+                    onBackgroundLimitsTap = {
+                        if (!BatteryOptimization.openOemBackgroundLimits(ctx)) {
+                            BatteryOptimization.openBatteryOptimizationSettings(ctx)
+                        }
                     },
                 )
                 Spacer(modifier = Modifier.height(24.dp))
@@ -727,35 +787,44 @@ private fun RuleSection(
 @Composable
 private fun SettingsCard(
     running: Boolean,
+    clash: Boolean,
+    onClashChange: (Boolean) -> Unit,
     ipv6: Boolean,
     onIpv6Change: (Boolean) -> Unit,
     autoStart: Boolean,
     onAutoStartChange: (Boolean) -> Unit,
+    autoOpen: Boolean,
+    onAutoOpenChange: (Boolean) -> Unit,
+    allowLan: Boolean,
+    onAllowLanChange: (Boolean) -> Unit,
+    batteryWhitelisted: Boolean,
+    onBatteryTap: () -> Unit,
+    onBackgroundLimitsTap: () -> Unit,
 ) {
     val s = LocalAppStrings.current
     val t = s.trojan
     SectionCard(title = t.tabSettings) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(t.ipv6, fontSize = 14.sp, color = TextPrimary)
-                Text(t.ipv6Hint, fontSize = 11.sp, color = TextMuted)
-            }
-            Switch(checked = ipv6, onCheckedChange = onIpv6Change)
-        }
+        SettingSwitchRow(t.clash, t.clashHint, clash, onClashChange)
         Divider()
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(t.autoStart, fontSize = 14.sp, color = TextPrimary)
-                Text(t.autoStartHint, fontSize = 11.sp, color = TextMuted)
-            }
-            Switch(checked = autoStart, onCheckedChange = onAutoStartChange)
-        }
+        SettingSwitchRow(t.ipv6, t.ipv6Hint, ipv6, onIpv6Change)
+        Divider()
+        SettingSwitchRow(t.allowLan, t.allowLanHint, allowLan, onAllowLanChange)
+        Divider()
+        SettingSwitchRow(t.autoOpen, t.autoOpenHint, autoOpen, onAutoOpenChange)
+        Divider()
+        SettingSwitchRow(t.autoStart, t.autoStartHint, autoStart, onAutoStartChange)
+        Divider()
+        SettingActionRow(
+            title = t.batteryKeepAlive,
+            subtitle = if (batteryWhitelisted) t.batteryWhitelisted else t.batteryNotWhitelisted,
+            onClick = onBatteryTap,
+        )
+        Divider()
+        SettingActionRow(
+            title = t.backgroundLimits,
+            subtitle = t.backgroundLimitsHint,
+            onClick = onBackgroundLimitsTap,
+        )
         if (running) {
             Text(
                 text = t.restartHint,
@@ -763,6 +832,45 @@ private fun SettingsCard(
                 color = TextMuted,
                 modifier = Modifier.padding(top = 6.dp),
             )
+        }
+    }
+}
+
+@Composable
+private fun SettingSwitchRow(
+    title: String,
+    hint: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, fontSize = 14.sp, color = TextPrimary)
+            Text(hint, fontSize = 11.sp, color = TextMuted)
+        }
+        Switch(checked = checked, onCheckedChange = onCheckedChange)
+    }
+}
+
+@Composable
+private fun SettingActionRow(
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 6.dp),
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, fontSize = 14.sp, color = TextPrimary)
+            Text(subtitle, fontSize = 11.sp, color = TextMuted)
         }
     }
 }
@@ -1160,6 +1268,7 @@ private fun ServerRow(
     running: Boolean,
     testResult: String?,
     onSelect: () -> Unit,
+    onDetail: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     onTest: () -> Unit,
@@ -1167,48 +1276,55 @@ private fun ServerRow(
 ) {
     val s = LocalAppStrings.current
     val t = s.trojan
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onSelect)
-            .padding(vertical = 4.dp),
-    ) {
-        RadioButton(selected = selected, onClick = onSelect)
-        Column(modifier = Modifier.weight(1f).padding(start = 2.dp)) {
-            Text(
-                text = server.displayName,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = TextPrimary,
-            )
+    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 36.dp) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onDetail)
+                .padding(vertical = 4.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                RadioButton(selected = selected, onClick = onSelect)
+                Text(
+                    text = server.displayName,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = TextPrimary,
+                    modifier = Modifier.weight(1f).padding(start = 2.dp),
+                )
+                if (selected && running) {
+                    Text(s.service.running, fontSize = 11.sp, color = OnlineGreen, modifier = Modifier.padding(end = 2.dp))
+                }
+                IconButton(onClick = onDetail) {
+                    Icon(Icons.Filled.Info, contentDescription = t.serverDetail, modifier = Modifier.size(18.dp))
+                }
+                IconButton(onClick = onTest) {
+                    Icon(Icons.Filled.Refresh, contentDescription = t.test, modifier = Modifier.size(18.dp))
+                }
+                IconButton(onClick = onQr) {
+                    Icon(Icons.Filled.Share, contentDescription = s.common.share, modifier = Modifier.size(18.dp))
+                }
+                IconButton(onClick = onEdit) {
+                    Icon(Icons.Filled.Edit, contentDescription = t.editServer, modifier = Modifier.size(18.dp))
+                }
+                IconButton(onClick = onDelete) {
+                    Icon(Icons.Filled.Delete, contentDescription = s.common.delete, modifier = Modifier.size(18.dp))
+                }
+            }
             Text(
                 text = "${server.remoteAddr}:${server.remotePort}",
                 fontSize = 11.sp,
                 color = TextSecondary,
+                modifier = Modifier.padding(start = 38.dp, end = 4.dp),
             )
             if (testResult != null) {
                 Text(
                     text = testResult,
                     fontSize = 11.sp,
                     color = if (testResult == t.testing) TextMuted else MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 38.dp, end = 4.dp),
                 )
             }
-        }
-        if (selected && running) {
-            Text(s.service.running, fontSize = 11.sp, color = OnlineGreen, modifier = Modifier.padding(end = 2.dp))
-        }
-        IconButton(onClick = onTest) {
-            Icon(Icons.Filled.Refresh, contentDescription = t.test, modifier = Modifier.size(20.dp))
-        }
-        IconButton(onClick = onQr) {
-            Icon(Icons.Filled.Share, contentDescription = s.common.share, modifier = Modifier.size(20.dp))
-        }
-        IconButton(onClick = onEdit) {
-            Icon(Icons.Filled.Edit, contentDescription = t.editServer, modifier = Modifier.size(20.dp))
-        }
-        IconButton(onClick = onDelete) {
-            Icon(Icons.Filled.Delete, contentDescription = s.common.delete, modifier = Modifier.size(20.dp))
         }
     }
 }
@@ -1272,6 +1388,62 @@ private suspend fun probeGoogle(localPort: Int): Pair<Boolean, Long> = withConte
         false to 0L
     } finally {
         connection?.disconnect()
+    }
+}
+
+/** 服务器详情页：只读展示配置，右上角可进入编辑。 */
+@Composable
+private fun TrojanServerDetail(
+    server: TrojanServer,
+    onBack: () -> Unit,
+    onEdit: () -> Unit,
+) {
+    val s = LocalAppStrings.current
+    val t = s.trojan
+    BackHandler(onBack = onBack)
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(WxBg)
+            .verticalScroll(rememberScrollState()),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(CardBg)
+                .padding(horizontal = 4.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = s.common.back)
+            }
+            Text(
+                text = t.serverDetail,
+                fontSize = 17.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = TextPrimary,
+                modifier = Modifier.weight(1f),
+            )
+            TextButton(onClick = onEdit) {
+                Text(s.common.edit)
+            }
+        }
+
+        SectionCard(title = t.configTitle) {
+            KeyValueRow(t.serverName, server.displayName)
+            KeyValueRow(t.remoteAddr, server.remoteAddr)
+            KeyValueRow(t.remotePort, server.remotePort.toString())
+            KeyValueRow(t.localAddr, server.localAddr)
+            KeyValueRow(t.localPort, server.localPort.toString())
+            KeyValueRow(
+                t.password,
+                if (server.password.isBlank()) s.common.none else "••••••••",
+            )
+            KeyValueRow(t.sni, server.sni.ifBlank { t.sniHint })
+            KeyValueRow(t.verifyCert, if (server.verifyCert) s.common.yes else s.common.no)
+        }
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
