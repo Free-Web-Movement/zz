@@ -75,7 +75,8 @@ import org.json.JSONObject
 import rs.zz.coin.FwmcApi
 
 private data class SeedRow(
-    val address: String,
+    val address: String, // 后端返回的 ip:port（用于显示）
+    val ip: String, // 纯 IP（用于 deleteSeed 按 Ip 列精确匹配）
     val port: Int,
     val protocol: String,
     val active: Boolean,
@@ -173,9 +174,13 @@ fun PeerContent() {
                 seeds = obj.optJSONArray("seeds")?.let { arr ->
                     (0 until arr.length()).map { i ->
                         val o = arr.getJSONObject(i)
+                        val addr = o.optString("address")
+                        val p = o.optInt("port", 0)
                         SeedRow(
-                            address = o.optString("address"),
-                            port = o.optInt("port", 0),
+                            address = addr,
+                            // address 形如 "ip:port"（IPv6 为 "::1:port"），去除末尾端口得纯 IP
+                            ip = if (p > 0) addr.removeSuffix(":$p") else addr.substringBeforeLast(':'),
+                            port = p,
                             protocol = o.optString("protocol"),
                             active = o.optBoolean("is_active", false),
                             lastSeen = o.optString("last_seen"),
@@ -1600,6 +1605,11 @@ private fun SeedsCard(seeds: List<SeedRow>, onChanged: () -> Unit) {
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     var showAdd by remember { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf<SeedRow?>(null) }
+    var showInner by remember { mutableStateOf(false) }
+
+    // 外网（含 IPv6）为主显，内网为辅显（默认折叠）
+    val externalSeeds = seeds.filter { it.protocol != "inner" }
+    val innerSeeds = seeds.filter { it.protocol == "inner" }
 
     SectionCard(
         title = s.peer.seedServerCount.format(seeds.size),
@@ -1616,38 +1626,51 @@ private fun SeedsCard(seeds: List<SeedRow>, onChanged: () -> Unit) {
         if (seeds.isEmpty()) {
             EmptyHint(s.peer.seedsEmpty)
         } else {
-            seeds.forEach { seed ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                ) {
-                    StatusText(active = seed.active)
-                    Column(modifier = Modifier.weight(1f).padding(start = 8.dp)) {
-                        MonoText(
-                            text = "${seed.address}:${seed.port}",
-                            fontSize = 12,
-                            color = TextPrimary,
-                            maxLines = 1,
-                        )
-                        Text(
-                            text = when (seed.protocol) {
-                                "inner" -> s.server.privateNet
-                                "external" -> s.server.publicNet
-                                "ipv6" -> "IPv6"
-                                else -> seed.protocol
-                            } + if (seed.lastSeen.isNotEmpty()) s.peer.lastActive.format(seed.lastSeen) else "",
-                            fontSize = 10.sp,
-                            color = TextMuted,
-                        )
+            // 外网种子：主显完整行
+            Text(
+                text = s.peer.externalSeedsTitle.format(externalSeeds.size),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = TextSecondary,
+                modifier = Modifier.padding(top = 2.dp, bottom = 2.dp),
+            )
+            if (externalSeeds.isEmpty()) {
+                EmptyHint(s.peer.externalSeedsEmpty)
+            } else {
+                externalSeeds.forEach { seed ->
+                    SeedRowItem(seed = seed, onDelete = { deleteTarget = seed })
+                }
+            }
+
+            // 内网种子：辅显，默认折叠，弱化展示
+            Divider()
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showInner = !showInner }
+                    .padding(vertical = 8.dp),
+            ) {
+                Text(
+                    text = s.peer.innerSeedsTitle.format(innerSeeds.size),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = TextSecondary,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    text = if (showInner) s.peer.hideInnerSeeds else s.peer.showInnerSeeds,
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+            if (showInner) {
+                if (innerSeeds.isEmpty()) {
+                    EmptyHint(s.peer.innerSeedsEmpty)
+                } else {
+                    innerSeeds.forEach { seed ->
+                        SeedRowItem(seed = seed, dimmed = true, onDelete = { deleteTarget = seed })
                     }
-                    Text(
-                        text = s.common.delete,
-                        fontSize = 12.sp,
-                        color = TextSecondary,
-                        modifier = Modifier
-                            .clickable { deleteTarget = seed }
-                            .padding(start = 8.dp, end = 2.dp, top = 6.dp, bottom = 6.dp),
-                    )
                 }
             }
         }
@@ -1667,15 +1690,52 @@ private fun SeedsCard(seeds: List<SeedRow>, onChanged: () -> Unit) {
         AlertDialog(
             onDismissRequest = { deleteTarget = null },
             title = { Text(s.peer.deleteSeed) },
-            text = { Text(s.peer.deleteSeedConfirm.format(target.address, target.port)) },
+            text = { Text(s.peer.deleteSeedConfirm.format(target.ip, target.port)) },
             confirmButton = {
                 TextButton(onClick = {
                     val t = target
                     deleteTarget = null
-                    scope.launch { FwmcApi.deleteSeed(t.address, t.port); onChanged() }
+                    scope.launch { FwmcApi.deleteSeed(t.ip, t.port); onChanged() }
                 }) { Text(s.common.delete, color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = { TextButton(onClick = { deleteTarget = null }) { Text(s.common.cancel) } },
+        )
+    }
+}
+
+@Composable
+private fun SeedRowItem(seed: SeedRow, dimmed: Boolean = false, onDelete: () -> Unit) {
+    val s = LocalAppStrings.current
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+    ) {
+        StatusText(active = seed.active)
+        Column(modifier = Modifier.weight(1f).padding(start = 8.dp)) {
+            MonoText(
+                text = seed.address,
+                fontSize = 12,
+                color = if (dimmed) TextSecondary else TextPrimary,
+                maxLines = 1,
+            )
+            Text(
+                text = when (seed.protocol) {
+                    "inner" -> s.server.privateNet
+                    "external" -> s.server.publicNet
+                    "ipv6" -> "IPv6"
+                    else -> seed.protocol
+                } + if (seed.lastSeen.isNotEmpty()) s.peer.lastActive.format(seed.lastSeen) else "",
+                fontSize = 10.sp,
+                color = TextMuted,
+            )
+        }
+        Text(
+            text = s.common.delete,
+            fontSize = 12.sp,
+            color = TextSecondary,
+            modifier = Modifier
+                .clickable(onClick = onDelete)
+                .padding(start = 8.dp, end = 2.dp, top = 6.dp, bottom = 6.dp),
         )
     }
 }
